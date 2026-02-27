@@ -178,7 +178,7 @@ SUMMARY:`;
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white mb-1">AI Insights Engine</h1>
@@ -253,9 +253,6 @@ SUMMARY:`;
             </div> */}
             <motion.div
               ref={summaryRef}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
               className="p-4 rounded-xl" // Space for PDF capture
             >
               <Markdown remarkPlugins={[remarkGfm]}>{summary}</Markdown>

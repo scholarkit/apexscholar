@@ -15,6 +15,7 @@ import Login from './components/Login';
 import { puterService } from './lib/puter';
 import Explore from './pages/Explore';
 import Kanban from './pages/Kanban';
+import About from './pages/About';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/kanban" element={<Kanban />} />
           <Route path="/insights" element={<Insights />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/about" element={<About />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>

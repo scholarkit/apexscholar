@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, FolderOpen, Lightbulb, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Download, Upload, Telescope, SquareKanban } from 'lucide-react';
+import { Home, BookOpen, FolderOpen, Lightbulb, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Download, Upload, Telescope, SquareKanban, Info } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { puterService, PuterUser } from '../lib/puter';
@@ -100,6 +100,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { path: '/kanban', icon: SquareKanban, label: 'Kanban Board' },
     { path: '/insights', icon: Lightbulb, label: 'Insights' },
     { path: '/analytics', icon: BarChart2, label: 'Analytics' },
+    { path: '/about', icon: Info, label: 'About' }
   ];
 
   const initials = user?.username
@@ -245,7 +246,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-zinc-950 relative">
+      <main className="flex-1 overflow-auto bg-zinc-950 relative custom-scrollbar">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/20 via-zinc-950 to-zinc-950 pointer-events-none" />
         <div className="relative p-8 max-w-6xl mx-auto min-h-full">
           {children}

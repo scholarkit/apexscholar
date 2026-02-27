@@ -242,7 +242,7 @@ export default function Kanban() {
     if (loading) return <div className="text-zinc-500 animate-pulse p-8">Loading board...</div>;
 
     return (
-        <div className="flex flex-col h-full animate-in fade-in duration-500">
+        <div className="flex flex-col h-full">
             <header className="mb-6 shrink-0">
                 <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Kanban Board</h1>
                 <p className="text-zinc-400">Track the progress of your research projects and papers.</p>

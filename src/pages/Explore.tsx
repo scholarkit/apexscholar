@@ -27,7 +27,7 @@ type SourceFilter = 'both' | 'arxiv' | 'openalex';
 // ─── arXiv API ─────────────────────────────────────────────────────────────────
 
 async function searchArxiv(query: string): Promise<Paper[]> {
-    const res = await fetch("/api/arxiv?q="+query);
+    const res = await fetch("/api/arxiv?q=" + query);
     const text = await res.text();
     const xml = new DOMParser().parseFromString(text, 'text/xml');
     const entries = Array.from(xml.querySelectorAll('entry'));
@@ -211,8 +211,30 @@ export default function Explore() {
     const [citingPaper, setCitingPaper] = useState<Paper | null>(null);
     const [activeTab, setActiveTab] = useState<'search' | 'saved'>('search');
 
+    const [recentQueries, setRecentQueries] = useState<string[]>([]);
+    const [recommendations, setRecommendations] = useState<Paper[]>([]);
+    const [loadingRecs, setLoadingRecs] = useState(false);
+
     useEffect(() => {
         puterService.kvGet(KV_KEY).then((data: Paper[] | null) => setSavedPapers(data || []));
+
+        puterService.kvGet('research_explore_history').then((data: string[] | null) => {
+            const history = data || [];
+            setRecentQueries(history);
+            if (history.length > 0) {
+                const pick = history[Math.floor(Math.random() * history.length)];
+                setLoadingRecs(true);
+                Promise.all([
+                    searchArxiv(pick).catch(() => []),
+                    searchOpenAlex(pick).catch(() => [])
+                ]).then(batches => {
+                    const merged = batches.flat();
+                    merged.sort(() => Math.random() - 0.5); // Shuffle for variety
+                    setRecommendations(merged.slice(0, 4)); // Show 4 recommendations
+                    setLoadingRecs(false);
+                });
+            }
+        });
     }, []);
 
     const savedIds = new Set(savedPapers.map(p => p.id));
@@ -223,6 +245,12 @@ export default function Explore() {
         setLoading(true);
         setError(null);
         setResults([]);
+
+        // Save history
+        const updatedHistory = [query, ...recentQueries.filter(q => q !== query)].slice(0, 5);
+        setRecentQueries(updatedHistory);
+        puterService.kvSet('research_explore_history', updatedHistory).catch(console.error);
+
         try {
             const fetchers: Promise<Paper[]>[] = [];
             if (source !== 'openalex') fetchers.push(searchArxiv(query).catch(() => []));
@@ -347,12 +375,42 @@ export default function Explore() {
                         </div>
                     )}
 
-                    {/* Empty state */}
+                    {/* Empty state & Recommendations */}
                     {!loading && !error && results.length === 0 && (
-                        <div className="text-center py-20 border border-dashed border-white/10 rounded-2xl bg-zinc-900/20">
-                            <Telescope className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-white mb-2">Ready to explore</h3>
-                            <p className="text-zinc-500 max-w-sm mx-auto text-sm">Search for research papers from arXiv and OpenAlex. Import any paper into your knowledge base.</p>
+                        <div className="space-y-8">
+                            <div className="text-center py-16 border border-dashed border-white/10 rounded-2xl bg-zinc-900/20">
+                                <Telescope className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
+                                <h3 className="text-lg font-medium text-white mb-2">Ready to explore</h3>
+                                <p className="text-zinc-500 max-w-sm mx-auto text-sm">Search for research papers from arXiv and OpenAlex. Import any paper into your knowledge base.</p>
+                            </div>
+
+                            {loadingRecs ? (
+                                <div className="space-y-4 animate-pulse">
+                                    <div className="h-6 w-48 bg-zinc-800 rounded"></div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {[1, 2].map(i => <div key={i} className="h-48 bg-zinc-900 border border-white/5 rounded-2xl"></div>)}
+                                    </div>
+                                </div>
+                            ) : recommendations.length > 0 ? (
+                                <div>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Sparkles className="w-4 h-4 text-amber-400" />
+                                        <h3 className="text-white font-medium">Recommended based on your searches</h3>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {recommendations.map(paper => (
+                                            <PaperCard
+                                                key={paper.id}
+                                                paper={paper}
+                                                isSaved={savedIds.has(paper.id)}
+                                                onImport={handleImport}
+                                                onRemove={handleRemove}
+                                                onCite={setCitingPaper}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : null}
                         </div>
                     )}
 

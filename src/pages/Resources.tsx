@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Upload, FileText, Image as ImageIcon, File, Trash2, Download, Search, FolderOpen } from 'lucide-react';
+import { Upload, FileText, Image as ImageIcon, File, Trash2, Download, Search, FolderOpen, Quote } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Resource, puterService } from '../lib/puter';
+import CitationModal from '../components/CitationModal';
 
 export default function Resources() {
   const [resources, setResources] = useState<Resource[]>([]);
@@ -9,6 +10,7 @@ export default function Resources() {
   const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [downloadUrls, setDownloadUrls] = useState<Record<string, string>>({});
+  const [citingResource, setCitingResource] = useState<Resource | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const UPLOADS_DIR = 'research-dashboard/uploads';
@@ -167,28 +169,44 @@ export default function Resources() {
                 </div>
               </div>
 
-              <div className="mt-auto pt-4 border-t border-white/5 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <a
                   href={downloadUrls[resource.id] || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 font-medium"
+                  className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-medium"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-3.5 h-3.5" />
                   Download
                 </a>
                 <button
+                  onClick={() => setCitingResource(resource)}
+                  className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 px-2 py-1.5 rounded-lg transition-colors"
+                  title="Cite this resource"
+                >
+                  <Quote className="w-3.5 h-3.5" />
+                  Cite
+                </button>
+                <button
                   onClick={() => handleDelete(resource.id, resource.path)}
-                  className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
+                  className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
                   title="Delete resource"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {citingResource && (
+        <CitationModal
+          resource={citingResource}
+          downloadUrl={downloadUrls[citingResource.id] || ''}
+          onClose={() => setCitingResource(null)}
+        />
+      )}
     </div>
   );
 }

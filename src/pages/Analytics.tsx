@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { format, parseISO, subDays, eachDayOfInterval } from 'date-fns';
-import { Entry } from '../db';
+import { Entry, puterService } from '../lib/puter';
 import { Activity, Calendar, GitCommit } from 'lucide-react';
 import { parseEntryDate } from '../utils/dateUtils';
 
@@ -11,12 +11,10 @@ export default function Analytics() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '3m' | 'all'>('30d');
 
   useEffect(() => {
-    fetch('/api/entries')
-      .then(res => res.json())
-      .then(data => {
-        setEntries(data);
-        setLoading(false);
-      });
+    puterService.kvGet('research_entries').then((data: Entry[] | null) => {
+      setEntries(data || []);
+      setLoading(false);
+    });
   }, []);
 
   if (loading) return <div className="text-zinc-500 animate-pulse">Loading analytics...</div>;
@@ -93,8 +91,8 @@ export default function Analytics() {
                   key={r.id}
                   onClick={() => setTimeRange(r.id as any)}
                   className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${timeRange === r.id
-                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                    ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                    : 'text-zinc-500 hover:text-zinc-300'
                     }`}
                 >
                   {r.label}

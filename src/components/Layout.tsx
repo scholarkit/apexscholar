@@ -1,72 +1,110 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, FolderOpen, Lightbulb, BarChart2, Download, Upload, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
+import { Home, BookOpen, FolderOpen, Lightbulb, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Download, Upload, Telescope, SquareKanban } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { puterService, PuterUser } from '../lib/puter';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const restoreInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 1024);
+  const [user, setUser] = useState<PuterUser | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setIsCollapsed(true);
-      }
+      if (window.innerWidth < 1024) setIsCollapsed(true);
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    puterService.getUser().then(setUser);
+  }, []);
+
+  const handleSignOut = async () => {
+    if (!confirm('Are you sure you want to sign out?')) return;
+    setSigningOut(true);
+    await puterService.signOut();
+    window.location.reload();
+  };
+
+  const handleBackup = async () => {
+    try {
+      const [entries, resources, insights, knowledgebase, kanban] = await Promise.all([
+        puterService.kvGet('research_entries'),
+        puterService.kvGet('research_resources'),
+        puterService.kvGet('research_insights'),
+        puterService.kvGet('research_knowledgebase'),
+        puterService.kvGet('research_kanban'),
+      ]);
+      const backup = {
+        entries: entries || [],
+        resources: resources || [],
+        insights: insights || [],
+        knowledgebase: knowledgebase || [],
+        kanban: kanban || [],
+        exportedAt: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `research-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Backup failed', err);
+      alert('Failed to create backup.');
+    }
+  };
+
+  const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!confirm('Restore this backup? This will overwrite your current data.')) {
+      e.target.value = '';
+      return;
+    }
+    try {
+      const text = await file.text();
+      const backup = JSON.parse(text);
+      await Promise.all([
+        backup.entries && puterService.kvSet('research_entries', backup.entries),
+        backup.resources && puterService.kvSet('research_resources', backup.resources),
+        backup.insights && puterService.kvSet('research_insights', backup.insights),
+        backup.knowledgebase && puterService.kvSet('research_knowledgebase', backup.knowledgebase),
+        backup.kanban && puterService.kvSet('research_kanban', backup.kanban),
+      ]);
+      alert('Backup restored! Reloading...');
+      window.location.reload();
+    } catch (err) {
+      console.error('Restore failed', err);
+      alert('Failed to restore backup. Make sure the file is a valid Research Pro backup.');
+    } finally {
+      e.target.value = '';
+    }
+  };
 
   const navItems = [
     { path: '/', icon: Home, label: 'Dashboard' },
     { path: '/journal', icon: BookOpen, label: 'Journal' },
     { path: '/resources', icon: FolderOpen, label: 'Resources' },
+    { path: '/explore', icon: Telescope, label: 'Explore' },
+    { path: '/kanban', icon: SquareKanban, label: 'Kanban Board' },
     { path: '/insights', icon: Lightbulb, label: 'Insights' },
     { path: '/analytics', icon: BarChart2, label: 'Analytics' },
   ];
 
-  const handleBackup = () => {
-    window.location.href = '/api/backup';
-  };
-
-  const handleRestore = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!confirm('Are you sure you want to restore this backup? This will overwrite all current data.')) {
-      event.target.value = '';
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch('/api/restore', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        alert('Backup restored successfully! The page will now reload.');
-        window.location.reload();
-      } else {
-        const error = await response.json();
-        alert(`Failed to restore backup: ${error.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Restore error:', error);
-      alert('An error occurred while restoring the backup.');
-    } finally {
-      event.target.value = '';
-    }
-  };
+  const initials = user?.username
+    ? user.username.slice(0, 2).toUpperCase()
+    : '?';
 
   return (
     <div className="flex h-screen bg-zinc-950 text-zinc-50 font-sans selection:bg-indigo-500/30 overflow-hidden">
@@ -77,14 +115,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           isCollapsed ? "w-20" : "w-64"
         )}
       >
-        {/* Toggle Button */}
+        {/* Collapse Toggle */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-10 w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white border border-white/10 shadow-lg shadow-indigo-500/40 hover:bg-indigo-500 transition-colors z-50"
+          className="absolute -right-3 top-15 w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white border border-white/10 shadow-lg shadow-indigo-500/40 hover:bg-indigo-500 transition-colors z-50"
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
 
+        {/* Logo */}
         <div className={cn("p-6 flex items-center", isCollapsed ? "justify-center" : "gap-2")}>
           <div className="w-8 h-8 rounded-lg bg-indigo-500 flex-shrink-0 flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <Lightbulb className="w-5 h-5 text-white" />
@@ -96,6 +135,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
+        {/* Nav */}
         <nav className="flex-1 px-3 space-y-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -120,38 +160,87 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className={cn("p-4 border-t border-white/10 space-y-2", isCollapsed && "px-3")}>
+        {/* Backup / Restore */}
+        <div className={cn("px-4 pb-2 space-y-1.5", isCollapsed && "flex flex-col items-center px-3")}>
+          {/* hidden file input */}
+          <input
+            ref={restoreInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleRestore}
+            className="hidden"
+          />
           <button
             onClick={handleBackup}
-            title={isCollapsed ? "Backup Data" : undefined}
+            title="Export Backup"
             className={cn(
-              "w-full flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium transition-colors",
-              isCollapsed ? "h-12" : "gap-2 px-4 py-2"
+              "flex items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-colors",
+              isCollapsed ? "w-10 h-10 justify-center" : "w-full gap-2 px-3 py-2"
             )}
           >
-            <Download className="w-4 h-4" />
-            {!isCollapsed && <span>Backup</span>}
+            <Download className="w-4 h-4 flex-shrink-0" />
+            {!isCollapsed && <span>Export Backup</span>}
           </button>
+          <button
+            onClick={() => restoreInputRef.current?.click()}
+            title="Import Backup"
+            className={cn(
+              "flex items-center bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 hover:text-indigo-300 rounded-lg text-xs font-medium transition-colors",
+              isCollapsed ? "w-10 h-10 justify-center" : "w-full gap-2 px-3 py-2"
+            )}
+          >
+            <Upload className="w-4 h-4 flex-shrink-0" />
+            {!isCollapsed && <span>Import Backup</span>}
+          </button>
+        </div>
 
-          <div className="relative">
-            <input
-              type="file"
-              accept=".zip"
-              onChange={handleRestore}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              id="restore-upload"
-            />
-            <button
-              title={isCollapsed ? "Restore Backup" : undefined}
-              className={cn(
-                "z-10 w-full flex items-center justify-center bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 rounded-lg text-sm font-medium transition-colors",
-                isCollapsed ? "h-12" : "gap-2 px-4 py-2"
-              )}
-            >
-              <Upload className="w-4 h-4" />
-              {!isCollapsed && <span>Restore</span>}
-            </button>
-          </div>
+        {/* User Profile Footer */}
+        <div className={cn("p-4 border-t border-white/10", isCollapsed ? "flex flex-col items-center gap-3" : "space-y-3")}>
+          {isCollapsed ? (
+            <>
+              {/* Avatar only when collapsed */}
+              <div
+                title={user?.username || 'User'}
+                className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0"
+              >
+                {user ? initials : <User className="w-4 h-4" />}
+              </div>
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                title="Sign Out"
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-400/10 border border-transparent hover:border-red-400/20 transition-all"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Full profile card */}
+              <div className="flex items-center gap-3 rounded-xl animate-in fade-in slide-in-from-left-2 duration-300">
+                <div className="w-9 h-9 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
+                  {user ? initials : <User className="w-4 h-4" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white truncate">
+                    {user?.username || 'Loading...'}
+                  </p>
+                  <p className="text-xs text-zinc-500 truncate">Puter Account</p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-400/10 border border-transparent hover:border-red-400/20 transition-all disabled:opacity-50"
+              >
+                <LogOut className="w-4 h-4 flex-shrink-0" />
+                <span className="animate-in fade-in slide-in-from-left-1 duration-300">
+                  {signingOut ? 'Signing out...' : 'Sign Out'}
+                </span>
+              </button>
+            </>
+          )}
         </div>
       </aside>
 

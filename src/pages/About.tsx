@@ -1,4 +1,4 @@
-import { Heart, Coffee, CreditCard, Sparkles, Code2, Globe } from 'lucide-react';
+import { Heart, Coffee, CreditCard, Sparkles, Code2, Globe, Mail } from 'lucide-react';
 
 export default function About() {
     return (
@@ -47,11 +47,20 @@ export default function About() {
                         <p>
                             I spend my nights and weekends designing and coding applications that solve real-world frustrations. When I'm not writing code, I'm usually reading papers, exploring new web architectures, or drinking absurd amounts of coffee.
                         </p>
-                        <div className="pt-4 flex items-center gap-3">
-                            <a href="https://github.com/sathwik-14" target="_blank" rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 text-sm font-medium text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 px-4 py-2 rounded-full transition-colors">
-                                <Globe className="w-4 h-4" /> GitHub Profile
-                            </a>
+                        <div className="pt-4 flex flex-col gap-3">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <a href="https://github.com/sathwik-14" target="_blank" rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 text-sm font-medium text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 px-4 py-2 rounded-full transition-colors">
+                                    <Globe className="w-4 h-4" /> GitHub Profile
+                                </a>
+                                <a href="mailto:kywagle@gmail.com"
+                                    className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 px-4 py-2 rounded-full transition-colors">
+                                    <Mail className="w-4 h-4" /> kywagle@gmail.com
+                                </a>
+                            </div>
+                            <p className="text-xs text-zinc-500 mt-1">
+                                Feel free to reach out for any issues, bugs, or feature requests!
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -86,13 +95,13 @@ export default function About() {
                     </button>
 
                     {/* Razorpay */}
-                    <a href="#" className="group flex flex-col items-center p-6 bg-zinc-900 border border-white/5 hover:border-[#0288D1]/50 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#0288D1]/10">
+                    {/* <a href="#" className="group flex flex-col items-center p-6 bg-zinc-900 border border-white/5 hover:border-[#0288D1]/50 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#0288D1]/10">
                         <div className="w-12 h-12 bg-[#0288D1]/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <CreditCard className="w-6 h-6 text-[#0288D1]" />
                         </div>
                         <h3 className="text-white font-semibold mb-1">Razorpay</h3>
                         <p className="text-xs text-zinc-400">Secure payments and subscriptions in INR.</p>
-                    </a>
+                    </a> */}
 
                 </div>
             </section>

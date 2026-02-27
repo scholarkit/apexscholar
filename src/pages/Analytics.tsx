@@ -17,7 +17,16 @@ export default function Analytics() {
     });
   }, []);
 
-  if (loading) return <div className="text-zinc-500 animate-pulse">Loading analytics...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-[100dvh] flex items-center justify-center h-full">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+          <p className="text-zinc-500 font-medium">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Generate date range based on selection
   const today = new Date();

@@ -152,10 +152,11 @@ export default function Settings() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {usage.appTotals && Object.entries(usage.appTotals).map(([id, data]: [string, any]) => {
                                     const isApex = id !== 'others';
+                                    if (!isApex) return null;
                                     return (
-                                        <div key={id} className={`p-4 rounded-xl border ${isApex ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-zinc-900/50 border-white/5'} flex flex-col gap-1`}>
+                                        <div key={id} className={`p-4 rounded-xl border bg-indigo-500/10 border-indigo-500/20 flex flex-col gap-1`}>
                                             <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">
-                                                {isApex ? 'Apex Scholar Usage' : 'Other Connected Apps'}
+                                                Apex Scholar Usage
                                             </span>
                                             <div className="flex items-baseline gap-2">
                                                 <span className="text-2xl font-bold text-white">{data?.total?.toLocaleString() || 0}</span>
@@ -165,51 +166,31 @@ export default function Settings() {
                                         </div>
                                     );
                                 })}
+
+                                {/* Allowance Info */}
+                                {usage.allowanceInfo && (
+                                    <div className="p-4 rounded-xl border border-white/5 bg-zinc-900/20 flex flex-col gap-3">
+                                        <div className="flex justify-between items-end">
+                                            <h3 className="text-sm font-medium text-white">Monthly Resource Allowance</h3>
+                                            <span className="text-xs text-zinc-400">
+                                                {Math.round(((usage.allowanceInfo.monthUsageAllowance - usage.allowanceInfo.remaining) / usage.allowanceInfo.monthUsageAllowance) * 100)}% Consumed
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-zinc-800 rounded-full h-2">
+                                            <div
+                                                className="bg-indigo-500 h-2 rounded-full transition-all duration-700"
+                                                style={{
+                                                    width: `${Math.min(100, Math.max(0, ((usage.allowanceInfo.monthUsageAllowance - usage.allowanceInfo.remaining) / usage.allowanceInfo.monthUsageAllowance) * 100))}%`
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="flex justify-between text-xs text-zinc-500">
+                                            <span>Total Used: {(usage.allowanceInfo.monthUsageAllowance - usage.allowanceInfo.remaining).toLocaleString()} units</span>
+                                            <span>Monthly Limit: {usage.allowanceInfo.monthUsageAllowance.toLocaleString()} units</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-
-                            {/* Allowance Info */}
-                            {usage.allowanceInfo && (
-                                <div className="p-4 rounded-xl border border-white/5 bg-zinc-900/20 flex flex-col gap-3">
-                                    <div className="flex justify-between items-end">
-                                        <h3 className="text-sm font-medium text-white">Monthly Resource Allowance</h3>
-                                        <span className="text-xs text-zinc-400">
-                                            {Math.round(((usage.allowanceInfo.monthUsageAllowance - usage.allowanceInfo.remaining) / usage.allowanceInfo.monthUsageAllowance) * 100)}% Consumed
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-zinc-800 rounded-full h-2">
-                                        <div
-                                            className="bg-indigo-500 h-2 rounded-full transition-all duration-700"
-                                            style={{
-                                                width: `${Math.min(100, Math.max(0, ((usage.allowanceInfo.monthUsageAllowance - usage.allowanceInfo.remaining) / usage.allowanceInfo.monthUsageAllowance) * 100))}%`
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="flex justify-between text-xs text-zinc-500">
-                                        <span>Total Used: {(usage.allowanceInfo.monthUsageAllowance - usage.allowanceInfo.remaining).toLocaleString()} units</span>
-                                        <span>Monthly Limit: {usage.allowanceInfo.monthUsageAllowance.toLocaleString()} units</span>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Detailed Usage */}
-                            {(detailedUsage || usage.usage) && (
-                                <div>
-                                    <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">
-                                        Technical Resource Breakdown {detailedUsage ? '(Apex Scholar)' : '(Global)'}
-                                    </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        {Object.entries(detailedUsage?.usage || detailedUsage || usage.usage).filter(([key]) => key !== 'total').map(([key, value]: [string, any]) => (
-                                            <div key={key} className="bg-zinc-900/30 rounded-xl border border-white/5 p-3 flex flex-col gap-1.5 grayscale hover:grayscale-0 transition-all opacity-70 hover:opacity-100">
-                                                <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider truncate" title={key}>{key.split(':').slice(-2).join(' • ')}</span>
-                                                <div className="flex justify-between items-baseline mt-1">
-                                                    <span className="text-xs font-semibold text-white">{value?.units?.toLocaleString() || 0} <span className="text-[10px] font-normal text-zinc-500">units</span></span>
-                                                    <span className="text-[10px] text-zinc-500">{value?.count?.toLocaleString() || 0} reqs</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     ) : (
                         <p className="text-sm text-zinc-500 py-4">Usage data not available.</p>

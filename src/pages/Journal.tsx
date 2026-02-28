@@ -231,7 +231,7 @@ export default function Journal() {
                       {entry.entry_type}
                     </span>
                     <span className="text-sm text-zinc-500 font-medium">
-                      {entry.entry_type === 'Weekly Diary' ? entry.date : format(parseEntryDate(entry.date), 'MMMM d, yyyy • h:mm a')}
+                      {entry.entry_type === 'Weekly Diary' ? entry.date : format(parseEntryDate(entry.date), 'MMMM d, yyyy')}
                     </span>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -97,6 +97,46 @@ export default function Settings() {
 
             <div className="space-y-6">
                 <section className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6">
+                    <h2 className="text-xl font-semibold text-white mb-4">Data Management</h2>
+                    <div className="space-y-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-white/5">
+                            <div>
+                                <h3 className="text-sm font-medium text-white mb-1">Export Backup</h3>
+                                <p className="text-xs text-zinc-400">Download a JSON file containing all your entries, resources, insights, kanban, and knowledgebase.</p>
+                            </div>
+                            <button
+                                onClick={handleBackup}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-white transition-colors flex-shrink-0"
+                            >
+                                <Download className="w-4 h-4" />
+                                Export Backup
+                            </button>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-white/5">
+                            <div>
+                                <h3 className="text-sm font-medium text-white mb-1">Import Backup</h3>
+                                <p className="text-xs text-zinc-400">Restore your data from a previously exported JSON backup file. This will overwrite current data.</p>
+                            </div>
+                            <input
+                                ref={restoreInputRef}
+                                type="file"
+                                accept=".json"
+                                onChange={handleRestore}
+                                className="hidden"
+                            />
+                            <button
+                                onClick={() => restoreInputRef.current?.click()}
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 hover:text-indigo-300 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
+                            >
+                                <Upload className="w-4 h-4" />
+                                Import Backup
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Activity className="w-5 h-5 text-indigo-400" />
                         <h2 className="text-xl font-semibold text-white">Monthly Usage</h2>
@@ -174,46 +214,6 @@ export default function Settings() {
                     ) : (
                         <p className="text-sm text-zinc-500 py-4">Usage data not available.</p>
                     )}
-                </section>
-
-                <section className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6">
-                    <h2 className="text-xl font-semibold text-white mb-4">Data Management</h2>
-                    <div className="space-y-4">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-white/5">
-                            <div>
-                                <h3 className="text-sm font-medium text-white mb-1">Export Backup</h3>
-                                <p className="text-xs text-zinc-400">Download a JSON file containing all your entries, resources, insights, kanban, and knowledgebase.</p>
-                            </div>
-                            <button
-                                onClick={handleBackup}
-                                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-white transition-colors flex-shrink-0"
-                            >
-                                <Download className="w-4 h-4" />
-                                Export Backup
-                            </button>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-white/5">
-                            <div>
-                                <h3 className="text-sm font-medium text-white mb-1">Import Backup</h3>
-                                <p className="text-xs text-zinc-400">Restore your data from a previously exported JSON backup file. This will overwrite current data.</p>
-                            </div>
-                            <input
-                                ref={restoreInputRef}
-                                type="file"
-                                accept=".json"
-                                onChange={handleRestore}
-                                className="hidden"
-                            />
-                            <button
-                                onClick={() => restoreInputRef.current?.click()}
-                                className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 hover:text-indigo-300 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
-                            >
-                                <Upload className="w-4 h-4" />
-                                Import Backup
-                            </button>
-                        </div>
-                    </div>
                 </section>
             </div>
         </div>

@@ -56,7 +56,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `research-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `apex-scholar-backup-${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -86,7 +86,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       window.location.reload();
     } catch (err) {
       console.error('Restore failed', err);
-      alert('Failed to restore backup. Make sure the file is a valid Research Pro backup.');
+      alert('Failed to restore backup. Make sure the file is a valid Apex Scholar backup.');
     } finally {
       e.target.value = '';
     }
@@ -119,7 +119,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Collapse Toggle */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-15 w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white border border-white/10 shadow-lg shadow-indigo-500/40 hover:bg-indigo-500 transition-colors z-50"
+          className="absolute -right-3 top-12 w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white border border-white/10 shadow-lg shadow-indigo-500/40 hover:bg-indigo-500 transition-colors z-50"
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
@@ -131,7 +131,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
           {!isCollapsed && (
             <h1 className="text-xl font-semibold tracking-tight text-white animate-in fade-in slide-in-from-left-2 duration-300">
-              Research Pro
+              Apex Scholar
             </h1>
           )}
         </div>

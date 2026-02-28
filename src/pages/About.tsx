@@ -10,7 +10,7 @@ export default function About() {
                 </div>
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white">About the Project</h1>
                 <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
-                    Research Dashboard Pro is a passion project built to democratize and accelerate academic research.
+                    Apex Scholar is a passion project built to democratize and accelerate academic research.
                 </p>
             </header>
 
@@ -26,7 +26,7 @@ export default function About() {
                             Academic tools are often scattered, outdated, or prohibitively expensive. Researchers waste countless hours juggling PDFs, formatting citations, and switching between completely disconnected applications.
                         </p>
                         <p>
-                            <strong>Research Dashboard Pro</strong> is my attempt to fix that. I wanted to build a single, beautiful, cohesive workspace that leverages modern web technologies and AI.
+                            <strong>Apex Scholar</strong> is my attempt to fix that. I wanted to build a single, beautiful, cohesive workspace that leverages modern web technologies and AI.
                         </p>
                         <p>
                             By keeping it open and running mostly local/browser-first (via Puter.js), your data remains yours, and the friction of discovery, writing, and analysis is dramatically reduced.

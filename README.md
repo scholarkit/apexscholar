@@ -4,7 +4,7 @@
 
 ## Production
 
-[Live Demo](https://puter.com/app/research-dashboard-pro)
+[Live Demo](https://apex-scholar.vercel.app)
 
 ## Features
 

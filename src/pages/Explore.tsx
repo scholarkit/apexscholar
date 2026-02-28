@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
     Search, BookOpen, Globe, Sparkles, Download, Quote, BookMarked,
-    Calendar, Users, Hash, ExternalLink, Loader2, AlertCircle, X, Bookmark, CheckCircle2, Telescope, Library
+    Calendar, Users, Hash, ExternalLink, Loader2, AlertCircle, X, Bookmark, CheckCircle2, Telescope, Library, GraduationCap
 } from 'lucide-react';
 import { puterService } from '../lib/puter';
 import { CitationMetadata, formatCitation } from '../lib/citationPipeline';
@@ -18,11 +18,11 @@ interface Paper {
     doi?: string;
     url?: string;
     journal?: string;
-    source: 'arxiv' | 'openalex' | 'semanticscholar';
+    source: 'arxiv' | 'openalex' | 'semanticscholar' | 'googlescholar';
     saved?: boolean;
 }
 
-type SourceFilter = 'all' | 'arxiv' | 'openalex' | 'semanticscholar';
+type SourceFilter = 'all' | 'arxiv' | 'openalex' | 'semanticscholar' | 'googlescholar';
 
 // ─── arXiv API ─────────────────────────────────────────────────────────────────
 
@@ -108,6 +108,49 @@ async function searchSemanticScholar(query: string): Promise<Paper[]> {
         return [];
     }
 }
+// ─── Google Scholar API ────────────────────────────────────────────────────────
+
+async function searchGoogleScholar(query: string): Promise<Paper[]> {
+    try {
+        const res = await fetch("/api/scholar?q=" + encodeURIComponent(query));
+        if (!res.ok) return [];
+        const data = await res.json();
+        return (data.organic_results || []).map((w: any) => {
+            const pubInfo = w.publication_info?.summary || "";
+            const parts = pubInfo.split(" - ");
+            let authors: string[] = [];
+            let year = "";
+            let journal = "";
+
+            if (parts.length > 0) {
+                authors = parts[0].split(",").map((a: string) => a.trim().replace(/…$/, "").trim()).filter(Boolean);
+            }
+            if (parts.length > 1) {
+                const journalYear = parts[1];
+                const yearMatch = journalYear.match(/\b(19|20)\d{2}\b/);
+                if (yearMatch) {
+                    year = yearMatch[0];
+                    journal = journalYear.replace(year, "").replace(/,\s*$/, "").trim();
+                } else {
+                    journal = journalYear;
+                }
+            }
+
+            return {
+                id: `gs:${w.result_id}`,
+                title: w.title || 'Untitled',
+                authors: authors,
+                year: year,
+                abstract: w.snippet || '',
+                url: w.link,
+                journal: journal,
+                source: 'googlescholar' as const,
+            };
+        });
+    } catch {
+        return [];
+    }
+}
 
 // ─── Helper ────────────────────────────────────────────────────────────────────
 
@@ -144,14 +187,17 @@ function PaperCard({ paper, isSaved, onImport, onRemove, onCite }: PaperCardProp
             {/* Source badge + year */}
             <div className="flex items-center justify-between gap-2">
                 <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${paper.source === 'arxiv' ? 'text-orange-400 bg-orange-500/10 border-orange-500/20' :
-                        paper.source === 'openalex' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' :
+                    paper.source === 'openalex' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' :
+                        paper.source === 'googlescholar' ? 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' :
                             'text-teal-400 bg-teal-500/10 border-teal-500/20'
                     }`}>
                     {paper.source === 'arxiv' ? <Sparkles className="w-2.5 h-2.5" /> :
                         paper.source === 'openalex' ? <Globe className="w-2.5 h-2.5" /> :
-                            <Library className="w-2.5 h-2.5" />}
+                            paper.source === 'googlescholar' ? <GraduationCap className="w-2.5 h-2.5" /> :
+                                <Library className="w-2.5 h-2.5" />}
                     {paper.source === 'arxiv' ? 'arXiv' :
-                        paper.source === 'openalex' ? 'OpenAlex' : 'Semantic Scholar'}
+                        paper.source === 'openalex' ? 'OpenAlex' :
+                            paper.source === 'googlescholar' ? 'Google Scholar' : 'Semantic Scholar'}
                 </span>
                 <span className="text-xs text-zinc-500 flex items-center gap-1"><Calendar className="w-3 h-3" />{paper.year || '—'}</span>
             </div>
@@ -257,7 +303,8 @@ export default function Explore() {
                 Promise.all([
                     searchArxiv(pick).catch(() => []),
                     searchOpenAlex(pick).catch(() => []),
-                    searchSemanticScholar(pick).catch(() => [])
+                    searchSemanticScholar(pick).catch(() => []),
+                    searchGoogleScholar(pick).catch(() => [])
                 ]).then(batches => {
                     const merged = batches.flat();
                     merged.sort(() => Math.random() - 0.5); // Shuffle for variety
@@ -287,6 +334,7 @@ export default function Explore() {
             if (source === 'all' || source === 'arxiv') fetchers.push(searchArxiv(query).catch(() => []));
             if (source === 'all' || source === 'openalex') fetchers.push(searchOpenAlex(query).catch(() => []));
             if (source === 'all' || source === 'semanticscholar') fetchers.push(searchSemanticScholar(query).catch(() => []));
+            if (source === 'all' || source === 'googlescholar') fetchers.push(searchGoogleScholar(query).catch(() => []));
             const batches = await Promise.all(fetchers);
             const merged = batches.flat();
             // Sort by year desc
@@ -366,13 +414,13 @@ export default function Explore() {
                             )}
                         </div>
 
-                        <div className="flex bg-zinc-900 border border-white/10 rounded-xl p-1 gap-1">
-                            {(['all', 'arxiv', 'openalex', 'semanticscholar'] as SourceFilter[]).map(s => (
+                        <div className="flex flex-wrap bg-zinc-900 border border-white/10 rounded-xl p-1 gap-1">
+                            {(['all', 'arxiv', 'openalex', 'semanticscholar', 'googlescholar'] as SourceFilter[]).map(s => (
                                 <button key={s} type="button" onClick={() => setSource(s)}
                                     className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all capitalize ${source === s ? 'bg-indigo-600 text-white' : 'text-zinc-500 hover:text-zinc-300'
                                         }`}
                                 >
-                                    {s === 'all' ? 'All Sources' : s === 'arxiv' ? 'arXiv' : s === 'openalex' ? 'OpenAlex' : 'Semantic Scholar'}
+                                    {s === 'all' ? 'All Sources' : s === 'arxiv' ? 'arXiv' : s === 'openalex' ? 'OpenAlex' : s === 'googlescholar' ? 'Google Scholar' : 'Semantic Scholar'}
                                 </button>
                             ))}
                         </div>

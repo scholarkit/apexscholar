@@ -29,6 +29,22 @@ async function startServer() {
     }
   });
 
+  app.get("/api/scholar", async (req, res) => {
+    try {
+      const q: any = req.query.q || "";
+      const apiKey = process.env.SERPAPI_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "SERPAPI_API_KEY missing in .env" });
+      }
+      const url = `https://serpapi.com/search.json?engine=google_scholar&q=${encodeURIComponent(q)}&api_key=${apiKey}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ error: "Google Scholar fetch failed" });
+    }
+  });
+
   // 2. Then, define the Vite/Static fallback logic
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

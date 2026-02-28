@@ -18,11 +18,11 @@
 ## Features
 
 1. Structured Data Entry
-2. AI-Powered Analysis
-3. Interactive Visualizations
+2. Unified Papers Explorer (ArXiv, Semantic Scholar, openAlex, Google Scholar)
+3. Knowledge Base & Gap Identification
 4. Backup & Restore
 5. Citation Engine
-6. Unified Papers Explorer (ArXiv, Semantic Scholar, openAlex, Google Scholar)
+6. AI-Powered Analysis
 
 ## Roadmap
 

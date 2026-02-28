@@ -1,11 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
 import {
     Search, BookOpen, Globe, Sparkles, Download, Quote, BookMarked,
-    Calendar, Users, Hash, ExternalLink, Loader2, AlertCircle, X, Bookmark, CheckCircle2, Telescope, Library, GraduationCap
+    Calendar, Users, Hash, ExternalLink, Loader2, AlertCircle, X, Bookmark, CheckCircle2, Telescope, Library, GraduationCap, Lightbulb, Network, ChevronDown
 } from 'lucide-react';
+import ForceGraph2D from 'react-force-graph-2d';
+import ReactMarkdown from 'react-markdown';
 import { puterService } from '../lib/puter';
 import { CitationMetadata, formatCitation } from '../lib/citationPipeline';
 import QuickCiteModal from '../components/QuickCiteModal';
+import { useCallback, useEffect, useState } from 'react';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+// ─── Constants ─────────────────────────────────────────────────────────────────
+const INSIGHTS_KV_KEY = 'research_paper_insights';
+const KG_KV_KEY = 'research_knowledge_graph';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -20,6 +28,42 @@ interface Paper {
     journal?: string;
     source: 'arxiv' | 'openalex' | 'semanticscholar' | 'googlescholar';
     saved?: boolean;
+}
+
+export interface PaperInsight {
+    paperId: string;
+    problem: string;
+    task: string;
+    domain: string;
+    method: string;
+    keyIdeas: string[];
+    assumptions: string[];
+    limitations: string[];
+    contributions: string[];
+    datasets: string[];
+    metrics: string[];
+    futureWork: string[];
+    confidence: number;
+    userEdited?: boolean;
+}
+
+export interface KGNode {
+    id: string;
+    type: 'problem' | 'method' | 'dataset' | 'metric' | 'domain' | 'idea';
+    label: string;
+    paperIds: string[];
+}
+
+export interface KGEdge {
+    id: string;
+    source: string;
+    target: string;
+    relation: 'uses' | 'improves' | 'evaluates' | 'applies_to';
+}
+
+export interface KGGraph {
+    nodes: KGNode[];
+    edges: KGEdge[];
 }
 
 type SourceFilter = 'all' | 'arxiv' | 'openalex' | 'semanticscholar' | 'googlescholar';
@@ -167,20 +211,417 @@ function paperToMeta(paper: Paper): CitationMetadata {
     };
 }
 
+// ─── Insight Extraction Logic ──────────────────────────────────────────────────
+
+export const INSIGHT_PROMPT = `
+You are a research assistant.
+
+Extract structured research insights ONLY from the abstract.
+
+Return STRICT JSON.
+
+{
+  "problem": "",
+  "task": "",
+  "domain": "",
+  "method": "",
+  "keyIdeas": [],
+  "assumptions": [],
+  "limitations": [],
+  "contributions": [],
+  "datasets": [],
+  "metrics": [],
+  "futureWork": [],
+  "confidence": 0
+}
+
+Rules:
+- Do not hallucinate.
+- Use empty values if missing.
+- Confidence = 0 to 1.
+`;
+
+export function safeParseJSON(text: string) {
+    try {
+        return JSON.parse(text);
+    } catch {
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error("Invalid LLM output");
+        return JSON.parse(jsonMatch[0]);
+    }
+}
+
+export function normalizeInsight(data: any, paperId: string): PaperInsight {
+    return {
+        paperId,
+        problem: data.problem ?? "",
+        task: data.task ?? "",
+        domain: data.domain ?? "",
+        method: data.method ?? "",
+        keyIdeas: data.keyIdeas ?? [],
+        assumptions: data.assumptions ?? [],
+        limitations: data.limitations ?? [],
+        contributions: data.contributions ?? [],
+        datasets: data.datasets ?? [],
+        metrics: data.metrics ?? [],
+        futureWork: data.futureWork ?? [],
+        confidence: Number(data.confidence ?? 0),
+    };
+}
+
+export async function extractInsight(paper: Paper): Promise<PaperInsight> {
+    const input = `\nTitle: ${paper.title}\nAbstract: ${paper.abstract}\n`;
+
+    // Check if puter.ai.chat exists
+    if (!window.puter?.ai?.chat) {
+        throw new Error("Puter AI not available.");
+    }
+
+    const res = await window.puter.ai.chat(INSIGHT_PROMPT + input, {
+        temperature: 0.1,
+        model: 'minimax-m2.5',
+    });
+
+    const parsed = safeParseJSON(res?.message?.content || "{}");
+    return normalizeInsight(parsed, paper.id);
+}
+
+// ─── Knowledge Graph Logic ─────────────────────────────────────────────────────
+
+export function extractEntities(insight: PaperInsight) {
+    return {
+        problems: insight.problem ? [insight.problem] : [],
+        methods: insight.method ? [insight.method] : [],
+        datasets: insight.datasets || [],
+        metrics: insight.metrics || [],
+        domains: insight.domain ? [insight.domain] : [],
+        ideas: insight.keyIdeas || [],
+    };
+}
+
+export async function compressConcepts(insight: PaperInsight): Promise<PaperInsight> {
+    const COMPRESS_PROMPT = `
+You are a concept extraction engine for a Knowledge Graph. 
+I will give you a verbose JSON insight extracted from a research paper.
+Your job is to COMPRESS every text field into ultra-concise, noun-based conceptual phrases (ideally 1 to 3 words max). 
+
+For example:
+"problem": "we address the issue of slow training speeds in deep neural networks" -> "slow training"
+"method": "we propose a novel attention-based mechanism that is bidirectional" -> "bidirectional attention"
+"domain": "natural language processing for clinical documents" -> "clinical nlp"
+"datasets": ["we evaluate on the widely used GLUE benchmark", "SQuAD v2.0 dataset"] -> ["GLUE", "SQuAD v2.0"]
+
+If a field is empty, return it empty. Do NOT summarize abstractly; extract the specific core entity names.
+Return STRICT JSON matching the schema I provide.
+
+Input JSON to compress:
+${JSON.stringify({
+        problem: insight.problem,
+        method: insight.method,
+        domain: insight.domain,
+        datasets: insight.datasets,
+        metrics: insight.metrics,
+        keyIdeas: insight.keyIdeas
+    }, null, 2)}
+`;
+
+    if (!window.puter?.ai?.chat) return insight; // Fallback to raw if no AI
+
+    try {
+        const res = await window.puter.ai.chat(COMPRESS_PROMPT, {
+            temperature: 0.1,
+            model: 'claude-3-5-sonnet'
+        });
+        const parsed = safeParseJSON(res?.message?.content || "{}");
+
+        // Return a hybrid: keep original insight structure but overwrite string fields with compressed versions
+        return {
+            ...insight,
+            problem: parsed.problem || insight.problem,
+            method: parsed.method || insight.method,
+            domain: parsed.domain || insight.domain,
+            datasets: Array.isArray(parsed.datasets) && parsed.datasets.length ? parsed.datasets : insight.datasets,
+            metrics: Array.isArray(parsed.metrics) && parsed.metrics.length ? parsed.metrics : insight.metrics,
+            keyIdeas: Array.isArray(parsed.keyIdeas) && parsed.keyIdeas.length ? parsed.keyIdeas : insight.keyIdeas
+        };
+    } catch (e) {
+        console.error("Compression failed, using raw strings", e);
+        return insight;
+    }
+}
+
+export function normalize(text: string) {
+    if (!text) return '';
+    return text.trim().toLowerCase();
+}
+
+export function upsertNode(
+    graph: KGGraph,
+    type: KGNode['type'],
+    label: string,
+    paperId: string
+): KGNode {
+    const key = normalize(label);
+    if (!key) return null as any;
+
+    let node = graph.nodes.find(
+        (n) => n.type === type && normalize(n.label) === key
+    );
+
+    if (!node) {
+        node = {
+            id: crypto.randomUUID(),
+            type,
+            label,
+            paperIds: [paperId],
+        };
+        graph.nodes.push(node);
+    } else {
+        if (!node.paperIds.includes(paperId)) {
+            node.paperIds.push(paperId);
+        }
+    }
+
+    return node;
+}
+
+export function connect(
+    graph: KGGraph,
+    source: KGNode,
+    target: KGNode,
+    relation: KGEdge['relation']
+) {
+    if (!source || !target) return;
+    const exists = graph.edges.find(
+        (e) =>
+            e.source === source.id &&
+            e.target === target.id &&
+            e.relation === relation
+    );
+
+    if (!exists) {
+        graph.edges.push({
+            id: crypto.randomUUID(),
+            source: source.id,
+            target: target.id,
+            relation,
+        });
+    }
+}
+
+export function updateGraphFromInsight(
+    graph: KGGraph,
+    insight: PaperInsight
+) {
+    const entities = extractEntities(insight);
+
+    const problemNode = entities.problems.length > 0
+        ? upsertNode(graph, 'problem', entities.problems[0], insight.paperId)
+        : null;
+
+    const methodNode = entities.methods.length > 0
+        ? upsertNode(graph, 'method', entities.methods[0], insight.paperId)
+        : null;
+
+    if (methodNode && problemNode) {
+        connect(graph, methodNode, problemNode, 'applies_to');
+    }
+
+    if (methodNode) {
+        entities.datasets.forEach((d) => {
+            if (!d) return;
+            const datasetNode = upsertNode(graph, 'dataset', d, insight.paperId);
+            connect(graph, methodNode, datasetNode, 'uses');
+        });
+
+        entities.metrics.forEach((m) => {
+            if (!m) return;
+            const metricNode = upsertNode(graph, 'metric', m, insight.paperId);
+            connect(graph, methodNode, metricNode, 'evaluates');
+        });
+    }
+}
+
+// ─── Research Gap Detection ───────────────────────────────────────────────────
+
+export interface ResearchGap {
+    method: string;
+    domain: string;
+}
+
+export function detectGaps(graph: KGGraph): ResearchGap[] {
+    const gaps: ResearchGap[] = [];
+
+    const methods = graph.nodes.filter((n) => n.type === "method");
+    const domains = graph.nodes.filter((n) => n.type === "domain");
+
+    methods.forEach((m) => {
+        domains.forEach((d) => {
+            const exists = graph.edges.find(
+                (e) =>
+                    e.source === m.id &&
+                    e.target === d.id &&
+                    e.relation === "applies_to"
+            );
+
+            if (!exists) {
+                gaps.push({
+                    method: m.label,
+                    domain: d.label,
+                });
+            }
+        });
+    });
+
+    return gaps;
+}
+
+// ─── Insight Panel Component ───────────────────────────────────────────────────
+
+function InsightPanel({
+    insight,
+    onSave,
+    isOpen,
+    setIsOpen,
+    isEditing,
+    setIsEditing
+}: {
+    insight: PaperInsight,
+    onSave: (i: PaperInsight) => void,
+    isOpen: boolean,
+    setIsOpen: (open: boolean) => void,
+    isEditing: boolean,
+    setIsEditing: (editing: boolean) => void
+}) {
+    const [localInsight, setLocalInsight] = useState<PaperInsight>(insight);
+
+    useEffect(() => {
+        setLocalInsight(insight);
+    }, [insight]);
+
+    const handleFieldChange = (field: keyof PaperInsight, value: string | string[]) => {
+        let finalValue = value;
+        if (Array.isArray(localInsight[field]) && typeof value === 'string') {
+            finalValue = value.split('\n').map(s => s.trim()).filter(Boolean);
+        }
+        setLocalInsight({ ...localInsight, [field]: finalValue, userEdited: true });
+    };
+
+    const handleSaveEdits = () => {
+        onSave(localInsight);
+        setIsEditing(false);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="mt-3 bg-zinc-950 border border-indigo-500/30 rounded-xl overflow-hidden shadow-xl">
+            <div className="bg-indigo-500/10 px-4 py-3 border-b border-indigo-500/20 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-indigo-400" />
+                    <h4 className="text-sm font-semibold text-white">AI Insight</h4>
+                </div>
+                <div className="flex items-center gap-2">
+                    {isEditing ? (
+                        <button onClick={handleSaveEdits} className="text-xs px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-md hover:bg-emerald-500/30 transition-colors">Save</button>
+                    ) : (
+                        <button onClick={() => setIsEditing(true)} className="text-xs px-2 py-1 bg-white/10 text-zinc-300 rounded-md hover:bg-white/20 transition-colors">Edit</button>
+                    )}
+                    <button onClick={() => setIsOpen(false)} className="text-zinc-500 hover:text-white p-1 rounded-md"><X className="w-4 h-4" /></button>
+                </div>
+            </div>
+            <div className="p-4 space-y-4 max-h-96 overflow-y-auto custom-scrollbar text-sm">
+                {/* Metadata */}
+                <div className="flex gap-4 mb-4 border-b border-white/5 pb-4">
+                    <div className="flex-1">
+                        <span className="text-[10px] uppercase font-bold text-zinc-500">Domain</span>
+                        {isEditing ? (
+                            <input value={localInsight.domain} onChange={e => handleFieldChange('domain', e.target.value)} className="w-full bg-zinc-900 border border-white/10 p-1 text-xs text-white rounded outline-none" />
+                        ) : <p className="text-zinc-300 font-medium">{localInsight.domain || '—'}</p>}
+                    </div>
+                    <div className="flex-1">
+                        <span className="text-[10px] uppercase font-bold text-zinc-500">Task</span>
+                        {isEditing ? (
+                            <input value={localInsight.task} onChange={e => handleFieldChange('task', e.target.value)} className="w-full bg-zinc-900 border border-white/10 p-1 text-xs text-white rounded outline-none" />
+                        ) : <p className="text-zinc-300 font-medium">{localInsight.task || '—'}</p>}
+                    </div>
+                </div>
+
+                {/* Core Text Fields */}
+                {(['problem', 'method'] as const).map(field => (
+                    <div key={field}>
+                        <span className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">{field}</span>
+                        {isEditing ? (
+                            <textarea value={localInsight[field] as string} onChange={e => handleFieldChange(field, e.target.value)} className="w-full bg-zinc-900 border border-white/10 p-2 text-xs text-white rounded outline-none min-h-[60px]" />
+                        ) : <p className="text-white bg-white/5 p-2 rounded-lg leading-relaxed text-xs">{localInsight[field] as string || '—'}</p>}
+                    </div>
+                ))}
+
+                {/* Array Fields */}
+                {(['keyIdeas', 'contributions', 'limitations', 'datasets'] as const).map(field => {
+                    const arr = localInsight[field] as string[];
+                    if (!isEditing && (!arr || arr.length === 0)) return null;
+                    return (
+                        <div key={field}>
+                            <span className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">{field.replace(/([A-Z])/g, ' $1').trim()}</span>
+                            {isEditing ? (
+                                <textarea
+                                    value={arr.join('\n')}
+                                    onChange={e => handleFieldChange(field, e.target.value)}
+                                    placeholder="One item per line..."
+                                    className="w-full bg-zinc-900 border border-white/10 p-2 text-xs text-white rounded outline-none min-h-[80px]"
+                                />
+                            ) : (
+                                <ul className="list-disc pl-4 space-y-1 mt-1">
+                                    {arr.map((item, i) => (
+                                        <li key={i} className="text-zinc-400 text-xs">{item}</li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 // ─── Result Card ───────────────────────────────────────────────────────────────
 
 interface PaperCardProps {
     paper: Paper;
     isSaved: boolean;
+    insight?: PaperInsight;
     onImport: (p: Paper) => void;
     onRemove: (p: Paper) => void;
     onCite: (p: Paper) => void;
+    onSaveInsight?: (i: PaperInsight) => void;
 }
 
-function PaperCard({ paper, isSaved, onImport, onRemove, onCite }: PaperCardProps) {
+function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSaveInsight }: PaperCardProps) {
     const [expanded, setExpanded] = useState(false);
+    const [isInsightOpen, setIsInsightOpen] = useState(false);
+    const [isExtracting, setIsExtracting] = useState(false);
+    const [extractError, setExtractError] = useState<string | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+
     const truncated = paper.abstract.length > 200 && !expanded;
     const abstract = truncated ? paper.abstract.slice(0, 200) + '…' : paper.abstract;
+
+    const handleExtract = async () => {
+        if (!onSaveInsight) return;
+        setIsExtracting(true);
+        setExtractError(null);
+        try {
+            const res = await extractInsight(paper);
+            onSaveInsight(res);
+            setIsInsightOpen(true);
+        } catch (e: any) {
+            setExtractError(e.message || "Extraction failed");
+        } finally {
+            setIsExtracting(false);
+        }
+    };
 
     return (
         <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col gap-3">
@@ -253,6 +694,23 @@ function PaperCard({ paper, isSaved, onImport, onRemove, onCite }: PaperCardProp
                     <Quote className="w-3.5 h-3.5" />
                     Cite
                 </button>
+
+                {isSaved && onSaveInsight && (
+                    <>
+                        {insight ? (
+                            <button onClick={() => setIsInsightOpen(!isInsightOpen)} className={`flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg transition-colors ${isInsightOpen ? 'text-white bg-indigo-500' : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10'}`}>
+                                <Lightbulb className={isInsightOpen ? "text-amber-200 w-3.5 h-3.5" : "text-amber-400 w-3.5 h-3.5"} />
+                                {isInsightOpen ? "Hide Insight" : "View Insight"}
+                            </button>
+                        ) : (
+                            <button onClick={handleExtract} disabled={isExtracting} className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 px-2 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+                                {isExtracting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                {isExtracting ? "Extracting..." : "Extract Insight"}
+                            </button>
+                        )}
+                    </>
+                )}
+
                 {isSaved ? (
                     <button onClick={() => onRemove(paper)}
                         className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-red-400 hover:bg-red-400/10 px-2 py-1.5 rounded-lg transition-colors ml-auto"
@@ -269,6 +727,25 @@ function PaperCard({ paper, isSaved, onImport, onRemove, onCite }: PaperCardProp
                     </button>
                 )}
             </div>
+
+            {/* Extracted error message if any */}
+            {extractError && (
+                <div className="mt-2 text-xs text-red-500 bg-red-500/10 px-3 py-2 rounded-lg">
+                    {extractError}
+                </div>
+            )}
+
+            {/* Insight Integration */}
+            {isSaved && onSaveInsight && insight && isInsightOpen && (
+                <InsightPanel
+                    insight={insight}
+                    onSave={onSaveInsight}
+                    isOpen={isInsightOpen}
+                    setIsOpen={setIsInsightOpen}
+                    isEditing={isEditing}
+                    setIsEditing={setIsEditing}
+                />
+            )}
         </div>
     );
 }
@@ -282,17 +759,30 @@ export default function Explore() {
     const [source, setSource] = useState<SourceFilter>('all');
     const [results, setResults] = useState<Paper[]>([]);
     const [savedPapers, setSavedPapers] = useState<Paper[]>([]);
+    const [savedInsights, setSavedInsights] = useState<Record<string, PaperInsight>>({});
+    const [graph, setGraph] = useState<KGGraph>({ nodes: [], edges: [] });
     const [loading, setLoading] = useState(false);
+    const [isRebuildingGraph, setIsRebuildingGraph] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [citingPaper, setCitingPaper] = useState<Paper | null>(null);
-    const [activeTab, setActiveTab] = useState<'search' | 'saved'>('search');
+    const [activeTab, setActiveTab] = useState<'search' | 'saved' | 'graph'>('search');
+
+    // Graph interaction state
+    const [selectedNode, setSelectedNode] = useState<KGNode | null>(null);
 
     const [recentQueries, setRecentQueries] = useState<string[]>([]);
     const [recommendations, setRecommendations] = useState<Paper[]>([]);
     const [loadingRecs, setLoadingRecs] = useState(false);
 
+    // Gap Analysis State
+    const [detectedGaps, setDetectedGaps] = useState<ResearchGap[]>([]);
+    const [gapInsights, setGapInsights] = useState<string>('');
+    const [isIdentifyingGap, setIsIdentifyingGap] = useState(false);
+
     useEffect(() => {
         puterService.kvGet(KV_KEY).then((data: Paper[] | null) => setSavedPapers(data || []));
+        puterService.kvGet(INSIGHTS_KV_KEY).then((data: Record<string, PaperInsight> | null) => setSavedInsights(data || {}));
+        puterService.kvGet(KG_KV_KEY).then((data: KGGraph | null) => setGraph(data || { nodes: [], edges: [] }));
 
         puterService.kvGet('research_explore_history').then((data: string[] | null) => {
             const history = data || [];
@@ -362,6 +852,88 @@ export default function Explore() {
         const updated = savedPapers.filter(p => p.id !== paper.id);
         setSavedPapers(updated);
         await puterService.kvSet(KV_KEY, updated);
+
+        // Optionally remove insight
+        const newInsights = { ...savedInsights };
+        delete newInsights[paper.id];
+        setSavedInsights(newInsights);
+        await puterService.kvSet(INSIGHTS_KV_KEY, newInsights);
+    };
+
+    const handleIdentifyGap = async () => {
+        if (graph.nodes.length < 2) return;
+
+        setIsIdentifyingGap(true);
+        const gaps = detectGaps(graph);
+        setDetectedGaps(gaps);
+
+        try {
+            const graphContext = JSON.stringify({
+                nodes: graph.nodes.map(n => ({ type: n.type, label: n.label })),
+                edges: graph.edges.map(e => {
+                    const src = graph.nodes.find(n => n.id === e.source)?.label;
+                    const tgt = graph.nodes.find(n => n.id === e.target)?.label;
+                    return `${src} ${e.relation} ${tgt}`;
+                })
+            });
+
+            const prompt = `
+            Analyze this Research Knowledge Graph and identify high-value research opportunities (gaps).
+            
+            GRAPH DATA:
+            ${graphContext}
+            
+            DETECTED STRUCTURAL GAPS (Methods not yet applied to Domains):
+            ${JSON.stringify(gaps.slice(0, 10))}
+            
+            Provide:
+            1. Top 3 "High-Value" Gaps: Why are they promising?
+            2. 2-3 Hypothesis Suggestions: Specific research questions to explore.
+            
+            Return STRICT Markdown. Keep it concise.
+            `;
+
+            const response = await window.puter.ai.chat(prompt, { model: 'gpt-4o' });
+            let cleanResponse = response.toString().trim();
+            // Strip markdown code block fences if present
+            if (cleanResponse.startsWith('```')) {
+                cleanResponse = cleanResponse.replace(/^```[a-z]*\n/i, '').replace(/```$/g, '').trim();
+            }
+            setGapInsights(cleanResponse);
+        } catch (err) {
+            console.error(err);
+            setGapInsights("Failed to generate AI insights. Please try again.");
+        } finally {
+            setIsIdentifyingGap(false);
+        }
+    };
+
+    const handleSaveInsight = async (insight: PaperInsight) => {
+        // 1. Save original verbose insight
+        const updatedInsights = { ...savedInsights, [insight.paperId]: insight };
+        setSavedInsights(updatedInsights);
+        await puterService.kvSet(INSIGHTS_KV_KEY, updatedInsights);
+
+        // 2. Rebuild graph from all insights using concept compression
+        setIsRebuildingGraph(true);
+        try {
+            const newGraph: KGGraph = { nodes: [], edges: [] };
+
+            // Compress all sequentially or in parallel (parallel might hit rate limits, but we try Promise.all)
+            const insightList = Object.values(updatedInsights);
+            const compressedInsights = await Promise.all(
+                insightList.map(i => compressConcepts(i))
+            );
+
+            compressedInsights.forEach(compressed => updateGraphFromInsight(newGraph, compressed));
+
+            setGraph(newGraph);
+            await puterService.kvSet(KG_KV_KEY, newGraph);
+        } catch (e) {
+            console.error("Failed to build compressed graph", e);
+        } finally {
+            setIsRebuildingGraph(false);
+        }
     };
 
     return (
@@ -372,20 +944,27 @@ export default function Explore() {
                     <h1 className="text-3xl font-bold tracking-tight text-white">Explore</h1>
                     <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-500/15 text-indigo-400 border border-indigo-500/25 rounded-full">Beta</span>
                 </div>
-                <p className="text-zinc-400">Discover papers from arXiv, OpenAlex, and Semantic Scholar. Import them into your knowledge base, and generate citations instantly.</p>
+                <p className="text-zinc-400">Discover papers from arXiv, OpenAlex, Google Scholar and Semantic Scholar. Import them into your knowledge base, and generate citations instantly.</p>
             </header>
 
             {/* Tabs */}
             <div className="flex gap-1 bg-zinc-900/50 border border-white/5 p-1 rounded-xl w-fit">
-                {(['search', 'saved'] as const).map(tab => (
+                {(['search', 'saved', 'graph'] as const).map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center gap-2 ${activeTab === tab ? 'bg-white/10 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'
                             }`}
                     >
-                        {tab === 'search' ? <Search className="w-3.5 h-3.5" /> : <BookMarked className="w-3.5 h-3.5" />}
-                        {tab === 'search' ? 'Discover' : `Knowledge Base`}
+                        {tab === 'search' ? <Search className="w-3.5 h-3.5" /> :
+                            tab === 'saved' ? <BookMarked className="w-3.5 h-3.5" /> :
+                                <Network className="w-3.5 h-3.5" />}
+                        {tab === 'search' ? 'Discover' :
+                            tab === 'saved' ? 'Knowledge Base' :
+                                'Reasoning Graph'}
                         {tab === 'saved' && savedPapers.length > 0 && (
                             <span className="ml-1 px-1.5 py-0.5 text-xs bg-indigo-500/20 text-indigo-400 rounded-full">{savedPapers.length}</span>
+                        )}
+                        {tab === 'graph' && graph.nodes.length > 0 && (
+                            <span className="ml-1 px-1.5 py-0.5 text-xs bg-amber-500/20 text-amber-400 rounded-full">{graph.nodes.length}</span>
                         )}
                     </button>
                 ))}
@@ -414,15 +993,20 @@ export default function Explore() {
                             )}
                         </div>
 
-                        <div className="flex flex-wrap bg-zinc-900 border border-white/10 rounded-xl p-1 gap-1">
-                            {(['all', 'arxiv', 'openalex', 'semanticscholar', 'googlescholar'] as SourceFilter[]).map(s => (
-                                <button key={s} type="button" onClick={() => setSource(s)}
-                                    className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all capitalize ${source === s ? 'bg-indigo-600 text-white' : 'text-zinc-500 hover:text-zinc-300'
-                                        }`}
-                                >
-                                    {s === 'all' ? 'All Sources' : s === 'arxiv' ? 'arXiv' : s === 'openalex' ? 'OpenAlex' : s === 'googlescholar' ? 'Google Scholar' : 'Semantic Scholar'}
-                                </button>
-                            ))}
+                        <div className="relative group min-w-[160px]">
+                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-hover:text-indigo-400 transition-colors pointer-events-none" />
+                            <select
+                                value={source}
+                                onChange={(e) => setSource(e.target.value as SourceFilter)}
+                                className="w-full appearance-none pl-11 pr-10 py-3 bg-zinc-900 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm cursor-pointer hover:bg-zinc-800 transition-colors"
+                            >
+                                <option value="all" className="bg-zinc-900">All Sources</option>
+                                <option value="arxiv" className="bg-zinc-900">arXiv</option>
+                                <option value="openalex" className="bg-zinc-900">OpenAlex</option>
+                                <option value="semanticscholar" className="bg-zinc-900">Semantic Scholar</option>
+                                <option value="googlescholar" className="bg-zinc-900">Google Scholar</option>
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none transition-transform group-hover:translate-y-[-40%]" />
                         </div>
 
                         <button type="submit" disabled={loading || !query.trim()}
@@ -442,7 +1026,7 @@ export default function Explore() {
                             </div>
                             <div className="text-center">
                                 <p className="text-white font-medium">Searching across sources…</p>
-                                <p className="text-zinc-500 text-sm mt-1">Querying arXiv, OpenAlex, and Semantic Scholar simultaneously</p>
+                                <p className="text-zinc-500 text-sm mt-1">Querying arXiv, OpenAlex, Google Scholar and Semantic Scholar simultaneously</p>
                             </div>
                         </div>
                     )}
@@ -483,9 +1067,11 @@ export default function Explore() {
                                                 key={paper.id}
                                                 paper={paper}
                                                 isSaved={savedIds.has(paper.id)}
+                                                insight={savedInsights[paper.id]}
                                                 onImport={handleImport}
                                                 onRemove={handleRemove}
                                                 onCite={setCitingPaper}
+                                                onSaveInsight={handleSaveInsight}
                                             />
                                         ))}
                                     </div>
@@ -504,9 +1090,11 @@ export default function Explore() {
                                         key={paper.id}
                                         paper={paper}
                                         isSaved={savedIds.has(paper.id)}
+                                        insight={savedInsights[paper.id]}
                                         onImport={handleImport}
                                         onRemove={handleRemove}
                                         onCite={setCitingPaper}
+                                        onSaveInsight={handleSaveInsight}
                                     />
                                 ))}
                             </div>
@@ -537,11 +1125,148 @@ export default function Explore() {
                                     key={paper.id}
                                     paper={paper}
                                     isSaved={true}
+                                    insight={savedInsights[paper.id]}
                                     onImport={handleImport}
                                     onRemove={handleRemove}
                                     onCite={setCitingPaper}
+                                    onSaveInsight={handleSaveInsight}
                                 />
                             ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Knowledge Graph Tab */}
+            {activeTab === 'graph' && (
+                <div className="space-y-4">
+                    {isRebuildingGraph && (
+                        <div className="flex items-center gap-2 p-3 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl text-sm justify-center mb-4">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Compressing concepts via AI to build the knowledge graph...
+                        </div>
+                    )}
+
+                    {graph.nodes.length === 0 && !isRebuildingGraph ? (
+                        <div className="text-center py-20 border border-dashed border-white/10 rounded-2xl bg-zinc-900/20">
+                            <Network className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-white mb-2">Graph is empty</h3>
+                            <p className="text-zinc-500 text-sm max-w-sm mx-auto">Extract insights from papers in your Knowledge Base to build the reasoning graph.</p>
+                            <button onClick={() => setActiveTab('saved')}
+                                className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
+                            >
+                                <BookMarked className="w-4 h-4" />
+                                Go to Knowledge Base
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                            {gapInsights && (
+                                <div className="lg:col-span-4 bg-zinc-900/10 border border-indigo-500/30 rounded-xl p-4 shadow-xl">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Sparkles className="w-4 h-4 text-indigo-400" />
+                                        <h3 className="text-[10px] font-bold text-white uppercase tracking-widest">Gap Insights</h3>
+                                        <button onClick={() => setGapInsights('')} className="ml-auto text-zinc-500 hover:text-white transition-colors"><X className="w-3.5 h-3.5" /></button>
+                                    </div>
+                                    <div className="prose prose-invert prose-xs max-w-none text-wrap leading-relaxed">
+                                        <Markdown remarkPlugins={[remarkGfm]}>{gapInsights}</Markdown>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="lg:col-span-3 bg-zinc-950 border border-white/10 rounded-2xl overflow-hidden relative">
+                                {/* Overlay Controls */}
+                                <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+                                    <button
+                                        onClick={handleIdentifyGap}
+                                        disabled={isIdentifyingGap || graph.nodes.length < 2}
+                                        className="bg-zinc-900/80 hover:bg-zinc-800 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-xl flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                                    >
+                                        {isIdentifyingGap ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5 text-indigo-400" />}
+                                        {isIdentifyingGap ? "Identifying Gaps..." : "Identify Gap"}
+                                    </button>
+                                </div>
+                                <ForceGraph2D
+                                    graphData={{ nodes: graph.nodes, links: graph.edges }}
+                                    nodeLabel="label"
+                                    nodeRelSize={6}
+                                    nodeColor={(node: any) => {
+                                        if (selectedNode?.id === node.id) return '#fbbf24'; // Amber-400
+                                        switch (node.type) {
+                                            case 'problem': return '#ef4444'; // Red
+                                            case 'method': return '#6366f1'; // Indigo
+                                            case 'dataset': return '#10b981'; // Emerald
+                                            case 'metric': return '#f59e0b'; // Amber
+                                            case 'domain': return '#8b5cf6'; // Violet
+                                            default: return '#a1a1aa'; // Zinc
+                                        }
+                                    }}
+                                    linkColor={() => 'rgba(255,255,255,0.1)'}
+                                    onNodeClick={(node: any) => setSelectedNode(node)}
+                                    // Add basic canvas text drawing for labels
+                                    nodeCanvasObjectMode={() => 'after'}
+                                    nodeCanvasObject={(node: any, ctx, globalScale) => {
+                                        const label = node.label;
+                                        const fontSize = 12 / globalScale;
+                                        ctx.font = `${fontSize}px Sans-Serif`;
+                                        const textWidth = ctx.measureText(label).width;
+                                        const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2);
+
+                                        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                                        ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1]);
+
+                                        ctx.textAlign = 'center';
+                                        ctx.textBaseline = 'middle';
+                                        ctx.fillStyle = node.color || '#fff';
+                                        ctx.fillText(label, node.x, node.y);
+                                    }}
+                                />
+                                <div className="absolute top-4 left-4 flex flex-col gap-2 bg-zinc-900/80 backdrop-blur border border-white/10 p-3 rounded-xl">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Legend</span>
+                                    {['problem', 'method', 'dataset', 'metric', 'domain'].map(type => (
+                                        <div key={type} className="flex items-center gap-2 text-xs text-zinc-300">
+                                            <div className="w-3 h-3 rounded-full" style={{
+                                                backgroundColor: type === 'problem' ? '#ef4444' :
+                                                    type === 'method' ? '#6366f1' :
+                                                        type === 'dataset' ? '#10b981' :
+                                                            type === 'metric' ? '#f59e0b' : '#8b5cf6'
+                                            }} />
+                                            <span className="capitalize">{type}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-5 overflow-y-auto space-y-4">
+                                {selectedNode ? (
+                                    <div className="space-y-6">
+                                        <div>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400">{selectedNode.type}</span>
+                                            <h3 className="text-xl font-bold text-white mt-1 leading-snug">{selectedNode.label}</h3>
+                                        </div>
+
+                                        <div>
+                                            <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">Papers in Knowledge Base ({selectedNode.paperIds.length})</h4>
+                                            <div className="space-y-3">
+                                                {selectedNode.paperIds.map(pid => {
+                                                    const p = savedPapers.find(sp => sp.id === pid);
+                                                    if (!p) return null;
+                                                    return (
+                                                        <div key={pid} className="bg-zinc-900/80 border border-white/5 p-3 rounded-xl">
+                                                            <div className="text-xs text-zinc-400 mb-1">{p.year}</div>
+                                                            <div className="text-sm font-medium text-white leading-snug">{p.title}</div>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-20 text-zinc-500 text-sm">
+                                        <Network className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
+                                        Click on a node in the graph to see related papers.
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>

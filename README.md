@@ -1,3 +1,12 @@
+<div float="left" align="center">
+<img width="120" height="30" alt="GHBanner" src="public/favicon.svg" />
+
+**Apex Scholar**
+</div> 
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/kywagle)
+
+
 <div align="center">
 <img width="1200" height="475" alt="GHBanner" src="public/app-dashboard-screenshot.png" />
 </div>
@@ -13,7 +22,7 @@
 3. Interactive Visualizations
 4. Backup & Restore
 5. Citation Engine
-6. Unified Papers Explorer
+6. Unified Papers Explorer (ArXiv, Semantic Scholar, openAlex, Google Scholar)
 
 ## Roadmap
 

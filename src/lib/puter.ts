@@ -68,6 +68,20 @@ export const puterService = {
     return null;
   },
 
+  async getMonthlyUsage(): Promise<any> {
+    if (await this.isSignedIn() && puter.auth.getMonthlyUsage) {
+      return await puter.auth.getMonthlyUsage();
+    }
+    return null;
+  },
+
+  async getDetailedAppUsage(appId: string): Promise<any> {
+    if (await this.isSignedIn() && puter.auth.getDetailedAppUsage) {
+      return await puter.auth.getDetailedAppUsage(appId);
+    }
+    return null;
+  },
+
   /**
    * KV Storage
    */

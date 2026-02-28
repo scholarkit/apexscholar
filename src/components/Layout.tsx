@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, FolderOpen, Lightbulb, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Download, Upload, Telescope, SquareKanban, Info } from 'lucide-react';
+import { Home, BookOpen, FolderOpen, Lightbulb, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Telescope, SquareKanban, Info, Settings } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { puterService, PuterUser } from '../lib/puter';
@@ -10,7 +10,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const restoreInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 1024);
   const [user, setUser] = useState<PuterUser | null>(null);
@@ -35,71 +34,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     window.location.reload();
   };
 
-  const handleBackup = async () => {
-    try {
-      const [entries, resources, insights, knowledgebase, kanban] = await Promise.all([
-        puterService.kvGet('research_entries'),
-        puterService.kvGet('research_resources'),
-        puterService.kvGet('research_insights'),
-        puterService.kvGet('research_knowledgebase'),
-        puterService.kvGet('research_kanban'),
-      ]);
-      const backup = {
-        entries: entries || [],
-        resources: resources || [],
-        insights: insights || [],
-        knowledgebase: knowledgebase || [],
-        kanban: kanban || [],
-        exportedAt: new Date().toISOString()
-      };
-      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `apex-scholar-backup-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Backup failed', err);
-      alert('Failed to create backup.');
-    }
-  };
-
-  const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!confirm('Restore this backup? This will overwrite your current data.')) {
-      e.target.value = '';
-      return;
-    }
-    try {
-      const text = await file.text();
-      const backup = JSON.parse(text);
-      await Promise.all([
-        backup.entries && puterService.kvSet('research_entries', backup.entries),
-        backup.resources && puterService.kvSet('research_resources', backup.resources),
-        backup.insights && puterService.kvSet('research_insights', backup.insights),
-        backup.knowledgebase && puterService.kvSet('research_knowledgebase', backup.knowledgebase),
-        backup.kanban && puterService.kvSet('research_kanban', backup.kanban),
-      ]);
-      alert('Backup restored! Reloading...');
-      window.location.reload();
-    } catch (err) {
-      console.error('Restore failed', err);
-      alert('Failed to restore backup. Make sure the file is a valid Apex Scholar backup.');
-    } finally {
-      e.target.value = '';
-    }
-  };
-
   const navItems = [
     { path: '/', icon: Home, label: 'Dashboard' },
+    { path: '/explore', icon: Telescope, label: 'Explore', beta: true },
     { path: '/journal', icon: BookOpen, label: 'Journal' },
     { path: '/resources', icon: FolderOpen, label: 'Resources' },
-    { path: '/explore', icon: Telescope, label: 'Explore' },
     { path: '/kanban', icon: SquareKanban, label: 'Kanban Board' },
     { path: '/insights', icon: Lightbulb, label: 'Insights' },
     { path: '/analytics', icon: BarChart2, label: 'Analytics' },
+    { path: '/settings', icon: Settings, label: 'Settings' },
     { path: '/about', icon: Info, label: 'About' }
   ];
 
@@ -155,45 +98,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 )}
               >
                 <Icon className={cn("w-5 h-5 flex-shrink-0", isActive ? "text-indigo-400" : "text-zinc-500 group-hover:text-zinc-300")} />
-                {!isCollapsed && <span className="animate-in fade-in slide-in-from-left-1 duration-300">{item.label}</span>}
+                {!isCollapsed && <div>
+                  <span className="animate-in fade-in slide-in-from-left-1 duration-300">{item.label}</span>
+                  {item.beta && (
+                    <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-wider">
+                      Beta
+                    </span>
+                  )}
+                </div>}
               </Link>
             );
           })}
         </nav>
-
-        {/* Backup / Restore */}
-        <div className={cn("px-4 pb-2 space-y-1.5", isCollapsed && "flex flex-col items-center px-3")}>
-          {/* hidden file input */}
-          <input
-            ref={restoreInputRef}
-            type="file"
-            accept=".json"
-            onChange={handleRestore}
-            className="hidden"
-          />
-          <button
-            onClick={handleBackup}
-            title="Export Backup"
-            className={cn(
-              "flex items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-colors",
-              isCollapsed ? "w-10 h-10 justify-center" : "w-full gap-2 px-3 py-2"
-            )}
-          >
-            <Download className="w-4 h-4 flex-shrink-0" />
-            {!isCollapsed && <span>Export Backup</span>}
-          </button>
-          <button
-            onClick={() => restoreInputRef.current?.click()}
-            title="Import Backup"
-            className={cn(
-              "flex items-center bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 hover:text-indigo-300 rounded-lg text-xs font-medium transition-colors",
-              isCollapsed ? "w-10 h-10 justify-center" : "w-full gap-2 px-3 py-2"
-            )}
-          >
-            <Upload className="w-4 h-4 flex-shrink-0" />
-            {!isCollapsed && <span>Import Backup</span>}
-          </button>
-        </div>
 
         {/* User Profile Footer */}
         <div className={cn("p-4 border-t border-white/10", isCollapsed ? "flex flex-col items-center gap-3" : "space-y-3")}>

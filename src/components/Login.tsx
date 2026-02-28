@@ -41,7 +41,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                         <Shield className="w-10 h-10 text-indigo-400" />
                     </div>
                     <h1 className="text-4xl font-bold text-white tracking-tight mb-3">
-                        Research Dashboard Pro
+                        Apex Scholar
                     </h1>
                     <p className="text-zinc-400 text-lg">
                         Secure, decentralized research management.

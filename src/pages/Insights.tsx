@@ -251,12 +251,9 @@ SUMMARY:`;
                 {exporting ? 'Exporting...' : 'Export PDF'}
               </button>
             </div> */}
-            <motion.div
-              ref={summaryRef}
-              className="p-4 rounded-xl" // Space for PDF capture
-            >
+            <div className="p-4 rounded-xl">
               <Markdown remarkPlugins={[remarkGfm]}>{summary}</Markdown>
-            </motion.div>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-20 text-center">

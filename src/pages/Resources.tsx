@@ -195,6 +195,9 @@ export default function Resources() {
                 >
                   <Quote className="w-3.5 h-3.5" />
                   Cite
+                  <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-wider">
+                    Beta
+                  </span>
                 </button>
                 <button
                   onClick={() => handleDelete(resource.id, resource.path)}

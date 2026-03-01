@@ -90,13 +90,13 @@ export default function Settings() {
         <div className="space-y-8 animate-in fade-in duration-500">
             <header>
                 <div className="flex items-center gap-3 mb-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">Settings</h1>
+                    <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white">Settings</h1>
                 </div>
-                <p className="text-zinc-400">Manage your Apex Scholar data and preferences.</p>
+                <p className="text-xs sm:text-base text-zinc-400">Manage your Apex Scholar data and preferences.</p>
             </header>
 
             <div className="space-y-6">
-                <section className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6">
+                <section className="bg-zinc-900/40 border border-white/5 rounded-2xl p-3 sm:p-6">
                     <h2 className="text-xl font-semibold text-white mb-4">Data Management</h2>
                     <div className="space-y-4">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-white/5">
@@ -136,7 +136,7 @@ export default function Settings() {
                     </div>
                 </section>
 
-                <section className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6">
+                <section className="bg-zinc-900/40 border border-white/5 rounded-2xl p-3 sm:p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Activity className="w-5 h-5 text-indigo-400" />
                         <h2 className="text-xl font-semibold text-white">Monthly Usage</h2>

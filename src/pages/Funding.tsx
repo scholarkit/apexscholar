@@ -12,6 +12,12 @@ function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+function startOfDay(date: Date | string) {
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(0, 0, 0, 0);
+    return normalizedDate;
+}
+
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 interface Requirement {
@@ -77,7 +83,7 @@ export default function Funding() {
         let totalSpent = 0;
         let activeProposals = 0;
 
-        const now = new Date();
+        const today = startOfDay(new Date());
         const upcomingDeadlines = [] as Grant[];
 
         grants.forEach(g => {
@@ -90,10 +96,10 @@ export default function Funding() {
             }
 
             if (g.deadline && ['planned', 'drafting'].includes(g.status)) {
-                const deadlineDate = new Date(g.deadline);
-                const diffTime = Math.abs(deadlineDate.getTime() - now.getTime());
+                const deadlineDay = startOfDay(g.deadline);
+                const diffTime = deadlineDay.getTime() - today.getTime();
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (deadlineDate > now && diffDays <= 30) {
+                if (deadlineDay > today && diffDays <= 30) {
                     upcomingDeadlines.push(g);
                 }
             }
@@ -162,13 +168,13 @@ export default function Funding() {
             {/* Header */}
             <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-white mb-2 flex items-center gap-3">
+                    <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-2 flex items-center gap-3">
                         Funding & Grants
                         <span className="px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
                             Tracker
                         </span>
                     </h1>
-                    <p className="text-zinc-400">Manage proposals, observe deadlines, and track your research funding.</p>
+                    <p className="text-xs sm:text-base text-zinc-400">Manage proposals, observe deadlines, and track your research funding.</p>
                 </div>
                 <button
                     onClick={() => { setEditingGrant(null); setIsModalOpen(true); }}
@@ -226,7 +232,7 @@ export default function Funding() {
             <div className="space-y-6">
                 {/* Toolbar */}
                 <div className="flex flex-col sm:flex-row justify-between gap-4 bg-zinc-900/30 p-2 rounded-2xl border border-white/5">
-                    <div className="flex gap-1 p-1 bg-zinc-900/80 rounded-xl">
+                    <div className="flex flex-col sm:flex-row gap-1 p-1 bg-zinc-900/80 rounded-xl">
                         {(['overview', 'requirements', 'budget'] as const).map(tab => (
                             <button
                                 key={tab}
@@ -245,7 +251,7 @@ export default function Funding() {
                             </button>
                         ))}
                     </div>
-                    <div className="flex gap-2 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <div className="relative flex-1 sm:w-64">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                             <input
@@ -260,7 +266,7 @@ export default function Funding() {
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                                className="appearance-none pl-4 pr-10 py-2.5 bg-zinc-900/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500/50 cursor-pointer h-full"
+                                className="w-full appearance-none pl-4 pr-10 py-2.5 bg-zinc-900/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500/50 cursor-pointer h-full"
                             >
                                 <option value="all">All Statuses</option>
                                 <option value="planned">Planned</option>
@@ -276,7 +282,7 @@ export default function Funding() {
 
                 {/* Content Views */}
                 {filteredGrants.length === 0 ? (
-                    <div className="text-center py-24 bg-zinc-900/20 border border-dashed border-white/10 rounded-2xl">
+                    <div className="text-center py-10 sm:py-20 bg-zinc-900/20 border border-dashed border-white/10 rounded-2xl">
                         <Landmark className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-white mb-2">No grants found</h3>
                         <p className="text-zinc-500 text-sm max-w-sm mx-auto">
@@ -373,9 +379,13 @@ function GrantCard({
     const totalReqs = grant.requirements.length;
     const completedReqs = grant.requirements.filter(r => r.completed).length;
     const progress = totalReqs > 0 ? (completedReqs / totalReqs) * 100 : 0;
+    const today = startOfDay(new Date());
+    const deadlineDay = grant.deadline ? startOfDay(grant.deadline) : null;
+    const isOverdue = Boolean(deadlineDay && deadlineDay < today && !['awarded', 'rejected'].includes(grant.status));
+    const isDueToday = Boolean(deadlineDay && deadlineDay.getTime() === today.getTime());
 
     return (
-        <div className="bg-zinc-900/40 border border-white/5 hover:border-white/10 hover:bg-zinc-900/60 transition-all rounded-2xl p-5 flex flex-col gap-4 group relative">
+        <div className="bg-zinc-900/40 border border-white/5 hover:border-white/10 hover:bg-zinc-900/60 transition-all rounded-2xl p-2.5 sm:p-5 flex flex-col gap-4 group relative">
             {/* Context Actions */}
             <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button onClick={onEdit} className="p-1.5 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Edit">
@@ -390,7 +400,7 @@ function GrantCard({
             <div className="pr-12">
                 <div className="flex items-center gap-2 mb-2">
                     <StatusBadge status={grant.status} />
-                    {grant.deadline && new Date(grant.deadline) < new Date() && grant.status !== 'awarded' && grant.status !== 'rejected' && (
+                    {isOverdue && (
                         <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full">
                             <AlertCircle className="w-3 h-3" /> Overdue
                         </span>
@@ -409,7 +419,7 @@ function GrantCard({
                                 <span className="text-zinc-500 flex items-center gap-1.5"><CalendarIcon className="w-4 h-4" /> Deadline</span>
                                 <span className={cn(
                                     "font-medium",
-                                    new Date(grant.deadline) < new Date() && !['awarded', 'rejected'].includes(grant.status) ? "text-rose-400" : "text-zinc-300"
+                                    isOverdue ? "text-rose-400" : isDueToday ? "text-amber-300" : "text-zinc-300"
                                 )}>
                                     {new Date(grant.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </span>
@@ -550,7 +560,7 @@ function GrantFormModal({ grant, onSave, onClose }: { grant: Grant | null, onSav
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-zinc-950 border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between p-5 border-b border-white/10">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">

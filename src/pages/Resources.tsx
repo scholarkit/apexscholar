@@ -113,12 +113,12 @@ export default function Resources() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Resource Library</h1>
-          <p className="text-zinc-400">Manage your PDFs, images, and text files.</p>
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">Resource Library</h1>
+          <p className="text-sm sm:text-base text-zinc-400">Manage your PDFs, images, and text files.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 mt-2 sm:mt-0">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
@@ -149,7 +149,7 @@ export default function Resources() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredResources.length === 0 ? (
-          <div className="col-span-full text-center py-20 border border-dashed border-white/10 rounded-2xl bg-zinc-900/20">
+          <div className="col-span-full text-center py-10 sm:py-20 border border-dashed border-white/10 rounded-2xl bg-zinc-900/20">
             <FolderOpen className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">No resources found</h3>
             <p className="text-zinc-500 mb-6 max-w-sm mx-auto">Upload your first research paper, dataset, or image to get started.</p>
@@ -163,7 +163,7 @@ export default function Resources() {
           </div>
         ) : (
           filteredResources.map((resource) => (
-            <div key={resource.id} className="bg-zinc-900/40 border border-white/5 rounded-2xl p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col">
+            <div key={resource.id} className="bg-zinc-900/40 border border-white/5 rounded-2xl p-2.5 sm:p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col">
               <div className="flex items-start gap-4 mb-4">
                 <div className="p-3 bg-zinc-950 rounded-xl border border-white/5">
                   {getIcon(resource.type)}
@@ -178,7 +178,7 @@ export default function Resources() {
                 </div>
               </div>
 
-              <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between gap-2 transition-opacity">
+              <div className="mt-auto pt-2 sm:pt-4 border-t border-white/5 flex items-center justify-between gap-2 transition-opacity">
                 <a
                   href={downloadUrls[resource.id] || '#'}
                   target="_blank"

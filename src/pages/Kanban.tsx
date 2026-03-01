@@ -22,7 +22,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { puterService } from '../lib/puter';
-import { Plus, GripVertical, Trash2, Calendar } from 'lucide-react';
+import { Plus, GripVertical, Trash2, Calendar, SquareKanban } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -252,36 +252,50 @@ export default function Kanban() {
     return (
         <div className="flex flex-col h-full">
             <header className="mb-6 shrink-0">
-                <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Kanban Board</h1>
-                <p className="text-zinc-400">Track the progress of your research projects and papers.</p>
+                <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">Kanban Board</h1>
+                <p className="text-sm sm:text-base text-zinc-400">Track the progress of your research projects and papers.</p>
             </header>
 
             <div className="flex-1 w-full overflow-x-auto pb-4 custom-scrollbar">
-                <div className="flex gap-4 h-full min-w-max items-start">
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCorners}
-                        onDragStart={onDragStart}
-                        onDragOver={onDragOver}
-                        onDragEnd={onDragEnd}
-                    >
-                        {COLUMNS.map(col => (
-                            <Column
-                                key={col.id}
-                                column={col}
-                                tasks={columns[col.id]}
-                                onAddTask={() => addTask(col.id)}
-                                onDeleteTask={deleteTask}
-                            />
-                        ))}
-                        {typeof window !== 'undefined' && createPortal(
-                            <DragOverlay dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }) }}>
-                                {activeTask && <TaskCard task={activeTask} />}
-                            </DragOverlay>,
-                            document.body
-                        )}
-                    </DndContext>
-                </div>
+                {tasks.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center border border-dashed border-white/10 rounded-2xl bg-zinc-900/20 py-20">
+                        <SquareKanban className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-white mb-2">Your board is empty</h3>
+                        <p className="text-zinc-500 text-sm max-w-sm mx-auto text-center mb-6">Create your first task to start organizing your research pipeline and tracking progress.</p>
+                        <button
+                            onClick={() => addTask(COLUMNS[0].id)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
+                        >
+                            <Plus className="w-4 h-4" /> Add First Task
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex gap-4 h-full min-w-max items-start">
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCorners}
+                            onDragStart={onDragStart}
+                            onDragOver={onDragOver}
+                            onDragEnd={onDragEnd}
+                        >
+                            {COLUMNS.map(col => (
+                                <Column
+                                    key={col.id}
+                                    column={col}
+                                    tasks={columns[col.id]}
+                                    onAddTask={() => addTask(col.id)}
+                                    onDeleteTask={deleteTask}
+                                />
+                            ))}
+                            {typeof window !== 'undefined' && createPortal(
+                                <DragOverlay dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }) }}>
+                                    {activeTask && <TaskCard task={activeTask} />}
+                                </DragOverlay>,
+                                document.body
+                            )}
+                        </DndContext>
+                    </div>
+                )}
             </div>
         </div>
     );

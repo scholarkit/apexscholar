@@ -3,9 +3,8 @@ import {
     Calendar, Users, Hash, ExternalLink, Loader2, AlertCircle, X, Bookmark, CheckCircle2, Telescope, Library, GraduationCap, Lightbulb, Network, ChevronDown
 } from 'lucide-react';
 import ForceGraph2D from 'react-force-graph-2d';
-import ReactMarkdown from 'react-markdown';
 import { puterService } from '../lib/puter';
-import { CitationMetadata, formatCitation } from '../lib/citationPipeline';
+import { CitationMetadata } from '../lib/citationPipeline';
 import QuickCiteModal from '../components/QuickCiteModal';
 import { useCallback, useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
@@ -673,7 +672,7 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
     };
 
     return (
-        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col gap-3">
+        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-2.5 sm:p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col gap-3">
             {/* Source badge + year */}
             <div className="flex items-center justify-between gap-2">
                 <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${paper.source === 'arxiv' ? 'text-orange-400 bg-orange-500/10 border-orange-500/20' :
@@ -731,17 +730,17 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
             )}
 
             {/* Actions */}
-            <div className="mt-auto pt-3 border-t border-white/5 flex items-center gap-2">
+            <div className="mt-auto pt-3 border-t border-white/5 flex flex-wrap items-center gap-2">
                 {paper.url && (
                     <a href={paper.url} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5"
+                        className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg hover:bg-white/5"
                     >
                         <ExternalLink className="w-3.5 h-3.5" />
                         Open
                     </a>
                 )}
                 <button onClick={() => onCite(paper)}
-                    className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 px-2 py-1.5 rounded-lg transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg transition-colors"
                 >
                     <Quote className="w-3.5 h-3.5" />
                     Cite
@@ -750,12 +749,12 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
                 {isSaved && onSaveInsight && (
                     <>
                         {insight ? (
-                            <button onClick={() => setIsInsightOpen(!isInsightOpen)} className={`flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg transition-colors ${isInsightOpen ? 'text-white bg-indigo-500' : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10'}`}>
+                            <button onClick={() => setIsInsightOpen(!isInsightOpen)} className={`flex items-center gap-1.5 text-xs px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg transition-colors ${isInsightOpen ? 'text-white bg-indigo-500' : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10'}`}>
                                 <Lightbulb className={isInsightOpen ? "text-amber-200 w-3.5 h-3.5" : "text-amber-400 w-3.5 h-3.5"} />
                                 {isInsightOpen ? "Hide Insight" : "View Insight"}
                             </button>
                         ) : (
-                            <button onClick={handleExtract} disabled={isExtracting} className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 px-2 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+                            <button onClick={handleExtract} disabled={isExtracting} className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg transition-colors disabled:opacity-50">
                                 {isExtracting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                                 {isExtracting ? "Extracting..." : "Extract Insight"}
                             </button>
@@ -765,14 +764,14 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
 
                 {isSaved ? (
                     <button onClick={() => onRemove(paper)}
-                        className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-red-400 hover:bg-red-400/10 px-2 py-1.5 rounded-lg transition-colors ml-auto"
+                        className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-red-400 hover:bg-red-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg transition-colors ml-auto"
                     >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Saved
                     </button>
                 ) : (
                     <button onClick={() => onImport(paper)}
-                        className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 px-2 py-1.5 rounded-lg transition-colors ml-auto"
+                        className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg transition-colors ml-auto"
                     >
                         <Download className="w-3.5 h-3.5" />
                         Import
@@ -995,17 +994,17 @@ export default function Explore() {
             {/* Header */}
             <header>
                 <div className="flex items-center gap-3 mb-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">Explore</h1>
+                    <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white">Explore</h1>
                     <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-500/15 text-indigo-400 border border-indigo-500/25 rounded-full">Beta</span>
                 </div>
-                <p className="text-zinc-400">Discover papers from arXiv, OpenAlex, Google Scholar and Semantic Scholar. Import them into your knowledge base, and generate citations instantly.</p>
+                <p className="text-xs sm:text-base text-zinc-400">Discover papers from arXiv, OpenAlex, Google Scholar and Semantic Scholar. Import them into your knowledge base, and generate citations instantly.</p>
             </header>
 
             {/* Tabs */}
-            <div className="flex gap-1 bg-zinc-900/50 border border-white/5 p-1 rounded-xl w-fit">
+            <div className="flex flex-wrap gap-1 bg-zinc-900/50 border border-white/5 p-1 rounded-xl w-fit">
                 {(['search', 'saved', 'graph'] as const).map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center gap-2 ${activeTab === tab ? 'bg-white/10 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'
+                        className={`w-full sm:w-fit px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center gap-2 ${activeTab === tab ? 'bg-white/10 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'
                             }`}
                     >
                         {tab === 'search' ? <Search className="w-3.5 h-3.5" /> :
@@ -1100,7 +1099,7 @@ export default function Explore() {
                             <div className="text-center py-16 border border-dashed border-white/10 rounded-2xl bg-zinc-900/20">
                                 <Telescope className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
                                 <h3 className="text-lg font-medium text-white mb-2">Ready to explore</h3>
-                                <p className="text-zinc-500 max-w-sm mx-auto text-sm">Search for research papers from arXiv, OpenAlex, Google Scholar, PubMed and Semantic Scholar. Import any paper into your knowledge base.</p>
+                                <p className="text-xs sm:text-base text-zinc-500 max-w-sm mx-auto text-sm">Search for research papers from arXiv, OpenAlex, Google Scholar, PubMed and Semantic Scholar. Import any paper into your knowledge base.</p>
                             </div>
 
                             {loadingRecs ? (

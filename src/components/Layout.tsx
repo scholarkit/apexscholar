@@ -39,7 +39,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { path: '/explore', icon: Telescope, label: 'Explore', beta: true },
     { path: '/journal', icon: BookOpen, label: 'Journal' },
     { path: '/resources', icon: FolderOpen, label: 'Resources' },
-    { path: '/kanban', icon: SquareKanban, label: 'Kanban Board' },
+    { path: '/kanban', icon: SquareKanban, label: 'Kanban Board', hideOnMobile: true },
     { path: '/funding', icon: Landmark, label: 'Funding & Grants' },
     { path: '/insights', icon: Lightbulb, label: 'Insights' },
     { path: '/analytics', icon: BarChart2, label: 'Analytics' },
@@ -91,8 +91,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 to={item.path}
                 title={isCollapsed ? item.label : undefined}
                 className={cn(
-                  "flex items-center rounded-lg text-sm font-medium transition-all duration-200 group",
-                  isCollapsed ? "justify-center w-12 h-12 mx-auto" : "gap-3 px-3 py-2.5",
+                  "items-center rounded-lg text-sm font-medium transition-all duration-200 group",
+                  item.hideOnMobile ? "hidden sm:flex" : "flex",
+                  isCollapsed ? "justify-center w-10 sm:w-12 h-10 sm:h-12 mx-auto" : "gap-3 px-3 py-2.5",
                   isActive
                     ? "bg-white/10 text-white shadow-sm"
                     : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
@@ -165,7 +166,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <main className="flex-1 overflow-auto bg-zinc-950 relative custom-scrollbar">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/20 via-zinc-950 to-zinc-950 pointer-events-none" />
-        <div className="relative p-8 max-w-6xl mx-auto min-h-full">
+        <div className="relative p-4 sm:p-8 max-w-6xl mx-auto min-h-full">
           {children}
         </div>
       </main>

@@ -178,16 +178,16 @@ SUMMARY:`;
   };
 
   return (
-    <div className="space-y-8">
-      <header className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-8">
+      <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">AI Insights Engine</h1>
-          <p className="text-zinc-400">Generate intelligent summaries from your recent research entries.</p>
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">AI Insights Engine</h1>
+          <p className="text-xs sm:text-base text-zinc-400">Generate intelligent summaries from your recent research entries.</p>
         </div>
         <button
           onClick={generateInsights}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
+          className="mt-2 sm:mt-0 w-full sm:w-fit flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
         >
           {loading ? (
             <RefreshCw className="w-4 h-4 animate-spin" />
@@ -198,7 +198,7 @@ SUMMARY:`;
         </button>
       </header>
 
-      <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-8 min-h-[400px] relative overflow-hidden">
+      <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-2 sm:p-4 min-h-[400px] relative overflow-hidden">
         {/* Decorative background element */}
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -251,7 +251,7 @@ SUMMARY:`;
                 {exporting ? 'Exporting...' : 'Export PDF'}
               </button>
             </div> */}
-            <div className="p-4 rounded-xl">
+            <div className="rounded-xl">
               <Markdown remarkPlugins={[remarkGfm]}>{summary}</Markdown>
             </div>
           </div>

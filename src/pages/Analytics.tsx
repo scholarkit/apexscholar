@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { format, parseISO, subDays, eachDayOfInterval } from 'date-fns';
+import { format, subDays, eachDayOfInterval } from 'date-fns';
 import { Entry, puterService } from '../lib/puter';
 import { Activity, Calendar, GitCommit } from 'lucide-react';
 import { parseEntryDate } from '../utils/dateUtils';
@@ -68,24 +68,24 @@ export default function Analytics() {
   const typeChartData = Object.entries(typeData).map(([name, value]) => ({ name, value }));
 
   const ranges = [
-    { id: '7d', label: '7 Days' },
-    { id: '30d', label: '30 Days' },
-    { id: '3m', label: '3 Months' },
+    { id: '7d', label: '7 D' },
+    { id: '30d', label: '30 D' },
+    { id: '3m', label: '3 M' },
     { id: 'all', label: 'All Time' },
   ];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Analytics & Progress</h1>
-          <p className="text-zinc-400">Visualize your research activity and milestones.</p>
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">Analytics & Progress</h1>
+          <p className="text-xs sm:text-base text-zinc-400">Visualize your research activity and milestones.</p>
         </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Activity Chart */}
-        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6 col-span-full">
+        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-3 sm:p-6 col-span-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
@@ -99,7 +99,7 @@ export default function Analytics() {
                 <button
                   key={r.id}
                   onClick={() => setTimeRange(r.id as any)}
-                  className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${timeRange === r.id
+                  className={`w-full px-2 sm:px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${timeRange === r.id
                     ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
                     : 'text-zinc-500 hover:text-zinc-300'
                     }`}
@@ -127,7 +127,7 @@ export default function Analytics() {
         </div>
 
         {/* Entry Types Distribution */}
-        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6">
+        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-3 sm:p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
               <Calendar className="w-5 h-5 text-emerald-400" />
@@ -152,7 +152,7 @@ export default function Analytics() {
         </div>
 
         {/* Timeline */}
-        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6">
+        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-3 sm:p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 bg-purple-500/10 rounded-lg border border-purple-500/20">
               <GitCommit className="w-5 h-5 text-purple-400" />
@@ -167,7 +167,7 @@ export default function Analytics() {
                 </div>
                 <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-white/5 bg-zinc-900/50 shadow">
                   <div className="flex items-center justify-between space-x-2 mb-1">
-                    <div className="font-bold text-white text-sm">{entry.entry_type}</div>
+                    <div className="font-bold text-white text-xs sm:text-sm">{entry.entry_type}</div>
                     <time className="font-mono text-xs text-zinc-500">{format(parseEntryDate(entry.date), 'MMM d')}</time>
                   </div>
                   <div className="text-zinc-400 text-sm line-clamp-2">{entry.content}</div>

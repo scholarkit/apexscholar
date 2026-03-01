@@ -2,21 +2,21 @@ import { Heart, Coffee, CreditCard, Sparkles, Code2, Globe, Mail } from 'lucide-
 
 export default function About() {
     return (
-        <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in duration-500 pb-12">
+        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-8 animate-in fade-in duration-500 pb-12">
             {/* Header */}
             <header className="text-center space-y-4 pt-12 pb-6 border-b border-white/5">
                 <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 mb-2">
                     <Heart className="w-8 h-8 text-indigo-400" fill="currentColor" />
                 </div>
-                <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white">About the Project</h1>
-                <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">About the Project</h1>
+                <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto">
                     Apex Scholar is a passion project built to democratize and accelerate academic research.
                 </p>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Why this passion project */}
-                <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-8 space-y-4 hover:border-white/10 transition-colors">
+                <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-4 sm:p-8 space-y-4 hover:border-white/10 transition-colors">
                     <div className="flex items-center gap-3 mb-6">
                         <Sparkles className="w-6 h-6 text-amber-400" />
                         <h2 className="text-2xl font-semibold text-white">Why build this?</h2>
@@ -35,7 +35,7 @@ export default function About() {
                 </div>
 
                 {/* Who am I */}
-                <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-8 space-y-4 hover:border-white/10 transition-colors">
+                <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-4 sm:p-8 space-y-4 hover:border-white/10 transition-colors">
                     <div className="flex items-center gap-3 mb-6">
                         <Code2 className="w-6 h-6 text-emerald-400" />
                         <h2 className="text-2xl font-semibold text-white">Who am I?</h2>
@@ -67,7 +67,7 @@ export default function About() {
             </div>
 
             {/* Support Section */}
-            <section className="bg-indigo-950/20 border border-indigo-500/20 rounded-3xl p-8 md:p-12 text-center mt-12">
+            <section className="bg-indigo-950/20 border border-indigo-500/20 rounded-3xl p-4 sm:p-8 md:p-12 text-center mt-12">
                 <h2 className="text-3xl font-bold text-white mb-4">Support the Development</h2>
                 <p className="text-indigo-200/80 max-w-2xl mx-auto mb-10 leading-relaxed">
                     This project is and will remain free to use. If you find it valuable for your research workflow, consider supporting its continued development, server costs, and open-source maintenance. There are a few ways to help:

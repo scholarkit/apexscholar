@@ -103,15 +103,15 @@ export default function Journal() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Research Journal</h1>
-          <p className="text-zinc-400">Log your progress, meetings, and weekly diaries.</p>
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">Research Journal</h1>
+          <p className="text-sm sm:text-base text-zinc-400">Log your progress, meetings, and weekly diaries.</p>
         </div>
         {!isEditing && (
           <button
             onClick={() => openEditor()}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
+            className="w-full sm:w-fit mt-2 sm:mt-0 flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
           >
             <Plus className="w-4 h-4" />
             New Entry
@@ -130,14 +130,14 @@ export default function Journal() {
             </button>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-3 sm:space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-zinc-400 mb-2">Category</label>
                 <select
                   value={currentEntry.entry_type}
                   onChange={(e) => setCurrentEntry({ ...currentEntry, entry_type: e.target.value })}
-                  className="w-full bg-zinc-950 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
+                  className="w-full bg-zinc-950 border border-white/10 rounded-lg px-2 sm:px-4 py-1 sm:py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
                 >
                   {entryTypes.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -224,7 +224,7 @@ export default function Journal() {
             </div>
           ) : (
             entries.map((entry) => (
-              <div key={entry.id} className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6 hover:bg-zinc-900/60 transition-colors group">
+              <div key={entry.id} className="bg-zinc-900/40 border border-white/5 rounded-2xl p-3 sm:p-6 hover:bg-zinc-900/60 transition-colors group">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold tracking-wide uppercase border border-indigo-500/20">

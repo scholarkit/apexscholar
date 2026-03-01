@@ -178,7 +178,7 @@ export default function Resources() {
                 </div>
               </div>
 
-              <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between gap-2 transition-opacity">
                 <a
                   href={downloadUrls[resource.id] || '#'}
                   target="_blank"

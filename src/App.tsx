@@ -15,6 +15,7 @@ import Login from './components/Login';
 import { puterService } from './lib/puter';
 import Explore from './pages/Explore';
 import Kanban from './pages/Kanban';
+import Funding from './pages/Funding';
 import About from './pages/About';
 import Settings from './pages/Settings';
 
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/resources" element={<Resources />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/kanban" element={<Kanban />} />
+          <Route path="/funding" element={<Funding />} />
           <Route path="/insights" element={<Insights />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/settings" element={<Settings />} />

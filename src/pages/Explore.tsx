@@ -26,7 +26,7 @@ interface Paper {
     doi?: string;
     url?: string;
     journal?: string;
-    source: 'arxiv' | 'openalex' | 'semanticscholar' | 'googlescholar';
+    source: 'arxiv' | 'openalex' | 'semanticscholar' | 'googlescholar' | 'pubmed';
     saved?: boolean;
 }
 
@@ -66,7 +66,7 @@ export interface KGGraph {
     edges: KGEdge[];
 }
 
-type SourceFilter = 'all' | 'arxiv' | 'openalex' | 'semanticscholar' | 'googlescholar';
+type SourceFilter = 'all' | 'arxiv' | 'openalex' | 'semanticscholar' | 'googlescholar' | 'pubmed';
 
 // ─── arXiv API ─────────────────────────────────────────────────────────────────
 
@@ -189,6 +189,55 @@ async function searchGoogleScholar(query: string): Promise<Paper[]> {
                 url: w.link,
                 journal: journal,
                 source: 'googlescholar' as const,
+            };
+        });
+    } catch {
+        return [];
+    }
+}
+
+// ─── PubMed API ────────────────────────────────────────────────────────────────
+
+async function searchPubmed(query: string): Promise<Paper[]> {
+    try {
+        const res = await fetch("/api/pubmed?q=" + encodeURIComponent(query));
+        if (!res.ok) return [];
+        const text = await res.text();
+        const xml = new DOMParser().parseFromString(text, 'text/xml');
+        const articles = Array.from(xml.querySelectorAll('PubmedArticle'));
+
+        return articles.map(article => {
+            const pmid = article.querySelector('PMID')?.textContent || '';
+            const title = article.querySelector('ArticleTitle')?.textContent?.replace(/\s+/g, ' ').trim() || 'Untitled';
+
+            const authorEls = article.querySelectorAll('AuthorList Author');
+            const authors = Array.from(authorEls).map(a => {
+                const last = a.querySelector('LastName')?.textContent || '';
+                const format = a.querySelector('ForeName')?.textContent || a.querySelector('Initials')?.textContent || '';
+                return `${format} ${last}`.trim();
+            }).filter(Boolean);
+
+            const year = article.querySelector('PubDate Year')?.textContent || article.querySelector('DateRevised Year')?.textContent || '';
+
+            const abstractEls = article.querySelectorAll('AbstractText');
+            // Select all abstract text chunks and combine them
+            const abstract = Array.from(abstractEls).map(a => a.textContent?.trim()).filter(Boolean).join('\n\n') || '';
+
+            const doiEl = article.querySelector('ArticleId[IdType="doi"]');
+            const doi = doiEl?.textContent?.trim();
+
+            const journal = article.querySelector('Journal Title')?.textContent || '';
+
+            return {
+                id: `pubmed:${pmid}`,
+                title,
+                authors,
+                year,
+                abstract,
+                doi: doi || undefined,
+                url: `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`,
+                journal,
+                source: 'pubmed' as const,
             };
         });
     } catch {
@@ -630,15 +679,18 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
                 <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${paper.source === 'arxiv' ? 'text-orange-400 bg-orange-500/10 border-orange-500/20' :
                     paper.source === 'openalex' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' :
                         paper.source === 'googlescholar' ? 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' :
-                            'text-teal-400 bg-teal-500/10 border-teal-500/20'
+                            paper.source === 'pubmed' ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' :
+                                'text-teal-400 bg-teal-500/10 border-teal-500/20'
                     }`}>
                     {paper.source === 'arxiv' ? <Sparkles className="w-2.5 h-2.5" /> :
                         paper.source === 'openalex' ? <Globe className="w-2.5 h-2.5" /> :
                             paper.source === 'googlescholar' ? <GraduationCap className="w-2.5 h-2.5" /> :
-                                <Library className="w-2.5 h-2.5" />}
+                                paper.source === 'pubmed' ? <BookMarked className="w-2.5 h-2.5" /> :
+                                    <Library className="w-2.5 h-2.5" />}
                     {paper.source === 'arxiv' ? 'arXiv' :
                         paper.source === 'openalex' ? 'OpenAlex' :
-                            paper.source === 'googlescholar' ? 'Google Scholar' : 'Semantic Scholar'}
+                            paper.source === 'googlescholar' ? 'Google Scholar' :
+                                paper.source === 'pubmed' ? 'PubMed' : 'Semantic Scholar'}
                 </span>
                 <span className="text-xs text-zinc-500 flex items-center gap-1"><Calendar className="w-3 h-3" />{paper.year || '—'}</span>
             </div>
@@ -794,7 +846,8 @@ export default function Explore() {
                     searchArxiv(pick).catch(() => []),
                     searchOpenAlex(pick).catch(() => []),
                     searchSemanticScholar(pick).catch(() => []),
-                    searchGoogleScholar(pick).catch(() => [])
+                    searchGoogleScholar(pick).catch(() => []),
+                    searchPubmed(pick).catch(() => [])
                 ]).then(batches => {
                     const merged = batches.flat();
                     merged.sort(() => Math.random() - 0.5); // Shuffle for variety
@@ -825,6 +878,7 @@ export default function Explore() {
             if (source === 'all' || source === 'openalex') fetchers.push(searchOpenAlex(query).catch(() => []));
             if (source === 'all' || source === 'semanticscholar') fetchers.push(searchSemanticScholar(query).catch(() => []));
             if (source === 'all' || source === 'googlescholar') fetchers.push(searchGoogleScholar(query).catch(() => []));
+            if (source === 'all' || source === 'pubmed') fetchers.push(searchPubmed(query).catch(() => []));
             const batches = await Promise.all(fetchers);
             const merged = batches.flat();
             // Sort by year desc
@@ -1005,6 +1059,7 @@ export default function Explore() {
                                 <option value="openalex" className="bg-zinc-900">OpenAlex</option>
                                 <option value="semanticscholar" className="bg-zinc-900">Semantic Scholar</option>
                                 <option value="googlescholar" className="bg-zinc-900">Google Scholar</option>
+                                <option value="pubmed" className="bg-zinc-900">PubMed</option>
                             </select>
                             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none transition-transform group-hover:translate-y-[-40%]" />
                         </div>
@@ -1045,7 +1100,7 @@ export default function Explore() {
                             <div className="text-center py-16 border border-dashed border-white/10 rounded-2xl bg-zinc-900/20">
                                 <Telescope className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
                                 <h3 className="text-lg font-medium text-white mb-2">Ready to explore</h3>
-                                <p className="text-zinc-500 max-w-sm mx-auto text-sm">Search for research papers from arXiv, OpenAlex, and Semantic Scholar. Import any paper into your knowledge base.</p>
+                                <p className="text-zinc-500 max-w-sm mx-auto text-sm">Search for research papers from arXiv, OpenAlex, Google Scholar, PubMed and Semantic Scholar. Import any paper into your knowledge base.</p>
                             </div>
 
                             {loadingRecs ? (

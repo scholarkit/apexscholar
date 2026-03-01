@@ -239,8 +239,16 @@ export default function Kanban() {
         return cols;
     }, [tasks]);
 
-    if (loading) return <div className="text-zinc-500 animate-pulse p-8">Loading board...</div>;
-
+    if (loading) {
+        return (
+            <div className="min-h-[100dvh] flex items-center justify-center h-full">
+                <div className="animate-pulse flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+                    <p className="text-zinc-500 font-medium">Loading board...</p>
+                </div>
+            </div>
+        );
+    }
     return (
         <div className="flex flex-col h-full">
             <header className="mb-6 shrink-0">

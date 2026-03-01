@@ -45,6 +45,37 @@ async function startServer() {
     }
   });
 
+  app.get("/api/pubmed", async (req, res) => {
+    try {
+      const q: any = req.query.q || "ai";
+      const apiKey = process.env.NCBI_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "NCBI_API_KEY missing in .env" });
+      }
+
+      // Step 1: Search for IDs
+      const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(q)}&retmode=json&retmax=12&api_key=${apiKey}`;
+      const searchRes = await fetch(searchUrl);
+      const searchData = await searchRes.json();
+      const ids = searchData?.esearchresult?.idlist || [];
+
+      if (!ids || ids.length === 0) {
+        res.set("Content-Type", "text/xml");
+        return res.send("<?xml version=\"1.0\" ?><PubmedArticleSet></PubmedArticleSet>");
+      }
+
+      // Step 2: Fetch full XML data for those IDs
+      const fetchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${ids.join(',')}&retmode=xml&api_key=${apiKey}`;
+      const fetchRes = await fetch(fetchUrl);
+      const xml = await fetchRes.text();
+
+      res.set("Content-Type", "text/xml");
+      res.send(xml);
+    } catch (err) {
+      res.status(500).json({ error: "PubMed fetch failed" });
+    }
+  });
+
   // 2. Then, define the Vite/Static fallback logic
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

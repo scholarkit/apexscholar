@@ -1,5 +1,5 @@
 <div align="center">
-  <img alt="Apex Scholar Logo" src="public/favicon.svg" width="120" height="auto" />
+  <img alt="Apex Scholar Logo" src="public/logo-transparent.png" width="120" height="auto" />
   
   <h1>Apex Scholar</h1>
   

@@ -4,9 +4,9 @@ export default function About() {
     return (
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-8 animate-in fade-in duration-500 pb-12">
             {/* Header */}
-            <header className="text-center space-y-4 pt-12 pb-6 border-b border-white/5">
+            <header className="text-center space-y-4 pt-12 pb-6 border-b border-[#1f2937]">
                 <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 mb-2">
-                    <Heart className="w-8 h-8 text-indigo-400" fill="currentColor" />
+                    <Heart className="w-8 h-8 text-[#3B82F6]" fill="currentColor" />
                 </div>
                 <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">About the Project</h1>
                 <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto">
@@ -16,7 +16,7 @@ export default function About() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Why this passion project */}
-                <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-4 sm:p-8 space-y-4 hover:border-white/10 transition-colors">
+                <div className="bg-zinc-900/40 border border-[#1f2937] rounded-3xl p-4 sm:p-8 space-y-4 hover:border-white/10 transition-colors">
                     <div className="flex items-center gap-3 mb-6">
                         <Sparkles className="w-6 h-6 text-amber-400" />
                         <h2 className="text-2xl font-semibold text-white">Why build this?</h2>
@@ -35,7 +35,7 @@ export default function About() {
                 </div>
 
                 {/* Who am I */}
-                <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-4 sm:p-8 space-y-4 hover:border-white/10 transition-colors">
+                <div className="bg-zinc-900/40 border border-[#1f2937] rounded-3xl p-4 sm:p-8 space-y-4 hover:border-white/10 transition-colors">
                     <div className="flex items-center gap-3 mb-6">
                         <Code2 className="w-6 h-6 text-emerald-400" />
                         <h2 className="text-2xl font-semibold text-white">Who am I?</h2>
@@ -76,7 +76,7 @@ export default function About() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
 
                     {/* Buy Me a Coffee */}
-                    <a href="https://buymeacoffee.com/kywagle" className="group flex flex-col items-center p-6 bg-zinc-900 border border-white/5 hover:border-[#FFDD00]/50 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#FFDD00]/10">
+                    <a href="https://buymeacoffee.com/kywagle" className="group flex flex-col items-center p-6 bg-zinc-900 border border-[#1f2937] hover:border-[#FFDD00]/50 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#FFDD00]/10">
                         <div className="w-12 h-12 bg-[#FFDD00]/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <Coffee className="w-6 h-6 text-[#FFDD00]" />
                         </div>
@@ -85,7 +85,7 @@ export default function About() {
                     </a>
 
                     {/* UPI */}
-                    <button onClick={() => alert('UPI ID: kywagle@okaxis')} className="group flex flex-col items-center p-6 bg-zinc-900 border border-white/5 hover:border-emerald-500/50 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/10 text-left">
+                    <button onClick={() => alert('UPI ID: kywagle@okaxis')} className="group flex flex-col items-center p-6 bg-zinc-900 border border-[#1f2937] hover:border-emerald-500/50 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/10 text-left">
                         <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             {/* Using a custom span for UPI look, or just CreditCard */}
                             <span className="text-emerald-400 font-bold text-lg leading-none tracking-tighter">UPI</span>
@@ -95,7 +95,7 @@ export default function About() {
                     </button>
 
                     {/* Razorpay */}
-                    {/* <a href="#" className="group flex flex-col items-center p-6 bg-zinc-900 border border-white/5 hover:border-[#0288D1]/50 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#0288D1]/10">
+                    {/* <a href="#" className="group flex flex-col items-center p-6 bg-zinc-900 border border-[#1f2937] hover:border-[#0288D1]/50 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#0288D1]/10">
                         <div className="w-12 h-12 bg-[#0288D1]/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <CreditCard className="w-6 h-6 text-[#0288D1]" />
                         </div>

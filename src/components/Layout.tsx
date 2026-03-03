@@ -52,11 +52,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     : '?';
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-50 font-sans selection:bg-indigo-500/30 overflow-hidden">
+    <div className="flex h-screen bg-black text-zinc-50 font-sans selection:bg-indigo-500/30 overflow-hidden">
       {/* Sidebar */}
       <aside
         className={cn(
-          "relative z-20 flex-shrink-0 border-r border-white/10 bg-zinc-900/50 backdrop-blur-xl flex flex-col transition-all duration-300 ease-in-out",
+          "relative z-20 flex-shrink-0 border-r border-[#1F2937] bg-[#0A0A0A] backdrop-blur-xl flex flex-col transition-all duration-300 ease-in-out",
           isCollapsed ? "w-20" : "w-64"
         )}
       >
@@ -69,12 +69,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </button>
 
         {/* Logo */}
-        <div className={cn("p-6 flex items-center", isCollapsed ? "justify-center" : "gap-2")}>
-          <div className="w-8 h-8 rounded-lg bg-indigo-500 flex-shrink-0 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <Lightbulb className="w-5 h-5 text-white" />
-          </div>
+        <div className={cn("px-2 py-4 flex items-center", isCollapsed ? "justify-center" : "gap-2")}>
+          <img src="/logo-transparent.png" alt="logo" className={cn(isCollapsed ? "w-8 h-8" : "w-12 h-12")} />
           {!isCollapsed && (
-            <h1 className="text-xl font-semibold tracking-tight text-white animate-in fade-in slide-in-from-left-2 duration-300">
+            <h1 className="logo-title">
               Apex Scholar
             </h1>
           )}
@@ -99,11 +97,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                 )}
               >
-                <Icon className={cn("w-5 h-5 flex-shrink-0", isActive ? "text-indigo-400" : "text-zinc-500 group-hover:text-zinc-300")} />
+                <Icon className={cn("w-5 h-5 flex-shrink-0", isActive ? "text-[#3B82F6]" : "text-zinc-500 group-hover:text-zinc-300")} />
                 {!isCollapsed && <div>
                   <span className="animate-in fade-in slide-in-from-left-1 duration-300">{item.label}</span>
                   {item.beta && (
-                    <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-wider">
+                    <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-[#3B82F6] text-[10px] font-bold uppercase tracking-wider">
                       Beta
                     </span>
                   )}
@@ -164,8 +162,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-zinc-950 relative custom-scrollbar">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/20 via-zinc-950 to-zinc-950 pointer-events-none" />
+      <main className="flex-1 overflow-auto bg-black relative custom-scrollbar">
+        <div className="absolute inset-0 bg-black pointer-events-none" />
         <div className="relative p-4 sm:p-8 max-w-6xl mx-auto min-h-full">
           {children}
         </div>

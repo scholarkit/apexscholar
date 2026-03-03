@@ -78,7 +78,7 @@ function TaskCard({ task, deleteIdea }: { task: Task; deleteIdea?: (id: string) 
         <div
             ref={setNodeRef}
             style={style}
-            className="group relative bg-zinc-900 border border-white/5 hover:border-white/10 p-3 rounded-xl shadow-sm text-sm text-zinc-300 transition-colors flex flex-col gap-2"
+            className="group relative bg-zinc-900 border border-[#1f2937] hover:border-white/10 p-3 rounded-xl shadow-sm text-sm text-zinc-300 transition-colors flex flex-col gap-2"
         >
             <div className="flex gap-2 w-full">
                 <div
@@ -332,7 +332,7 @@ function Column({
 
             <div
                 ref={setNodeRef}
-                className="flex-1 bg-zinc-900/40 border border-white/5 rounded-2xl p-2 flex flex-col gap-2 overflow-y-auto custom-scrollbar"
+                className="flex-1 bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-2 flex flex-col gap-2 overflow-y-auto custom-scrollbar"
             >
                 <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
                     {tasks.map(task => (

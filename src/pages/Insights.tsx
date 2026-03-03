@@ -198,7 +198,7 @@ SUMMARY:`;
         </button>
       </header>
 
-      <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-2 sm:p-4 min-h-[400px] relative overflow-hidden">
+      <div className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-2 sm:p-4 min-h-[400px] relative overflow-hidden">
         {/* Decorative background element */}
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -207,7 +207,7 @@ SUMMARY:`;
             <div className="relative">
               <div className="w-16 h-16 border-4 border-indigo-500/20 rounded-full animate-pulse" />
               <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin absolute inset-0" />
-              <Sparkles className="w-6 h-6 text-indigo-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              <Sparkles className="w-6 h-6 text-[#3B82F6] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
             <p className="text-zinc-400 font-medium animate-pulse">Reading recent journal entries...</p>
           </div>
@@ -226,11 +226,11 @@ SUMMARY:`;
             </button>
           </div>
         ) : summary ? (
-          <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-headings:text-white prose-a:text-indigo-400 hover:prose-a:text-indigo-300 prose-code:text-indigo-300 prose-pre:bg-zinc-950/50 prose-pre:border prose-pre:border-white/5 relative z-10 transition-all duration-700">
+          <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-headings:text-white prose-a:text-[#3B82F6] hover:prose-a:text-indigo-300 prose-code:text-indigo-300 prose-pre:bg-black/50 prose-pre:border prose-pre:border-[#1f2937] relative z-10 transition-all duration-700">
             {/* <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-indigo-500/20 rounded-xl border border-indigo-500/30">
-                  <Lightbulb className="w-6 h-6 text-indigo-400" />
+                  <Lightbulb className="w-6 h-6 text-[#3B82F6]" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-white m-0">Research Summary</h2>
@@ -257,7 +257,7 @@ SUMMARY:`;
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-20 text-center">
-            <div className="w-20 h-20 bg-zinc-950 rounded-3xl flex items-center justify-center mb-6 border border-white/5 shadow-2xl">
+            <div className="w-20 h-20 bg-black rounded-3xl flex items-center justify-center mb-6 border border-[#1f2937] shadow-2xl">
               <Lightbulb className="w-10 h-10 text-zinc-600" />
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">Ready to Analyze</h3>

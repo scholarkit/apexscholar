@@ -563,10 +563,10 @@ function InsightPanel({
     if (!isOpen) return null;
 
     return (
-        <div className="mt-3 bg-zinc-950 border border-indigo-500/30 rounded-xl overflow-hidden shadow-xl">
+        <div className="mt-3 bg-black border border-indigo-500/30 rounded-xl overflow-hidden shadow-xl">
             <div className="bg-indigo-500/10 px-4 py-3 border-b border-indigo-500/20 flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-indigo-400" />
+                    <Sparkles className="w-4 h-4 text-[#3B82F6]" />
                     <h4 className="text-sm font-semibold text-white">AI Insight</h4>
                 </div>
                 <div className="flex items-center gap-2">
@@ -580,7 +580,7 @@ function InsightPanel({
             </div>
             <div className="p-4 space-y-4 max-h-96 overflow-y-auto custom-scrollbar text-sm">
                 {/* Metadata */}
-                <div className="flex gap-4 mb-4 border-b border-white/5 pb-4">
+                <div className="flex gap-4 mb-4 border-b border-[#1f2937] pb-4">
                     <div className="flex-1">
                         <span className="text-[10px] uppercase font-bold text-zinc-500">Domain</span>
                         {isEditing ? (
@@ -672,12 +672,12 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
     };
 
     return (
-        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-2.5 sm:p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col gap-3">
+        <div className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-2.5 sm:p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col gap-3">
             {/* Source badge + year */}
             <div className="flex items-center justify-between gap-2">
                 <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${paper.source === 'arxiv' ? 'text-orange-400 bg-orange-500/10 border-orange-500/20' :
                     paper.source === 'openalex' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' :
-                        paper.source === 'googlescholar' ? 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' :
+                        paper.source === 'googlescholar' ? 'text-[#3B82F6] bg-indigo-500/10 border-indigo-500/20' :
                             paper.source === 'pubmed' ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' :
                                 'text-teal-400 bg-teal-500/10 border-teal-500/20'
                     }`}>
@@ -717,7 +717,7 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
                 <div>
                     <p className="text-xs text-zinc-400 leading-relaxed">{abstract}</p>
                     {paper.abstract.length > 200 && (
-                        <button onClick={() => setExpanded(!expanded)} className="text-xs text-indigo-400 hover:text-indigo-300 mt-1">
+                        <button onClick={() => setExpanded(!expanded)} className="text-xs text-[#3B82F6] hover:text-indigo-300 mt-1">
                             {expanded ? 'Show less' : 'Read more'}
                         </button>
                     )}
@@ -730,7 +730,7 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
             )}
 
             {/* Actions */}
-            <div className="mt-auto pt-3 border-t border-white/5 flex flex-wrap items-center gap-2">
+            <div className="mt-auto pt-3 border-t border-[#1f2937] flex flex-wrap items-center gap-2">
                 {paper.url && (
                     <a href={paper.url} target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg hover:bg-white/5"
@@ -749,12 +749,12 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
                 {isSaved && onSaveInsight && (
                     <>
                         {insight ? (
-                            <button onClick={() => setIsInsightOpen(!isInsightOpen)} className={`flex items-center gap-1.5 text-xs px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg transition-colors ${isInsightOpen ? 'text-white bg-indigo-500' : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10'}`}>
+                            <button onClick={() => setIsInsightOpen(!isInsightOpen)} className={`flex items-center gap-1.5 text-xs px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg transition-colors ${isInsightOpen ? 'text-white bg-indigo-500' : 'text-[#3B82F6] hover:text-indigo-300 hover:bg-indigo-400/10'}`}>
                                 <Lightbulb className={isInsightOpen ? "text-amber-200 w-3.5 h-3.5" : "text-amber-400 w-3.5 h-3.5"} />
                                 {isInsightOpen ? "Hide Insight" : "View Insight"}
                             </button>
                         ) : (
-                            <button onClick={handleExtract} disabled={isExtracting} className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg transition-colors disabled:opacity-50">
+                            <button onClick={handleExtract} disabled={isExtracting} className="flex items-center gap-1.5 text-xs text-[#3B82F6] hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg transition-colors disabled:opacity-50">
                                 {isExtracting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                                 {isExtracting ? "Extracting..." : "Extract Insight"}
                             </button>
@@ -771,7 +771,7 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
                     </button>
                 ) : (
                     <button onClick={() => onImport(paper)}
-                        className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg transition-colors ml-auto"
+                        className="flex items-center gap-1.5 text-xs text-[#3B82F6] hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg transition-colors ml-auto"
                     >
                         <Download className="w-3.5 h-3.5" />
                         Import
@@ -995,13 +995,13 @@ export default function Explore() {
             <header>
                 <div className="flex items-center gap-3 mb-1">
                     <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white">Explore</h1>
-                    <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-500/15 text-indigo-400 border border-indigo-500/25 rounded-full">Beta</span>
+                    <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-500/15 text-[#3B82F6] border border-indigo-500/25 rounded-full">Beta</span>
                 </div>
                 <p className="text-xs sm:text-base text-zinc-400">Discover papers from arXiv, OpenAlex, Google Scholar and Semantic Scholar. Import them into your knowledge base, and generate citations instantly.</p>
             </header>
 
             {/* Tabs */}
-            <div className="flex flex-wrap gap-1 bg-zinc-900/50 border border-white/5 p-1 rounded-xl w-fit">
+            <div className="flex flex-wrap gap-1 bg-zinc-900/50 border border-[#1f2937] p-1 rounded-xl w-fit">
                 {(['search', 'saved', 'graph'] as const).map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
                         className={`w-full sm:w-fit px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center gap-2 ${activeTab === tab ? 'bg-white/10 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'
@@ -1014,7 +1014,7 @@ export default function Explore() {
                             tab === 'saved' ? 'Knowledge Base' :
                                 'Reasoning Graph'}
                         {tab === 'saved' && savedPapers.length > 0 && (
-                            <span className="ml-1 px-1.5 py-0.5 text-xs bg-indigo-500/20 text-indigo-400 rounded-full">{savedPapers.length}</span>
+                            <span className="ml-1 px-1.5 py-0.5 text-xs bg-indigo-500/20 text-[#3B82F6] rounded-full">{savedPapers.length}</span>
                         )}
                         {tab === 'graph' && graph.nodes.length > 0 && (
                             <span className="ml-1 px-1.5 py-0.5 text-xs bg-amber-500/20 text-amber-400 rounded-full">{graph.nodes.length}</span>
@@ -1047,7 +1047,7 @@ export default function Explore() {
                         </div>
 
                         <div className="relative group min-w-[160px]">
-                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-hover:text-indigo-400 transition-colors pointer-events-none" />
+                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-hover:text-[#3B82F6] transition-colors pointer-events-none" />
                             <select
                                 value={source}
                                 onChange={(e) => setSource(e.target.value as SourceFilter)}
@@ -1106,7 +1106,7 @@ export default function Explore() {
                                 <div className="space-y-4 animate-pulse">
                                     <div className="h-6 w-48 bg-zinc-800 rounded"></div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {[1, 2].map(i => <div key={i} className="h-48 bg-zinc-900 border border-white/5 rounded-2xl"></div>)}
+                                        {[1, 2].map(i => <div key={i} className="h-48 bg-zinc-900 border border-[#1f2937] rounded-2xl"></div>)}
                                     </div>
                                 </div>
                             ) : recommendations.length > 0 ? (
@@ -1195,7 +1195,7 @@ export default function Explore() {
             {activeTab === 'graph' && (
                 <div className="space-y-4">
                     {isRebuildingGraph && (
-                        <div className="flex items-center gap-2 p-3 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl text-sm justify-center mb-4">
+                        <div className="flex items-center gap-2 p-3 bg-indigo-500/10 text-[#3B82F6] border border-indigo-500/20 rounded-xl text-sm justify-center mb-4">
                             <Loader2 className="w-4 h-4 animate-spin" />
                             Compressing concepts via AI to build the knowledge graph...
                         </div>
@@ -1218,7 +1218,7 @@ export default function Explore() {
                             {gapInsights && (
                                 <div className="lg:col-span-4 bg-zinc-900/10 border border-indigo-500/30 rounded-xl p-4 shadow-xl">
                                     <div className="flex items-center gap-2 mb-3">
-                                        <Sparkles className="w-4 h-4 text-indigo-400" />
+                                        <Sparkles className="w-4 h-4 text-[#3B82F6]" />
                                         <h3 className="text-[10px] font-bold text-white uppercase tracking-widest">Gap Insights</h3>
                                         <button onClick={() => setGapInsights('')} className="ml-auto text-zinc-500 hover:text-white transition-colors"><X className="w-3.5 h-3.5" /></button>
                                     </div>
@@ -1227,7 +1227,7 @@ export default function Explore() {
                                     </div>
                                 </div>
                             )}
-                            <div className="lg:col-span-3 bg-zinc-950 border border-white/10 rounded-2xl overflow-hidden relative">
+                            <div className="lg:col-span-3 bg-black border border-white/10 rounded-2xl overflow-hidden relative">
                                 {/* Overlay Controls */}
                                 <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
                                     <button
@@ -1235,7 +1235,7 @@ export default function Explore() {
                                         disabled={isIdentifyingGap || graph.nodes.length < 2}
                                         className="bg-zinc-900/80 hover:bg-zinc-800 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-xl flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                                     >
-                                        {isIdentifyingGap ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5 text-indigo-400" />}
+                                        {isIdentifyingGap ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5 text-[#3B82F6]" />}
                                         {isIdentifyingGap ? "Identifying Gaps..." : "Identify Gap"}
                                     </button>
                                 </div>
@@ -1290,11 +1290,11 @@ export default function Explore() {
                                 </div>
                             </div>
 
-                            <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-5 overflow-y-auto space-y-4">
+                            <div className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-5 overflow-y-auto space-y-4">
                                 {selectedNode ? (
                                     <div className="space-y-6">
                                         <div>
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400">{selectedNode.type}</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-[#3B82F6]">{selectedNode.type}</span>
                                             <h3 className="text-xl font-bold text-white mt-1 leading-snug">{selectedNode.label}</h3>
                                         </div>
 
@@ -1305,7 +1305,7 @@ export default function Explore() {
                                                     const p = savedPapers.find(sp => sp.id === pid);
                                                     if (!p) return null;
                                                     return (
-                                                        <div key={pid} className="bg-zinc-900/80 border border-white/5 p-3 rounded-xl">
+                                                        <div key={pid} className="bg-zinc-900/80 border border-[#1f2937] p-3 rounded-xl">
                                                             <div className="text-xs text-zinc-400 mb-1">{p.year}</div>
                                                             <div className="text-sm font-medium text-white leading-snug">{p.title}</div>
                                                         </div>

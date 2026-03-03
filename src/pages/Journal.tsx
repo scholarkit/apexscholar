@@ -137,7 +137,7 @@ export default function Journal() {
                 <select
                   value={currentEntry.entry_type}
                   onChange={(e) => setCurrentEntry({ ...currentEntry, entry_type: e.target.value })}
-                  className="w-full bg-zinc-950 border border-white/10 rounded-lg px-2 sm:px-4 py-1 sm:py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
+                  className="w-full bg-black border border-white/10 rounded-lg px-2 sm:px-4 py-1 sm:py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
                 >
                   {entryTypes.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -151,7 +151,7 @@ export default function Journal() {
                       type="date"
                       value={currentEntry.startDate || ''}
                       onChange={(e) => setCurrentEntry({ ...currentEntry, startDate: e.target.value })}
-                      className="w-full bg-zinc-950 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                      className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     />
                   </div>
                   <div>
@@ -160,7 +160,7 @@ export default function Journal() {
                       type="date"
                       value={currentEntry.endDate || ''}
                       onChange={(e) => setCurrentEntry({ ...currentEntry, endDate: e.target.value })}
-                      className="w-full bg-zinc-950 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                      className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     />
                   </div>
                 </div>
@@ -171,7 +171,7 @@ export default function Journal() {
                     type="date"
                     value={currentEntry.date || ''}
                     onChange={(e) => setCurrentEntry({ ...currentEntry, date: e.target.value })}
-                    className="w-full bg-zinc-950 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />
                 </div>
               )}
@@ -185,11 +185,11 @@ export default function Journal() {
                 value={currentEntry.content || ''}
                 onChange={(e) => setCurrentEntry({ ...currentEntry, content: e.target.value })}
                 placeholder="Write your research notes here..."
-                className="w-full h-64 bg-zinc-950 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 font-mono text-sm resize-y"
+                className="w-full h-64 bg-black border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 font-mono text-sm resize-y"
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+            <div className="flex justify-end gap-3 pt-4 border-t border-[#1f2937]">
               <button
                 onClick={() => setIsEditing(false)}
                 className="px-4 py-2 text-zinc-400 hover:text-white font-medium transition-colors"
@@ -224,10 +224,10 @@ export default function Journal() {
             </div>
           ) : (
             entries.map((entry) => (
-              <div key={entry.id} className="bg-zinc-900/40 border border-white/5 rounded-2xl p-3 sm:p-6 hover:bg-zinc-900/60 transition-colors group">
+              <div key={entry.id} className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-3 sm:p-6 hover:bg-zinc-900/60 transition-colors group">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold tracking-wide uppercase border border-indigo-500/20">
+                    <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-[#3B82F6] text-xs font-semibold tracking-wide uppercase border border-indigo-500/20">
                       {entry.entry_type}
                     </span>
                     <span className="text-sm text-zinc-500 font-medium">
@@ -243,7 +243,7 @@ export default function Journal() {
                     </button>
                   </div>
                 </div>
-                <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-pre:bg-zinc-950 prose-pre:border prose-pre:border-white/10">
+                <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-pre:bg-black prose-pre:border prose-pre:border-white/10">
                   <Markdown>{entry.content}</Markdown>
                 </div>
               </div>

@@ -163,9 +163,9 @@ export default function Resources() {
           </div>
         ) : (
           filteredResources.map((resource) => (
-            <div key={resource.id} className="bg-zinc-900/40 border border-white/5 rounded-2xl p-2.5 sm:p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col">
+            <div key={resource.id} className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-2.5 sm:p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col">
               <div className="flex items-start gap-4 mb-4">
-                <div className="p-3 bg-zinc-950 rounded-xl border border-white/5">
+                <div className="p-3 bg-black rounded-xl border border-[#1f2937]">
                   {getIcon(resource.type)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -178,12 +178,12 @@ export default function Resources() {
                 </div>
               </div>
 
-              <div className="mt-auto pt-2 sm:pt-4 border-t border-white/5 flex items-center justify-between gap-2 transition-opacity">
+              <div className="mt-auto pt-2 sm:pt-4 border-t border-[#1f2937] flex items-center justify-between gap-2 transition-opacity">
                 <a
                   href={downloadUrls[resource.id] || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+                  className="flex items-center gap-1.5 text-xs text-[#3B82F6] hover:text-indigo-300 font-medium"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Download
@@ -195,7 +195,7 @@ export default function Resources() {
                 >
                   <Quote className="w-3.5 h-3.5" />
                   Cite
-                  <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-wider">
+                  <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-[#3B82F6] text-[10px] font-bold uppercase tracking-wider">
                     Beta
                   </span>
                 </button>

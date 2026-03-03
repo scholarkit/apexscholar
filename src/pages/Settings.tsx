@@ -96,10 +96,10 @@ export default function Settings() {
             </header>
 
             <div className="space-y-6">
-                <section className="bg-zinc-900/40 border border-white/5 rounded-2xl p-3 sm:p-6">
+                <section className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-3 sm:p-6">
                     <h2 className="text-xl font-semibold text-white mb-4">Data Management</h2>
                     <div className="space-y-4">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-white/5">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-[#1f2937]">
                             <div>
                                 <h3 className="text-sm font-medium text-white mb-1">Export Backup</h3>
                                 <p className="text-xs text-zinc-400">Download a JSON file containing all your entries, resources, insights, kanban, and knowledgebase.</p>
@@ -113,7 +113,7 @@ export default function Settings() {
                             </button>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-white/5">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-[#1f2937]">
                             <div>
                                 <h3 className="text-sm font-medium text-white mb-1">Import Backup</h3>
                                 <p className="text-xs text-zinc-400">Restore your data from a previously exported JSON backup file. This will overwrite current data.</p>
@@ -127,7 +127,7 @@ export default function Settings() {
                             />
                             <button
                                 onClick={() => restoreInputRef.current?.click()}
-                                className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 hover:text-indigo-300 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-[#3B82F6] hover:text-indigo-300 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
                             >
                                 <Upload className="w-4 h-4" />
                                 Import Backup
@@ -136,9 +136,9 @@ export default function Settings() {
                     </div>
                 </section>
 
-                <section className="bg-zinc-900/40 border border-white/5 rounded-2xl p-3 sm:p-6">
+                <section className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-3 sm:p-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <Activity className="w-5 h-5 text-indigo-400" />
+                        <Activity className="w-5 h-5 text-[#3B82F6]" />
                         <h2 className="text-xl font-semibold text-white">Monthly Usage</h2>
                     </div>
                     {loadingUsage ? (
@@ -169,7 +169,7 @@ export default function Settings() {
 
                                 {/* Allowance Info */}
                                 {usage.allowanceInfo && (
-                                    <div className="p-4 rounded-xl border border-white/5 bg-zinc-900/20 flex flex-col gap-3">
+                                    <div className="p-4 rounded-xl border border-[#1f2937] bg-zinc-900/20 flex flex-col gap-3">
                                         <div className="flex justify-between items-end">
                                             <h3 className="text-sm font-medium text-white">Monthly Resource Allowance</h3>
                                             <span className="text-xs text-zinc-400">

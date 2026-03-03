@@ -32,7 +32,7 @@ type Step = { label: string; icon: React.ReactNode; done: boolean };
 
 function PipelineStep({ label, icon, done, active }: Step & { active: boolean }) {
     return (
-        <div className={`flex items-center gap-2 text-xs transition-all duration-300 ${done ? 'text-emerald-400' : active ? 'text-indigo-400' : 'text-zinc-600'}`}>
+        <div className={`flex items-center gap-2 text-xs transition-all duration-300 ${done ? 'text-emerald-400' : active ? 'text-[#3B82F6]' : 'text-zinc-600'}`}>
             <span className={`flex-shrink-0 ${active && !done ? 'animate-pulse' : ''}`}>{icon}</span>
             {label}
         </div>
@@ -100,10 +100,10 @@ export default function CitationModal({ resource, downloadUrl, onClose }: Citati
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-white/5">
+                <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-[#1f2937]">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
-                            <Quote className="w-4 h-4 text-indigo-400" />
+                            <Quote className="w-4 h-4 text-[#3B82F6]" />
                         </div>
                         <div>
                             <h2 className="text-white font-semibold text-base">Citation Engine</h2>
@@ -119,7 +119,7 @@ export default function CitationModal({ resource, downloadUrl, onClose }: Citati
                 {!meta && !error && (
                     <div className="px-3 sm:px-6 py-3 sm:py-4 space-y-5">
                         <div className="flex items-center gap-3">
-                            <Loader2 className="w-5 h-5 text-indigo-400 animate-spin flex-shrink-0" />
+                            <Loader2 className="w-5 h-5 text-[#3B82F6] animate-spin flex-shrink-0" />
                             <span className="text-white font-medium text-sm">Extracting metadata...</span>
                         </div>
                         <div className="space-y-2.5 pl-8">
@@ -191,7 +191,7 @@ export default function CitationModal({ resource, downloadUrl, onClose }: Citati
 
                         {/* Citation output */}
                         <div className="px-3 sm:px-6 pt-1 sm:pt-3 pb-1 sm:pb-6">
-                            <pre className="w-full p-4 rounded-xl bg-zinc-950 border border-white/5 text-zinc-300 text-xs font-mono whitespace-pre-wrap break-all leading-relaxed min-h-[80px]">
+                            <pre className="w-full p-4 rounded-xl bg-black border border-[#1f2937] text-zinc-300 text-xs font-mono whitespace-pre-wrap break-all leading-relaxed min-h-[80px]">
                                 {citation}
                             </pre>
                             <button

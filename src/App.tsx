@@ -18,6 +18,9 @@ import Kanban from './pages/Kanban';
 import Funding from './pages/Funding';
 import About from './pages/About';
 import Settings from './pages/Settings';
+import Learn from './pages/Learn';
+import CourseView from './pages/CourseView';
+import LessonView from './pages/LessonView';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -55,6 +58,9 @@ export default function App() {
           <Route path="/insights" element={<Insights />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/learn" element={<Learn />} />
+          <Route path="/learn/:courseId" element={<CourseView />} />
+          <Route path="/learn/:courseId/:lessonId" element={<LessonView />} />
           <Route path="/about" element={<About />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

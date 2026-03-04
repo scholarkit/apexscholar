@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Upload, FileText, Image as ImageIcon, File, Trash2, Download, Search, FolderOpen, Quote } from 'lucide-react';
+import { Upload, FileText, Image as ImageIcon, File, Trash2, Search, FolderOpen, Quote, MessagesSquare, ExternalLink } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Resource, puterService } from '../lib/puter';
 import CitationModal from '../components/CitationModal';
+import FileChatModal from '../components/FileChatModal';
 
 export default function Resources() {
   const [resources, setResources] = useState<Resource[]>([]);
@@ -11,6 +12,7 @@ export default function Resources() {
   const [searchQuery, setSearchQuery] = useState('');
   const [downloadUrls, setDownloadUrls] = useState<Record<string, string>>({});
   const [citingResource, setCitingResource] = useState<Resource | null>(null);
+  const [chattingWith, setChattingWith] = useState<Resource | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const UPLOADS_DIR = 'research-dashboard/uploads';
@@ -185,9 +187,17 @@ export default function Resources() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 text-xs text-[#3B82F6] hover:text-indigo-300 font-medium"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  Download
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Open
                 </a>
+                <button
+                  onClick={() => setChattingWith(resource)}
+                  className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 px-2 py-1.5 rounded-lg transition-colors"
+                  title="Chat with AI about this file"
+                >
+                  <MessagesSquare className="w-3.5 h-3.5" />
+                  Chat
+                </button>
                 <button
                   onClick={() => setCitingResource(resource)}
                   className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 px-2 py-1.5 rounded-lg transition-colors"
@@ -195,7 +205,7 @@ export default function Resources() {
                 >
                   <Quote className="w-3.5 h-3.5" />
                   Cite
-                  <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-[#3B82F6] text-[10px] font-bold uppercase tracking-wider">
+                  <span className="text-xs ml-1 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-[#3B82F6] text-[10px] font-bold uppercase tracking-wider">
                     Beta
                   </span>
                 </button>
@@ -217,6 +227,13 @@ export default function Resources() {
           resource={citingResource}
           downloadUrl={downloadUrls[citingResource.id] || ''}
           onClose={() => setCitingResource(null)}
+        />
+      )}
+
+      {chattingWith && (
+        <FileChatModal
+          resource={chattingWith}
+          onClose={() => setChattingWith(null)}
         />
       )}
     </div>

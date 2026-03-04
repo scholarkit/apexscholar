@@ -94,6 +94,10 @@ export const puterService = {
     await puter.kv.set(key, JSON.stringify(value));
   },
 
+  async kvDelete(key: string): Promise<void> {
+    await puter.kv.del(key);
+  },
+
   /**
    * File System
    */
@@ -114,6 +118,6 @@ export const puterService = {
   },
 
   async fsGetURL(path: string): Promise<string> {
-    return await puter.fs.get_download_url(path);
+    return await puter.fs.getReadURL(path);
   }
 };

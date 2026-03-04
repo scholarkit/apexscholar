@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, FolderOpen, Lightbulb, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Telescope, SquareKanban, Info, Settings, Landmark } from 'lucide-react';
+import { Home, BookOpen, FolderOpen, Lightbulb, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Telescope, SquareKanban, Info, Settings, Landmark, BookMarked } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { puterService, PuterUser } from '../lib/puter';
@@ -43,6 +43,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { path: '/funding', icon: Landmark, label: 'Funding & Grants' },
     { path: '/insights', icon: Lightbulb, label: 'Insights' },
     { path: '/analytics', icon: BarChart2, label: 'Analytics' },
+    { path: '/learn', icon: BookMarked, label: 'Learn' },
     { path: '/settings', icon: Settings, label: 'Settings' },
     { path: '/about', icon: Info, label: 'About' }
   ];

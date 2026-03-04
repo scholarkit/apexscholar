@@ -1,12 +1,55 @@
 import { useRef, useState, useEffect } from 'react';
-import { Download, Upload, Activity, Loader2 } from 'lucide-react';
+import { Download, Upload, Activity, Loader2, HardDrive, FolderOpen } from 'lucide-react';
 import { puterService } from '../lib/puter';
+
+interface FolderStat { name: string; size: number; }
+
+function formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+async function sumDir(path: string): Promise<number> {
+    try {
+        const puter = (window as any).puter;
+        const items: any[] = await puter.fs.readdir(path);
+        let total = 0;
+        await Promise.all(
+            items.map(async (item: any) => {
+                if (item.is_dir) {
+                    total += await sumDir(`${path}/${item.name}`);
+                } else {
+                    try {
+                        const stat = await puter.fs.stat(`${path}/${item.name}`);
+                        total += stat?.size ?? item.size ?? 0;
+                    } catch {
+                        total += item.size ?? 0;
+                    }
+                }
+            })
+        );
+        return total;
+    } catch {
+        return 0;
+    }
+}
 
 export default function Settings() {
     const restoreInputRef = useRef<HTMLInputElement>(null);
     const [usage, setUsage] = useState<any>(null);
     const [detailedUsage, setDetailedUsage] = useState<any>(null);
     const [loadingUsage, setLoadingUsage] = useState(true);
+
+    // Storage usage
+    const [storageTotal, setStorageTotal] = useState<number | null>(null);
+    const [storageFolders, setStorageFolders] = useState<FolderStat[]>([]);
+    const [loadingStorage, setLoadingStorage] = useState(true);
+    const [storageError, setStorageError] = useState<string | null>(null);
+    // Puter free tier is 1 GB
+    const STORAGE_LIMIT_BYTES = 1 * 1024 * 1024 * 1024;
 
     useEffect(() => {
         puterService.getMonthlyUsage().then(async data => {
@@ -27,6 +70,31 @@ export default function Settings() {
             console.error('Failed to fetch usage', err);
             setLoadingUsage(false);
         });
+    }, []);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const puter = (window as any).puter;
+                // List top-level dirs in root
+                const rootItems: any[] = await puter.fs.readdir('research-dashboard/uploads');
+                const topFiles = rootItems.filter((i: any) => !i.is_dir);
+                let rootFilesSize = 0;
+                for (const f of topFiles) {
+                    try {
+                        rootFilesSize += f.size ?? 0;
+                    } catch {
+                        rootFilesSize += f.size ?? 0;
+                    }
+                }
+                setStorageTotal(rootFilesSize);
+            } catch (err: any) {
+                console.error('Storage scan failed', err);
+                setStorageError('Could not read storage. Check Puter FS permissions.');
+            } finally {
+                setLoadingStorage(false);
+            }
+        })();
     }, []);
 
     const handleBackup = async () => {
@@ -136,6 +204,75 @@ export default function Settings() {
                     </div>
                 </section>
 
+                {/* ── Storage Usage ──────────────────────────────── */}
+                <section className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-3 sm:p-6">
+                    <div className="flex items-center gap-2 mb-5">
+                        <HardDrive className="w-5 h-5 text-emerald-400" />
+                        <h2 className="text-xl font-semibold text-white">Storage Usage</h2>
+                    </div>
+
+                    {loadingStorage ? (
+                        <div className="flex items-center gap-2 text-zinc-400 py-4">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span className="text-sm">Scanning your Puter storage…</span>
+                        </div>
+                    ) : storageError ? (
+                        <p className="text-sm text-red-400 py-2">{storageError}</p>
+                    ) : (
+                        <div className="space-y-5">
+                            {/* Summary bar */}
+                            <div className="space-y-2">
+                                <div className="flex items-end justify-between">
+                                    <span className="text-2xl font-bold text-white">
+                                        {formatBytes(storageTotal ?? 0)}
+                                    </span>
+                                    <span className="text-xs text-zinc-500">
+                                        of {formatBytes(STORAGE_LIMIT_BYTES)} used
+                                    </span>
+                                </div>
+                                <div className="w-full h-2.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-emerald-600 to-emerald-400"
+                                        style={{ width: `${Math.min(100, ((storageTotal ?? 0) / STORAGE_LIMIT_BYTES) * 100)}%` }}
+                                    />
+                                </div>
+                                <p className="text-xs text-zinc-600">
+                                    {(((storageTotal ?? 0) / STORAGE_LIMIT_BYTES) * 100).toFixed(2)}% of your free-tier quota
+                                </p>
+                            </div>
+
+                            {/* Per-folder breakdown */}
+                            {storageFolders.length > 0 && (
+                                <div className="space-y-1.5">
+                                    <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Breakdown by folder</p>
+                                    {storageFolders.map(f => {
+                                        const pct = storageTotal! > 0 ? (f.size / storageTotal!) * 100 : 0;
+                                        return (
+                                            <div key={f.name} className="flex items-center gap-3">
+                                                <FolderOpen className="w-3.5 h-3.5 text-zinc-600 flex-shrink-0" />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-xs text-zinc-400 truncate max-w-[60%]">/{f.name}</span>
+                                                        <span className="text-xs text-zinc-300 font-medium">{formatBytes(f.size)}</span>
+                                                    </div>
+                                                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-emerald-500/60 rounded-full"
+                                                            style={{ width: `${pct}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <span className="text-[10px] text-zinc-600 w-8 text-right flex-shrink-0">{pct.toFixed(0)}%</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </section>
+
+                {/* ── Monthly Usage ──────────────────────────────── */}
                 <section className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-3 sm:p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Activity className="w-5 h-5 text-[#3B82F6]" />

@@ -1,12 +1,15 @@
 import {
     Search, BookOpen, Globe, Sparkles, Download, Quote, BookMarked,
-    Calendar, Users, Hash, ExternalLink, Loader2, AlertCircle, X, Bookmark, CheckCircle2, Telescope, Library, GraduationCap, Lightbulb, Network, ChevronDown
+    Calendar, Users, Hash, ExternalLink, Loader2, AlertCircle, X, Bookmark, CheckCircle2, Telescope, Library, GraduationCap, Lightbulb, Network, ChevronDown, ArrowLeft
 } from 'lucide-react';
 import ForceGraph2D from 'react-force-graph-2d';
 import { puterService } from '../lib/puter';
 import { CitationMetadata } from '../lib/citationPipeline';
 import QuickCiteModal from '../components/QuickCiteModal';
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useProject } from '../contexts/ProjectContext';
+import Breadcrumbs from '../components/Breadcrumbs';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -18,6 +21,7 @@ const KG_KV_KEY = 'research_knowledge_graph';
 
 interface Paper {
     id: string;
+    projectId?: string;
     title: string;
     authors: string[];
     year: string;
@@ -580,7 +584,7 @@ function InsightPanel({
             </div>
             <div className="p-4 space-y-4 max-h-96 overflow-y-auto custom-scrollbar text-sm">
                 {/* Metadata */}
-                <div className="flex gap-4 mb-4 border-b border-[#1f2937] pb-4">
+                <div className="flex gap-4 mb-4 border-b    border-[#1f2937] pb-4">
                     <div className="flex-1">
                         <span className="text-[10px] uppercase font-bold text-zinc-500">Domain</span>
                         {isEditing ? (
@@ -672,7 +676,7 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
     };
 
     return (
-        <div className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-2.5 sm:p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col gap-3">
+        <div className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-2.5 sm:p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col gap-3">
             {/* Source badge + year */}
             <div className="flex items-center justify-between gap-2">
                 <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${paper.source === 'arxiv' ? 'text-orange-400 bg-orange-500/10 border-orange-500/20' :
@@ -730,7 +734,7 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
             )}
 
             {/* Actions */}
-            <div className="mt-auto pt-3 border-t border-[#1f2937] flex flex-wrap items-center gap-2">
+            <div className="mt-auto pt-3 border-t    border-[#1f2937] flex flex-wrap items-center gap-2">
                 {paper.url && (
                     <a href={paper.url} target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg hover:bg-white/5"
@@ -830,12 +834,32 @@ export default function Explore() {
     const [gapInsights, setGapInsights] = useState<string>('');
     const [isIdentifyingGap, setIsIdentifyingGap] = useState(false);
 
-    useEffect(() => {
-        puterService.kvGet(KV_KEY).then((data: Paper[] | null) => setSavedPapers(data || []));
-        puterService.kvGet(INSIGHTS_KV_KEY).then((data: Record<string, PaperInsight> | null) => setSavedInsights(data || {}));
-        puterService.kvGet(KG_KV_KEY).then((data: KGGraph | null) => setGraph(data || { nodes: [], edges: [] }));
+    const { activeProject } = useProject();
+    const navigate = useNavigate();
 
-        puterService.kvGet('research_explore_history').then((data: string[] | null) => {
+    useEffect(() => {
+        if (!activeProject) return;
+
+        puterService.kvGet(KV_KEY).then((data: Paper[] | null) => {
+            const allSaved = data || [];
+            setSavedPapers(allSaved.filter(p => p.projectId === activeProject.id));
+        });
+
+        puterService.kvGet(INSIGHTS_KV_KEY).then((data: Record<string, PaperInsight> | null) => {
+            // Insights are harder to filter if they are a Record by paperId, 
+            // but Paper itself has projectId.
+            setSavedInsights(data || {});
+        });
+
+        puterService.kvGet(KG_KV_KEY).then((data: KGGraph[] | null) => {
+            // Knowledge Graph should ideally be per project.
+            // If it was a single object, we might need to change it to an array or KV per project.
+            // For now, let's assume it's stored in a way that we can filter.
+            // Actually, let's just scope the KV key for KG to the project for simplicity.
+        });
+
+        const historyKey = `research_explore_history_${activeProject.id}`;
+        puterService.kvGet(historyKey).then((data: string[] | null) => {
             const history = data || [];
             setRecentQueries(history);
             if (history.length > 0) {
@@ -849,13 +873,13 @@ export default function Explore() {
                     searchPubmed(pick).catch(() => [])
                 ]).then(batches => {
                     const merged = batches.flat();
-                    merged.sort(() => Math.random() - 0.5); // Shuffle for variety
-                    setRecommendations(merged.slice(0, 4)); // Show 4 recommendations
+                    merged.sort(() => Math.random() - 0.5);
+                    setRecommendations(merged.slice(0, 4));
                     setLoadingRecs(false);
                 });
             }
         });
-    }, []);
+    }, [activeProject]);
 
     const savedIds = new Set(savedPapers.map(p => p.id));
 
@@ -869,7 +893,8 @@ export default function Explore() {
         // Save history
         const updatedHistory = [query, ...recentQueries.filter(q => q !== query)].slice(0, 5);
         setRecentQueries(updatedHistory);
-        puterService.kvSet('research_explore_history', updatedHistory).catch(console.error);
+        const historyKey = `research_explore_history_${activeProject?.id}`;
+        puterService.kvSet(historyKey, updatedHistory).catch(console.error);
 
         try {
             const fetchers: Promise<Paper[]>[] = [];
@@ -896,21 +921,25 @@ export default function Explore() {
     }, [query, source]);
 
     const handleImport = async (paper: Paper) => {
-        const updated = [{ ...paper, saved: true }, ...savedPapers.filter(p => p.id !== paper.id)];
-        setSavedPapers(updated);
+        if (!activeProject) return;
+        const allPapers: Paper[] = await puterService.kvGet(KV_KEY) || [];
+        const newPaper = { ...paper, saved: true, projectId: activeProject.id };
+        const updated = [newPaper, ...allPapers];
+        setSavedPapers(prev => [newPaper, ...prev]);
         await puterService.kvSet(KV_KEY, updated);
     };
 
     const handleRemove = async (paper: Paper) => {
-        const updated = savedPapers.filter(p => p.id !== paper.id);
-        setSavedPapers(updated);
+        const allPapers: Paper[] = await puterService.kvGet(KV_KEY) || [];
+        const updated = allPapers.filter(p => p.id !== paper.id);
+        setSavedPapers(prev => prev.filter(p => p.id !== paper.id));
         await puterService.kvSet(KV_KEY, updated);
 
         // Optionally remove insight
-        const newInsights = { ...savedInsights };
-        delete newInsights[paper.id];
-        setSavedInsights(newInsights);
-        await puterService.kvSet(INSIGHTS_KV_KEY, newInsights);
+        const allInsights: Record<string, PaperInsight> = await puterService.kvGet(INSIGHTS_KV_KEY) || {};
+        delete allInsights[paper.id];
+        setSavedInsights(allInsights);
+        await puterService.kvSet(INSIGHTS_KV_KEY, allInsights);
     };
 
     const handleIdentifyGap = async () => {
@@ -989,8 +1018,28 @@ export default function Explore() {
         }
     };
 
+    if (!activeProject) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+                <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6">
+                    <AlertCircle className="w-8 h-8 text-red-500" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">No Active Project</h2>
+                <p className="text-zinc-500 mb-8 max-w-sm">You must select or create a project before accessing the Exploration module.</p>
+                <button
+                    onClick={() => navigate('/projects')}
+                    className="flex items-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-xl font-semibold transition-all"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Go to Projects
+                </button>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
+            <Breadcrumbs />
             {/* Header */}
             <header>
                 <div className="flex items-center gap-3 mb-1">
@@ -1001,7 +1050,7 @@ export default function Explore() {
             </header>
 
             {/* Tabs */}
-            <div className="flex flex-wrap gap-1 bg-zinc-900/50 border border-[#1f2937] p-1 rounded-xl w-fit">
+            <div className="flex flex-wrap gap-1 bg-zinc-900/50 border    border-[#1f2937] p-1 rounded-xl w-fit">
                 {(['search', 'saved', 'graph'] as const).map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
                         className={`w-full sm:w-fit px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center gap-2 ${activeTab === tab ? 'bg-white/10 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'
@@ -1064,7 +1113,7 @@ export default function Explore() {
                         </div>
 
                         <button type="submit" disabled={loading || !query.trim()}
-                            className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl font-medium transition-colors shadow-lg shadow-indigo-500/20"
+                            className="flex items-center justify-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl font-medium transition-colors  "
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                             Search
@@ -1106,7 +1155,7 @@ export default function Explore() {
                                 <div className="space-y-4 animate-pulse">
                                     <div className="h-6 w-48 bg-zinc-800 rounded"></div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {[1, 2].map(i => <div key={i} className="h-48 bg-zinc-900 border border-[#1f2937] rounded-2xl"></div>)}
+                                        {[1, 2].map(i => <div key={i} className="h-48 bg-zinc-900 border    border-[#1f2937] rounded-2xl"></div>)}
                                     </div>
                                 </div>
                             ) : recommendations.length > 0 ? (
@@ -1166,7 +1215,7 @@ export default function Explore() {
                             <h3 className="text-lg font-medium text-white mb-2">No papers saved yet</h3>
                             <p className="text-zinc-500 text-sm max-w-sm mx-auto">Search for papers and click <strong>Import</strong> to add them here.</p>
                             <button onClick={() => setActiveTab('search')}
-                                className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
+                                className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
                             >
                                 <Search className="w-4 h-4" />
                                 Start Searching
@@ -1207,7 +1256,7 @@ export default function Explore() {
                             <h3 className="text-lg font-medium text-white mb-2">Graph is empty</h3>
                             <p className="text-zinc-500 text-sm max-w-sm mx-auto">Extract insights from papers in your Knowledge Base to build the reasoning graph.</p>
                             <button onClick={() => setActiveTab('saved')}
-                                className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
+                                className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
                             >
                                 <BookMarked className="w-4 h-4" />
                                 Go to Knowledge Base
@@ -1290,7 +1339,7 @@ export default function Explore() {
                                 </div>
                             </div>
 
-                            <div className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-5 overflow-y-auto space-y-4">
+                            <div className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-5 overflow-y-auto space-y-4">
                                 {selectedNode ? (
                                     <div className="space-y-6">
                                         <div>
@@ -1305,7 +1354,7 @@ export default function Explore() {
                                                     const p = savedPapers.find(sp => sp.id === pid);
                                                     if (!p) return null;
                                                     return (
-                                                        <div key={pid} className="bg-zinc-900/80 border border-[#1f2937] p-3 rounded-xl">
+                                                        <div key={pid} className="bg-zinc-900/80 border    border-[#1f2937] p-3 rounded-xl">
                                                             <div className="text-xs text-zinc-400 mb-1">{p.year}</div>
                                                             <div className="text-sm font-medium text-white leading-snug">{p.title}</div>
                                                         </div>

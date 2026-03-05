@@ -43,7 +43,7 @@ export default function Learn() {
                         <Link
                             key={course.id}
                             to={`/learn/${course.id}`}
-                            className="group flex flex-col bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-6 hover:border-indigo-500/40 hover:bg-zinc-900/70 transition-all duration-200 hover:shadow-xl hover:shadow-indigo-500/5"
+                            className="group flex flex-col bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-6 hover:border-indigo-500/40 hover:bg-zinc-900/70 transition-all duration-200 hover:shadow-xl hover:shadow-indigo-500/5"
                         >
                             {/* Emoji + Level */}
                             <div className="flex items-start justify-between mb-5">
@@ -109,14 +109,14 @@ export default function Learn() {
                 })}
 
                 {/* Coming Soon placeholder */}
-                <div className="flex flex-col items-center justify-center bg-zinc-900/20 border border-dashed border-[#1f2937] rounded-2xl p-6 gap-3 opacity-50 min-h-[260px]">
+                <div className="flex flex-col items-center justify-center bg-zinc-900/20 border border-dashed    border-[#1f2937] rounded-2xl p-6 gap-3 opacity-50 min-h-[260px]">
                     <Lock className="w-7 h-7 text-zinc-600" />
                     <div className="text-center">
                         <p className="text-sm font-medium text-zinc-500">More courses coming soon</p>
                         <p className="text-xs text-zinc-700 mt-1">Academic Writing, Data Analysis, and more</p>
                     </div>
                 </div>
-                <div className="flex flex-col items-center justify-center bg-zinc-900/20 border border-dashed border-[#1f2937] rounded-2xl p-6 gap-3 opacity-50 min-h-[260px]">
+                <div className="flex flex-col items-center justify-center bg-zinc-900/20 border border-dashed    border-[#1f2937] rounded-2xl p-6 gap-3 opacity-50 min-h-[260px]">
                     <GraduationCap className="w-7 h-7 text-zinc-600" />
                     <div className="text-center">
                         <p className="text-sm font-medium text-zinc-500">More courses coming soon</p>

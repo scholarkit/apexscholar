@@ -37,7 +37,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
             <div className="relative w-full max-w-md p-8">
                 <div className="text-center mb-10">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-indigo-600/10 border border-indigo-500/20 mb-6 shadow-2xl shadow-indigo-500/10">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[#3B82F6]/10 border border-indigo-500/20 mb-6 shadow-2xl shadow-indigo-500/10">
                         <Shield className="w-10 h-10 text-[#3B82F6]" />
                     </div>
                     <h1 className="text-4xl font-bold text-white tracking-tight mb-3">
@@ -48,12 +48,12 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     </p>
                 </div>
 
-                <div className="bg-zinc-900/50 border border-[#1f2937] backdrop-blur-xl rounded-3xl p-8 shadow-2xl overflow-hidden relative group">
+                <div className="bg-zinc-900/50 border    border-[#1f2937] backdrop-blur-xl rounded-3xl p-8 shadow-2xl overflow-hidden relative group">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                     <div className="relative space-y-6">
                         <div className="space-y-4">
-                            <div className="flex items-center gap-4 p-4 rounded-2xl bg-zinc-800/30 border border-[#1f2937] transition-all hover:bg-zinc-800/50 hover:border-white/10">
+                            <div className="flex items-center gap-4 p-4 rounded-2xl bg-zinc-800/30 border    border-[#1f2937] transition-all hover:bg-zinc-800/50 hover:border-white/10">
                                 <div className="p-2 bg-blue-500/10 rounded-lg">
                                     <Globe className="w-5 h-5 text-blue-400" />
                                 </div>
@@ -63,7 +63,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-4 p-4 rounded-2xl bg-zinc-800/30 border border-[#1f2937] transition-all hover:bg-zinc-800/50 hover:border-white/10">
+                            <div className="flex items-center gap-4 p-4 rounded-2xl bg-zinc-800/30 border    border-[#1f2937] transition-all hover:bg-zinc-800/50 hover:border-white/10">
                                 <div className="p-2 bg-emerald-500/10 rounded-lg">
                                     <Rocket className="w-5 h-5 text-emerald-400" />
                                 </div>
@@ -83,7 +83,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                         <button
                             onClick={handleSignIn}
                             disabled={loading}
-                            className="w-full relative group overflow-hidden px-6 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 shadow-xl shadow-indigo-600/20"
+                            className="w-full relative group overflow-hidden px-6 py-4 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-2xl font-bold text-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 shadow-xl shadow-indigo-600/20"
                         >
                             <div className="flex items-center justify-center gap-3">
                                 {loading ? (

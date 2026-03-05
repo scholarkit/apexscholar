@@ -19,6 +19,7 @@ export interface PuterUser {
 
 export interface Entry {
   id: string;
+  projectId?: string;
   date: string;
   content: string;
   entry_type: string;
@@ -28,6 +29,7 @@ export interface Entry {
 
 export interface Resource {
   id: string;
+  projectId?: string;
   name: string;
   type: string;
   path: string;
@@ -36,6 +38,7 @@ export interface Resource {
 
 export interface Insight {
   id: string;
+  projectId?: string;
   content: string;
   created_at: string;
 }

@@ -85,7 +85,7 @@ export default function Analytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Activity Chart */}
-        <div className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-3 sm:p-6 col-span-full">
+        <div className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-3 sm:p-6 col-span-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
@@ -94,13 +94,13 @@ export default function Analytics() {
               <h2 className="text-xl font-semibold text-white">Research Activity</h2>
             </div>
 
-            <div className="flex bg-black p-1 rounded-xl border border-[#1f2937]">
+            <div className="flex bg-black p-1 rounded-xl border    border-[#1f2937]">
               {ranges.map((r) => (
                 <button
                   key={r.id}
                   onClick={() => setTimeRange(r.id as any)}
                   className={`w-full px-2 sm:px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${timeRange === r.id
-                    ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                    ? 'bg-indigo-500 text-white  '
                     : 'text-zinc-500 hover:text-zinc-300'
                     }`}
                 >
@@ -127,7 +127,7 @@ export default function Analytics() {
         </div>
 
         {/* Entry Types Distribution */}
-        <div className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-3 sm:p-6">
+        <div className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-3 sm:p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
               <Calendar className="w-5 h-5 text-emerald-400" />
@@ -152,7 +152,7 @@ export default function Analytics() {
         </div>
 
         {/* Timeline */}
-        <div className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-3 sm:p-6">
+        <div className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-3 sm:p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 bg-purple-500/10 rounded-lg border border-purple-500/20">
               <GitCommit className="w-5 h-5 text-purple-400" />
@@ -165,7 +165,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-zinc-900 text-zinc-500 group-[.is-active]:text-[#3B82F6] group-[.is-active]:border-indigo-500/30 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
                   <GitCommit className="w-4 h-4" />
                 </div>
-                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-[#1f2937] bg-zinc-900/50 shadow">
+                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border    border-[#1f2937] bg-zinc-900/50 shadow">
                   <div className="flex items-center justify-between space-x-2 mb-1">
                     <div className="font-bold text-white text-xs sm:text-sm">{entry.entry_type}</div>
                     <time className="font-mono text-xs text-zinc-500">{format(parseEntryDate(entry.date), 'MMM d')}</time>

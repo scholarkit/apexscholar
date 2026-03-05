@@ -38,7 +38,7 @@ export default function Dashboard() {
         {/* KPI Overview Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="p-6 rounded-2xl bg-zinc-900/50 border border-[#1f2937] backdrop-blur-sm">
+            <div key={i} className="p-6 rounded-2xl bg-zinc-900/50 border    border-[#1f2937] backdrop-blur-sm">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-zinc-800/60 rounded-xl animate-pulse"></div>
                 <div className="h-5 w-24 bg-zinc-800/60 rounded-lg animate-pulse"></div>
@@ -56,7 +56,7 @@ export default function Dashboard() {
           </div>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="p-5 rounded-xl bg-zinc-900/30 border border-[#1f2937] h-28 animate-pulse"></div>
+              <div key={i} className="p-5 rounded-xl bg-zinc-900/30 border    border-[#1f2937] h-28 animate-pulse"></div>
             ))}
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function Dashboard() {
           <p className="text-xs sm:text-base text-zinc-400">Welcome back. Here's what's happening in your research.</p>
         </div>
         <div className="w-full sm:w-fit mt-2 sm:mt-0 flex flex-col sm:flex-row gap-3">
-          <Link to="/journal" className="w-full sm:w-fit flex items-center gap-1 sm:gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20">
+          <Link to="/journal" className="w-full sm:w-fit flex items-center gap-1 sm:gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors  ">
             <Plus className="w-4 h-4" />
             New Entry
           </Link>
@@ -87,7 +87,7 @@ export default function Dashboard() {
 
       {/* KPI Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border border-[#1f2937] backdrop-blur-sm">
+        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border    border-[#1f2937] backdrop-blur-sm">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-3 bg-blue-500/10 rounded-xl">
               <BookOpen className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400" />
@@ -97,7 +97,7 @@ export default function Dashboard() {
           <p className="text-2xl sm:text-4xl font-semibold text-white">{entries.length}</p>
         </div>
 
-        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border border-[#1f2937] backdrop-blur-sm">
+        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border    border-[#1f2937] backdrop-blur-sm">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-3 bg-emerald-500/10 rounded-xl">
               <FolderOpen className="w-4 h-4 sm:w-6 sm:h-6 text-emerald-400" />
@@ -107,7 +107,7 @@ export default function Dashboard() {
           <p className="text-2xl sm:text-4xl font-semibold text-white">{resources.length}</p>
         </div>
 
-        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border border-[#1f2937] backdrop-blur-sm">
+        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border    border-[#1f2937] backdrop-blur-sm">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-3 bg-purple-500/10 rounded-xl">
               <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-purple-400" />
@@ -129,10 +129,10 @@ export default function Dashboard() {
 
         <div className="space-y-4">
           {entries.slice(0, 5).map((entry) => (
-            <div key={entry.id} className="p-5 rounded-xl bg-zinc-900/30 border border-[#1f2937] hover:bg-zinc-900/50 transition-colors group">
+            <div key={entry.id} className="p-5 rounded-xl bg-zinc-900/30 border    border-[#1f2937] hover:bg-zinc-900/50 transition-colors group">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-3">
-                  <span className="px-1 sm:px-2.5 py-1 rounded-md bg-zinc-800 text-xs font-medium text-zinc-300 border border-[#1f2937]">
+                  <span className="px-1 sm:px-2.5 py-1 rounded-md bg-zinc-800 text-xs font-medium text-zinc-300 border    border-[#1f2937]">
                     {entry.entry_type}
                   </span>
                   <span className="text-xs sm:text-sm text-zinc-500">
@@ -154,7 +154,7 @@ export default function Dashboard() {
               <BookOpen className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
               <p className="text-white font-medium mb-1">No recent activity</p>
               <p className="text-zinc-500 text-sm mb-6 max-w-sm mx-auto">Start documenting your research journey by creating your first journal entry.</p>
-              <Link to="/journal" className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600/10 text-[#3B82F6] hover:bg-indigo-600/20 border border-indigo-500/20 rounded-xl font-medium transition-colors">
+              <Link to="/journal" className="inline-flex items-center gap-2 px-4 py-2 bg-[#3B82F6]/10 text-[#3B82F6] hover:bg-[#3B82F6]/20 border border-indigo-500/20 rounded-xl font-medium transition-colors">
                 <Plus className="w-4 h-4" /> Create Journal Entry
               </Link>
             </div>

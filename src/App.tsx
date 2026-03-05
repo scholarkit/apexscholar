@@ -7,9 +7,11 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
+import Projects from './pages/Projects';
 import Journal from './pages/Journal';
 import Resources from './pages/Resources';
 import Insights from './pages/Insights';
+import Composr from './pages/Composr';
 import Analytics from './pages/Analytics';
 import Login from './components/Login';
 import { puterService } from './lib/puter';
@@ -21,6 +23,7 @@ import Settings from './pages/Settings';
 import Learn from './pages/Learn';
 import CourseView from './pages/CourseView';
 import LessonView from './pages/LessonView';
+import { ProjectProvider } from './contexts/ProjectContext';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -46,25 +49,29 @@ export default function App() {
   }
 
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/journal" element={<Journal />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/kanban" element={<Kanban />} />
-          <Route path="/funding" element={<Funding />} />
-          <Route path="/insights" element={<Insights />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/learn" element={<Learn />} />
-          <Route path="/learn/:courseId" element={<CourseView />} />
-          <Route path="/learn/:courseId/:lessonId" element={<LessonView />} />
-          <Route path="/about" element={<About />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <ProjectProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/journal" element={<Journal />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/kanban" element={<Kanban />} />
+            <Route path="/funding" element={<Funding />} />
+            <Route path="/insights" element={<Insights />} />
+            <Route path="/composr" element={<Composr />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/learn" element={<Learn />} />
+            <Route path="/learn/:courseId" element={<CourseView />} />
+            <Route path="/learn/:courseId/:lessonId" element={<LessonView />} />
+            <Route path="/about" element={<About />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </ProjectProvider>
   );
 }

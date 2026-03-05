@@ -4,8 +4,11 @@ import { formatDistanceToNow } from 'date-fns';
 import { Resource, puterService } from '../lib/puter';
 import CitationModal from '../components/CitationModal';
 import FileChatModal from '../components/FileChatModal';
+import { useProject } from '../contexts/ProjectContext';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 export default function Resources() {
+  const { activeProject } = useProject();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -22,12 +25,17 @@ export default function Resources() {
   }, []);
 
   const fetchResources = async () => {
+    if (!activeProject) {
+      setLoading(false);
+      return;
+    }
     const data = await puterService.kvGet('research_resources') || [];
-    setResources(data.sort((a: Resource, b: Resource) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime()));
+    const projectResources = data.filter((r: Resource) => r.projectId === activeProject.id);
+    setResources(projectResources.sort((a: Resource, b: Resource) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime()));
 
-    // Get download URLs for all resources
+    // Get download URLs for only project resources
     const urls: Record<string, string> = {};
-    for (const res of data) {
+    for (const res of projectResources) {
       try {
         urls[res.id] = await puterService.fsGetURL(res.path);
       } catch (err) {
@@ -54,6 +62,7 @@ export default function Resources() {
       // Save metadata to KV
       const resource: Resource = {
         id,
+        projectId: activeProject?.id,
         name: file.name,
         type: file.type,
         path,
@@ -61,7 +70,8 @@ export default function Resources() {
       };
 
       const allResources = await puterService.kvGet('research_resources') || [];
-      await puterService.kvSet('research_resources', [resource, ...allResources]);
+      const updatedResources = [resource, ...allResources];
+      await puterService.kvSet('research_resources', updatedResources);
 
       fetchResources();
     } catch (error) {
@@ -115,6 +125,7 @@ export default function Resources() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">Resource Library</h1>
@@ -128,13 +139,13 @@ export default function Resources() {
               placeholder="Search files..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-zinc-900 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 w-64"
+              className="pl-9 pr-4 py-2 bg-zinc-900 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 w-full sm:w-64"
             />
           </div>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
+            className="flex items-center gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors  "
           >
             <Upload className="w-4 h-4" />
             {uploading ? 'Uploading...' : 'Upload File'}
@@ -165,9 +176,9 @@ export default function Resources() {
           </div>
         ) : (
           filteredResources.map((resource) => (
-            <div key={resource.id} className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-2.5 sm:p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col">
+            <div key={resource.id} className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-2.5 sm:p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col">
               <div className="flex items-start gap-4 mb-4">
-                <div className="p-3 bg-black rounded-xl border border-[#1f2937]">
+                <div className="p-3 bg-black rounded-xl border    border-[#1f2937]">
                   {getIcon(resource.type)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -180,7 +191,7 @@ export default function Resources() {
                 </div>
               </div>
 
-              <div className="mt-auto pt-2 sm:pt-4 border-t border-[#1f2937] flex items-center justify-between gap-2 transition-opacity">
+              <div className="mt-auto pt-2 sm:pt-4 border-t    border-[#1f2937] flex items-center justify-between gap-2 transition-opacity">
                 <a
                   href={downloadUrls[resource.id] || '#'}
                   target="_blank"

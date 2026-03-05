@@ -1,14 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
-import { Lightbulb, Sparkles, RefreshCw, FileText, Download } from 'lucide-react';
+import { Lightbulb, Sparkles, RefreshCw, FileText, Download, AlertCircle, ArrowLeft } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useProject } from '../contexts/ProjectContext';
+import { useNavigate } from 'react-router-dom';
+import Breadcrumbs from '../components/Breadcrumbs';
 // @ts-ignore - html2pdf doesn't have official types
 import html2pdf from 'html2pdf.js';
 
 import { Entry, Insight, puterService } from '../lib/puter';
 
 export default function Insights() {
+  const { activeProject } = useProject();
+  const navigate = useNavigate();
   const [summary, setSummary] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -17,29 +22,34 @@ export default function Insights() {
 
   useEffect(() => {
     const fetchLatestInsight = async () => {
+      if (!activeProject) return;
       try {
         const insights: Insight[] = await puterService.kvGet('research_insights') || [];
-        if (insights.length > 0) {
+        const projectInsights = insights.filter(i => i.projectId === activeProject.id);
+        if (projectInsights.length > 0) {
           // Sort by creation date and get the latest
-          const latest = insights.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+          const latest = projectInsights.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
           setSummary(latest.content);
+        } else {
+          setSummary(null);
         }
       } catch (err) {
         console.error('Failed to fetch latest insight from Puter:', err);
       }
     };
     fetchLatestInsight();
-  }, []);
+  }, [activeProject]);
 
   const generateInsights = async () => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch entries from Puter KV for context
-      const entries: Entry[] = await puterService.kvGet('research_entries') || [];
+      // 1. Fetch entries from Puter KV for context, filtered by active project
+      const allEntries: Entry[] = await puterService.kvGet('research_entries') || [];
+      const entries = allEntries.filter(e => e.projectId === activeProject?.id);
 
       if (entries.length === 0) {
-        setSummary("No research entries found yet. Start journaling to generate insights!");
+        setSummary("No research entries found for this project yet. Start journaling and selecting this project to generate insights!");
         setLoading(false);
         return;
       }
@@ -65,6 +75,7 @@ SUMMARY:`;
       // 3. Save to Puter KV
       const newInsight: Insight = {
         id: Math.random().toString(36).substring(2, 11),
+        projectId: activeProject?.id,
         content: generatedSummary,
         created_at: new Date().toISOString()
       };
@@ -177,8 +188,28 @@ SUMMARY:`;
     });
   };
 
+  if (!activeProject) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6">
+          <AlertCircle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">No Active Project</h2>
+        <p className="text-zinc-500 mb-8 max-w-sm">You must select or create a project before accessing AI Insights.</p>
+        <button
+          onClick={() => navigate('/projects')}
+          className="flex items-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-xl font-semibold transition-all"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Go to Projects
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4 sm:space-y-8">
+    <div className="space-y-4 sm:space-y-8 animate-in fade-in duration-500">
+      <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">AI Insights Engine</h1>
@@ -187,7 +218,7 @@ SUMMARY:`;
         <button
           onClick={generateInsights}
           disabled={loading}
-          className="mt-2 sm:mt-0 w-full sm:w-fit flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
+          className="mt-2 sm:mt-0 w-full sm:w-fit flex items-center gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors  "
         >
           {loading ? (
             <RefreshCw className="w-4 h-4 animate-spin" />
@@ -198,7 +229,7 @@ SUMMARY:`;
         </button>
       </header>
 
-      <div className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-2 sm:p-4 min-h-[400px] relative overflow-hidden">
+      <div className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-2 sm:p-4 min-h-[400px] relative overflow-hidden">
         {/* Decorative background element */}
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -226,7 +257,7 @@ SUMMARY:`;
             </button>
           </div>
         ) : summary ? (
-          <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-headings:text-white prose-a:text-[#3B82F6] hover:prose-a:text-indigo-300 prose-code:text-indigo-300 prose-pre:bg-black/50 prose-pre:border prose-pre:border-[#1f2937] relative z-10 transition-all duration-700">
+          <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-headings:text-white prose-a:text-[#3B82F6] hover:prose-a:text-indigo-300 prose-code:text-indigo-300 prose-pre:bg-black/50 prose-pre:border prose-pre:   border-[#1f2937] relative z-10 transition-all duration-700">
             {/* <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-indigo-500/20 rounded-xl border border-indigo-500/30">
@@ -257,7 +288,7 @@ SUMMARY:`;
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-20 text-center">
-            <div className="w-20 h-20 bg-black rounded-3xl flex items-center justify-center mb-6 border border-[#1f2937] shadow-2xl">
+            <div className="w-20 h-20 bg-black rounded-3xl flex items-center justify-center mb-6 border    border-[#1f2937] shadow-2xl">
               <Lightbulb className="w-10 h-10 text-zinc-600" />
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">Ready to Analyze</h3>
@@ -266,7 +297,7 @@ SUMMARY:`;
             </p>
             <button
               onClick={generateInsights}
-              className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors shadow-lg shadow-indigo-500/20"
+              className="flex items-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors  "
             >
               <Sparkles className="w-5 h-5" />
               Generate First Insight

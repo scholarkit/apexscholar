@@ -169,12 +169,12 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                         <>
                             {messages.map((m, i) => (
                                 <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${m.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-zinc-900 border border-white/10 text-zinc-400'
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${m.role === 'user' ? 'bg-[#3B82F6] text-white' : 'bg-zinc-900 border border-white/10 text-zinc-400'
                                         }`}>
                                         {m.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                                     </div>
                                     <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${m.role === 'user'
-                                        ? 'bg-indigo-600 text-white'
+                                        ? 'bg-[#3B82F6] text-white'
                                         : 'bg-zinc-900/50 border border-white/5 text-zinc-300 prose prose-invert prose-sm max-w-none'
                                         }`}>
                                         {m.role === 'assistant' ? (
@@ -215,7 +215,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                         <button
                             type="submit"
                             disabled={!input.trim() || loading}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-700 disabled:opacity-50 text-white rounded-lg transition-all"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-[#3B82F6] hover:bg-indigo-500 disabled:bg-zinc-700 disabled:opacity-50 text-white rounded-lg transition-all"
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                         </button>

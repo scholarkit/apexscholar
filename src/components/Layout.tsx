@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, FolderOpen, Lightbulb, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Telescope, SquareKanban, Info, Settings, Landmark, BookMarked } from 'lucide-react';
+import { Home, BookOpen, FolderOpen, Lightbulb, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Telescope, SquareKanban, Info, Settings, Landmark, BookMarked, SquareChartGantt } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { puterService, PuterUser } from '../lib/puter';
@@ -34,14 +34,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     window.location.reload();
   };
 
-  const navItems = [
+  const navItems: { path: string; icon: any; label: string; beta?: boolean; hideOnMobile?: boolean }[] = [
     { path: '/', icon: Home, label: 'Dashboard' },
-    { path: '/explore', icon: Telescope, label: 'Explore', beta: true },
-    { path: '/journal', icon: BookOpen, label: 'Journal' },
-    { path: '/resources', icon: FolderOpen, label: 'Resources' },
-    { path: '/kanban', icon: SquareKanban, label: 'Kanban Board', hideOnMobile: true },
+    { path: '/projects', icon: SquareChartGantt, label: 'Projects' },
     { path: '/funding', icon: Landmark, label: 'Funding & Grants' },
-    { path: '/insights', icon: Lightbulb, label: 'Insights' },
     { path: '/analytics', icon: BarChart2, label: 'Analytics' },
     { path: '/learn', icon: BookMarked, label: 'Learn' },
     { path: '/settings', icon: Settings, label: 'Settings' },
@@ -57,14 +53,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "relative z-20 flex-shrink-0 border-r border-[#1F2937] bg-[#0A0A0A] backdrop-blur-xl flex flex-col transition-all duration-300 ease-in-out",
+          "relative z-20 flex-shrink-0 border-r    border-[#1f2937] bg-[#0A0A0A] backdrop-blur-xl flex flex-col transition-all duration-300 ease-in-out",
           isCollapsed ? "w-20" : "w-64"
         )}
       >
         {/* Collapse Toggle */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-12 w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white border border-white/10 shadow-lg shadow-indigo-500/40 hover:bg-indigo-500 transition-colors z-50"
+          className="absolute -right-3 top-12 w-6 h-6 rounded-full bg-[#3B82F6] flex items-center justify-center text-white border border-white/10   hover:bg-indigo-500 transition-colors z-50"
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
@@ -92,13 +88,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "items-center rounded-lg text-sm font-medium transition-all duration-200 group",
                   item.hideOnMobile ? "hidden sm:flex" : "flex",
-                  isCollapsed ? "justify-center w-10 sm:w-12 h-10 sm:h-12 mx-auto" : "gap-3 px-3 py-2.5",
+                  isCollapsed ? "justify-center w-10 h-10 mx-auto" : "gap-3 px-3 py-2.5",
                   isActive
                     ? "bg-white/10 text-white shadow-sm"
                     : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                 )}
               >
-                <Icon className={cn("w-5 h-5 flex-shrink-0", isActive ? "text-[#3B82F6]" : "text-zinc-500 group-hover:text-zinc-300")} />
+                <Icon className={cn(isActive ? "text-[#3B82F6]" : "text-zinc-500 group-hover:text-zinc-300",
+                  isCollapsed ? "w-4 h-4 flex-shrink-0" : "w-5 h-5 flex-shrink-0"
+                )} />
                 {!isCollapsed && <div>
                   <span className="animate-in fade-in slide-in-from-left-1 duration-300">{item.label}</span>
                   {item.beta && (
@@ -119,7 +117,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               {/* Avatar only when collapsed */}
               <div
                 title={user?.username || 'User'}
-                className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0"
+                className="w-10 h-10 rounded-xl bg-[#3B82F6]/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0"
               >
                 {user ? initials : <User className="w-4 h-4" />}
               </div>
@@ -136,7 +134,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <>
               {/* Full profile card */}
               <div className="flex items-center gap-3 rounded-xl animate-in fade-in slide-in-from-left-2 duration-300">
-                <div className="w-9 h-9 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-[#3B82F6]/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
                   {user ? initials : <User className="w-4 h-4" />}
                 </div>
                 <div className="flex-1 min-w-0">

@@ -22,7 +22,10 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { puterService } from '../lib/puter';
-import { Plus, GripVertical, Trash2, Calendar, SquareKanban } from 'lucide-react';
+import { Plus, GripVertical, Trash2, Calendar, SquareKanban, AlertCircle, ArrowLeft } from 'lucide-react';
+import { useProject } from '../contexts/ProjectContext';
+import { useNavigate } from 'react-router-dom';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -30,6 +33,7 @@ type ColumnId = 'Literature review' | 'Data collection' | 'Analysis' | 'Peer Rev
 
 interface Task {
     id: string;
+    projectId?: string;
     columnId: ColumnId;
     content: string;
     createdAt: string;
@@ -78,7 +82,7 @@ function TaskCard({ task, deleteIdea }: { task: Task; deleteIdea?: (id: string) 
         <div
             ref={setNodeRef}
             style={style}
-            className="group relative bg-zinc-900 border border-[#1f2937] hover:border-white/10 p-3 rounded-xl shadow-sm text-sm text-zinc-300 transition-colors flex flex-col gap-2"
+            className="group relative bg-zinc-900 border    border-[#1f2937] hover:border-white/10 p-3 rounded-xl shadow-sm text-sm text-zinc-300 transition-colors flex flex-col gap-2"
         >
             <div className="flex gap-2 w-full">
                 <div
@@ -108,31 +112,43 @@ function TaskCard({ task, deleteIdea }: { task: Task; deleteIdea?: (id: string) 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function Kanban() {
+    const { activeProject } = useProject();
+    const navigate = useNavigate();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTask, setActiveTask] = useState<Task | null>(null);
 
     // Load from Puter JS
     useEffect(() => {
+        if (!activeProject) {
+            setLoading(false);
+            return;
+        }
         puterService.kvGet(KV_KEY).then((data: Task[] | null) => {
-            setTasks(data || []);
+            const allTasks = data || [];
+            const projectTasks = allTasks.filter(t => t.projectId === activeProject.id);
+            setTasks(projectTasks);
             setLoading(false);
         });
-    }, []);
+    }, [activeProject]);
 
     // Auto-save whenever tasks changes
     useEffect(() => {
-        if (loading) return;
+        if (loading || !activeProject) return;
         const save = async () => {
             try {
-                await puterService.kvSet(KV_KEY, tasks);
+                const allTasks: Task[] = await puterService.kvGet(KV_KEY) || [];
+                // Replace tasks for this project only
+                const otherTasks = allTasks.filter(t => t.projectId !== activeProject.id);
+                const updatedTasks = [...otherTasks, ...tasks];
+                await puterService.kvSet(KV_KEY, updatedTasks);
             } catch (err) {
                 console.error('Failed to auto-save Kanban board', err);
             }
         };
         const t = setTimeout(save, 500); // debounce save
         return () => clearTimeout(t);
-    }, [tasks, loading]);
+    }, [tasks, loading, activeProject]);
 
     const addTask = (columnId: ColumnId) => {
         const content = window.prompt('Enter task description:');
@@ -140,6 +156,7 @@ export default function Kanban() {
 
         const newTask: Task = {
             id: crypto.randomUUID(),
+            projectId: activeProject?.id,
             columnId,
             content,
             createdAt: new Date().toISOString(),
@@ -239,6 +256,25 @@ export default function Kanban() {
         return cols;
     }, [tasks]);
 
+    if (!activeProject) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+                <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6">
+                    <AlertCircle className="w-8 h-8 text-red-500" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">No Active Project</h2>
+                <p className="text-zinc-500 mb-8 max-w-sm">You must select or create a project before accessing the Kanban Board.</p>
+                <button
+                    onClick={() => navigate('/projects')}
+                    className="flex items-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-xl font-semibold transition-all"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Go to Projects
+                </button>
+            </div>
+        );
+    }
+
     if (loading) {
         return (
             <div className="min-h-[100dvh] flex items-center justify-center h-full">
@@ -251,6 +287,7 @@ export default function Kanban() {
     }
     return (
         <div className="flex flex-col h-full">
+            <Breadcrumbs />
             <header className="mb-6 shrink-0">
                 <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">Kanban Board</h1>
                 <p className="text-sm sm:text-base text-zinc-400">Track the progress of your research projects and papers.</p>
@@ -264,7 +301,7 @@ export default function Kanban() {
                         <p className="text-zinc-500 text-sm max-w-sm mx-auto text-center mb-6">Create your first task to start organizing your research pipeline and tracking progress.</p>
                         <button
                             onClick={() => addTask(COLUMNS[0].id)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors  "
                         >
                             <Plus className="w-4 h-4" /> Add First Task
                         </button>
@@ -332,7 +369,7 @@ function Column({
 
             <div
                 ref={setNodeRef}
-                className="flex-1 bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-2 flex flex-col gap-2 overflow-y-auto custom-scrollbar"
+                className="flex-1 bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-2 flex flex-col gap-2 overflow-y-auto custom-scrollbar"
             >
                 <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
                     {tasks.map(task => (

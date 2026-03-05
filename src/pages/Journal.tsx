@@ -4,8 +4,14 @@ import { format } from 'date-fns';
 import Markdown from 'react-markdown';
 import { Entry, puterService } from '../lib/puter';
 import { parseEntryDate } from '../utils/dateUtils';
+import { useProject } from '../contexts/ProjectContext';
+import { useNavigate } from 'react-router-dom';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 export default function Journal() {
+  const { activeProject } = useProject();
+  const navigate = useNavigate();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentEntry, setCurrentEntry] = useState<Partial<Entry>>({});
@@ -18,8 +24,13 @@ export default function Journal() {
   }, []);
 
   const fetchEntries = async () => {
+    if (!activeProject) {
+      setLoading(false);
+      return;
+    }
     const data = await puterService.kvGet('research_entries') || [];
-    setEntries(data.sort((a: Entry, b: Entry) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    const projectEntries = data.filter((e: Entry) => e.projectId === activeProject.id);
+    setEntries(projectEntries.sort((a: Entry, b: Entry) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     setLoading(false);
   };
 
@@ -35,6 +46,7 @@ export default function Journal() {
 
     const newEntry: Entry = {
       id: currentEntry.id || Math.random().toString(36).substring(7),
+      projectId: activeProject?.id,
       date: finalDate,
       content: currentEntry.content,
       entry_type: currentEntry.entry_type
@@ -101,8 +113,28 @@ export default function Journal() {
     );
   }
 
+  if (!activeProject) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6">
+          <AlertCircle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">No Active Project</h2>
+        <p className="text-zinc-500 mb-8 max-w-sm">You must select or create a project before accessing the Research Journal.</p>
+        <button
+          onClick={() => navigate('/projects')}
+          className="flex items-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-xl font-semibold transition-all"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Go to Projects
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">Research Journal</h1>
@@ -111,7 +143,7 @@ export default function Journal() {
         {!isEditing && (
           <button
             onClick={() => openEditor()}
-            className="w-full sm:w-fit mt-2 sm:mt-0 flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
+            className="w-full sm:w-fit mt-2 sm:mt-0 flex items-center gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors  "
           >
             <Plus className="w-4 h-4" />
             New Entry
@@ -189,7 +221,7 @@ export default function Journal() {
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-[#1f2937]">
+            <div className="flex justify-end gap-3 pt-4 border-t    border-[#1f2937]">
               <button
                 onClick={() => setIsEditing(false)}
                 className="px-4 py-2 text-zinc-400 hover:text-white font-medium transition-colors"
@@ -199,7 +231,7 @@ export default function Journal() {
               <button
                 onClick={handleSave}
                 disabled={!currentEntry.content}
-                className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
+                className="flex items-center gap-2 px-6 py-2 bg-[#3B82F6] hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors  "
               >
                 <Save className="w-4 h-4" />
                 Save Entry
@@ -224,7 +256,7 @@ export default function Journal() {
             </div>
           ) : (
             entries.map((entry) => (
-              <div key={entry.id} className="bg-zinc-900/40 border border-[#1f2937] rounded-2xl p-3 sm:p-6 hover:bg-zinc-900/60 transition-colors group">
+              <div key={entry.id} className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-3 sm:p-6 hover:bg-zinc-900/60 transition-colors group">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-[#3B82F6] text-xs font-semibold tracking-wide uppercase border border-indigo-500/20">

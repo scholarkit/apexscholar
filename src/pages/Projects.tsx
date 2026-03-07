@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, FolderPlus, FolderGit, LayoutDashboard, BookOpen, FolderSearch, SquareKanban, Sparkles, Lightbulb, ChevronRight, AlertCircle, Trash2, FolderOpen, PenTool } from 'lucide-react';
+import { Plus, FolderPlus, FolderGit, LayoutDashboard, BookOpen, FolderSearch, SquareKanban, Sparkles, Lightbulb, ChevronRight, AlertCircle, Trash2, FolderOpen, PenTool, ChevronDown } from 'lucide-react';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -142,33 +142,62 @@ export default function Projects() {
             {/* Main Content Area */}
             {projects.length > 0 ? (
                 <div className="space-y-8">
-                    {/* Active Project Switcher */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 rounded-2xl bg-zinc-900/30 border    border-[#1f2937]">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
-                            <label className="block text-[10px] uppercase font-bold text-zinc-500 mb-1 tracking-wider">Active Workspace</label>
-                            <select
-                                value={activeProject?.id || ''}
-                                onChange={(e) => {
-                                    const p = projects.find(proj => proj.id === e.target.value);
-                                    if (p) setActiveProject(p);
-                                }}
-                                className="ml-auto appearance-none pl-4 pr-10 py-2.5 bg-zinc-900/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500/50 cursor-pointer h-full"
-                            >
-                                {projects.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                            </select>
-                            <button
-                                onClick={() => {
-                                    if (confirm(`Delete project "${activeProject.name}" and all associated research data? This cannot be undone.`)) {
-                                        deleteProject(activeProject.id);
-                                    }
-                                }}
-                                className="flex items-center gap-2 text-zinc-500 hover:text-red-400 transition-colors text-xs font-bold uppercase tracking-widest"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                                Delete
-                            </button>
+                    {/* Active Project Card & Switcher */}
+                    <div className="bg-gradient-to-br from-indigo-500/10 via-zinc-900/50 to-zinc-900/30 border border-indigo-500/20 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none -mr-32 -mt-32" />
+
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
+                            <div className="flex-1 space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-indigo-500/20 rounded-xl border border-indigo-500/30 shadow-inner">
+                                        <FolderGit className="w-6 h-6 text-indigo-400" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{activeProject?.name}</h2>
+                                        <p className="text-sm text-indigo-200/70 mt-1 flex items-center gap-2 font-medium">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            Active Workspace
+                                        </p>
+                                    </div>
+                                </div>
+                                {activeProject?.description && (
+                                    <p className="text-zinc-400 text-sm sm:text-base leading-relaxed max-w-2xl border-l-2 border-indigo-500/30 pl-4 py-1">
+                                        {activeProject.description}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0 bg-black/40 p-2.5 rounded-2xl border border-white/5 backdrop-blur-md">
+                                <div className="relative flex-1 sm:w-64">
+                                    <label className="absolute -top-2.5 left-3 px-1.5 bg-[#121214] text-[10px] uppercase font-bold text-zinc-400 tracking-wider rounded">Switch Project</label>
+                                    <select
+                                        value={activeProject?.id || ''}
+                                        onChange={(e) => {
+                                            const p = projects.find(proj => proj.id === e.target.value);
+                                            if (p) setActiveProject(p);
+                                        }}
+                                        className="w-full appearance-none pl-4 pr-10 py-3 bg-zinc-900/80 border border-zinc-700/50 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500/50 cursor-pointer hover:bg-zinc-800 transition-colors shadow-inner"
+                                    >
+                                        {projects.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                                </div>
+                                <div className="w-px h-10 bg-white/10 hidden sm:block mx-1" />
+                                <button
+                                    onClick={() => {
+                                        if (confirm(`Delete project "${activeProject?.name}" and all associated research data? This cannot be undone.`)) {
+                                            if (activeProject) deleteProject(activeProject.id);
+                                        }
+                                    }}
+                                    className="flex flex-row items-center justify-center p-3 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20 group"
+                                    title="Delete Workspace"
+                                >
+                                    <Trash2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                    <span className="sm:hidden font-medium ml-2">Delete Project</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 

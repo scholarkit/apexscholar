@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, FolderOpen, Activity, Plus, Upload, Clock } from 'lucide-react';
+import { BookOpen, FolderOpen, Activity, Plus, Upload, Clock, Layers } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Entry, Resource, puterService } from '../lib/puter';
 import { parseEntryDate } from '../utils/dateUtils';
@@ -8,14 +8,17 @@ import { parseEntryDate } from '../utils/dateUtils';
 export default function Dashboard() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
+  const [projects, setProjects] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       const entriesData = await puterService.kvGet('research_entries') || [];
       const resourcesData = await puterService.kvGet('research_resources') || [];
+      const projectsData = await puterService.kvGet('research_projects') || [];
       setEntries(entriesData);
       setResources(resourcesData);
+      setProjects(projectsData);
       setLoading(false);
     };
     loadData();
@@ -78,6 +81,10 @@ export default function Dashboard() {
             <Plus className="w-4 h-4" />
             New Entry
           </Link>
+          <Link to="/projects" className="w-full sm:w-fit flex items-center gap-1 sm:gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors border border-white/10">
+            <Layers className="w-4 h-4" />
+            Projects
+          </Link>
           <Link to="/resources" className="w-full sm:w-fit flex items-center gap-1 sm:gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors border border-white/10">
             <Upload className="w-4 h-4" />
             Upload
@@ -86,8 +93,8 @@ export default function Dashboard() {
       </header>
 
       {/* KPI Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border    border-[#1f2937] backdrop-blur-sm">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border border-[#1f2937] backdrop-blur-sm">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-3 bg-blue-500/10 rounded-xl">
               <BookOpen className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400" />
@@ -97,7 +104,17 @@ export default function Dashboard() {
           <p className="text-2xl sm:text-4xl font-semibold text-white">{entries.length}</p>
         </div>
 
-        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border    border-[#1f2937] backdrop-blur-sm">
+        <Link to="/projects" className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border border-[#1f2937] backdrop-blur-sm hover:border-violet-500/30 hover:bg-zinc-900/70 transition-all group">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-violet-500/10 rounded-xl group-hover:bg-violet-500/20 transition-colors">
+              <Layers className="w-4 h-4 sm:w-6 sm:h-6 text-violet-400" />
+            </div>
+            <h3 className="text-zinc-400 font-medium">Projects</h3>
+          </div>
+          <p className="text-2xl sm:text-4xl font-semibold text-white">{projects.length}</p>
+        </Link>
+
+        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border border-[#1f2937] backdrop-blur-sm">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-3 bg-emerald-500/10 rounded-xl">
               <FolderOpen className="w-4 h-4 sm:w-6 sm:h-6 text-emerald-400" />
@@ -107,7 +124,7 @@ export default function Dashboard() {
           <p className="text-2xl sm:text-4xl font-semibold text-white">{resources.length}</p>
         </div>
 
-        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border    border-[#1f2937] backdrop-blur-sm">
+        <div className="p-3 sm:p-6 rounded-2xl bg-zinc-900/50 border border-[#1f2937] backdrop-blur-sm">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-3 bg-purple-500/10 rounded-xl">
               <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-purple-400" />

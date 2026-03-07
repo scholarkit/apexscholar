@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Plus, Save, Trash2, Edit2, X, FileText } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Save, Trash2, Edit2, X, FileText, Mic, Radio } from 'lucide-react';
 import { format } from 'date-fns';
 import Markdown from 'react-markdown';
 import { Entry, puterService } from '../lib/puter';
@@ -16,8 +16,51 @@ export default function Journal() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentEntry, setCurrentEntry] = useState<Partial<Entry>>({});
   const [loading, setLoading] = useState(true);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [micError, setMicError] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const contentRef = useRef<string>('');
 
   const entryTypes = ['Weekly Diary', 'Progress Notes', 'Meeting Notes', 'Other'];
+
+  // Set up SpeechRecognition once
+  useEffect(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    setVoiceSupported(true);
+    const rec = new SR();
+    rec.lang = 'en-US';
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.onresult = (event: any) => {
+      let interim = '';
+      let final = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) final += t + ' ';
+        else interim += t;
+      }
+      if (final) {
+        contentRef.current = contentRef.current + final;
+        setCurrentEntry(prev => ({ ...prev, content: contentRef.current }));
+      }
+    };
+    rec.onerror = (event: any) => {
+      setIsListening(false);
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        setMicError('Microphone access was denied. Please allow access in your browser settings and try again.');
+        setTimeout(() => setMicError(null), 6000);
+      }
+    };
+    rec.onend = () => setIsListening(false);
+    recognitionRef.current = rec;
+  }, []);
+
+  // Keep contentRef in sync so speech appends correctly
+  useEffect(() => {
+    contentRef.current = currentEntry.content || '';
+  }, [currentEntry.content]);
 
   useEffect(() => {
     fetchEntries();
@@ -99,7 +142,54 @@ export default function Journal() {
         endDate: today
       });
     }
+    // Stop any active recording when switching entries
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    }
     setIsEditing(true);
+  };
+
+  const toggleListening = async () => {
+    if (!recognitionRef.current) return;
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      return;
+    }
+
+    // Gracefully request mic permission before starting recognition
+    try {
+      // Check existing permission state if Permissions API is available
+      if (navigator.permissions) {
+        const status = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        if (status.state === 'denied') {
+          setMicError('Microphone access is blocked. Click the 🔒 icon in your browser\'s address bar to allow it, then try again.');
+          setTimeout(() => setMicError(null), 8000);
+          return;
+        }
+      }
+
+      // Trigger the browser permission prompt via getUserMedia
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Stop the stream immediately — SpeechRecognition manages its own
+      stream.getTracks().forEach(t => t.stop());
+
+      // Permission granted — start recognition
+      setMicError(null);
+      contentRef.current = currentEntry.content || '';
+      recognitionRef.current.start();
+      setIsListening(true);
+    } catch (err: any) {
+      setIsListening(false);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setMicError('Microphone access was denied. Please allow it in your browser settings and try again.');
+      } else {
+        setMicError('Could not access the microphone. Please check your device settings.');
+      }
+      setTimeout(() => setMicError(null), 7000);
+    }
   };
 
   if (loading) {
@@ -210,14 +300,51 @@ export default function Journal() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-2 flex justify-between">
-                <span>Content (Markdown supported)</span>
+              <label className="block text-sm font-medium text-zinc-400 mb-2">
+                <div className="flex items-center justify-between">
+                  <span>Content <span className="text-zinc-600">(Markdown supported)</span></span>
+                  {voiceSupported && (
+                    <button
+                      type="button"
+                      onClick={toggleListening}
+                      title={isListening ? 'Stop recording' : 'Start voice dictation'}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${isListening
+                        ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse'
+                        : 'bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 border border-white/10'
+                        }`}
+                    >
+                      {isListening ? (
+                        <><Radio className="w-3.5 h-3.5" /> Recording… click to stop</>
+                      ) : (
+                        <><Mic className="w-3.5 h-3.5" /> Voice Mode</>
+                      )}
+                    </button>
+                  )}
+                </div>
               </label>
+
+              {micError && (
+                <div className="flex items-start gap-2 mb-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                  <span className="text-amber-400 flex-shrink-0 mt-0.5">🎙️</span>
+                  <span className="text-xs text-amber-300 font-medium">{micError}</span>
+                </div>
+              )}
+
+              {isListening && (
+                <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-rose-500/10 border border-rose-500/20 rounded-lg">
+                  <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse flex-shrink-0" />
+                  <span className="text-xs text-rose-300 font-medium">Listening… speak clearly. Text will appear below automatically.</span>
+                </div>
+              )}
+
               <textarea
                 value={currentEntry.content || ''}
                 onChange={(e) => setCurrentEntry({ ...currentEntry, content: e.target.value })}
-                placeholder="Write your research notes here..."
-                className="w-full h-64 bg-black border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 font-mono text-sm resize-y"
+                placeholder={isListening ? '🎙️ Speak now — your words will appear here…' : 'Write your research notes here…'}
+                className={`w-full h-64 bg-black border rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 font-mono text-sm resize-y transition-colors ${isListening
+                  ? 'border-rose-500/40 focus:ring-rose-500/30'
+                  : 'border-white/10 focus:ring-indigo-500/50'
+                  }`}
               />
             </div>
 

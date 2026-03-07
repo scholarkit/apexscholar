@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { Download, Upload, Activity, Loader2, HardDrive, FolderOpen } from 'lucide-react';
+import { Download, Upload, Activity, Loader2, HardDrive, FolderOpen, Trash2, AlertTriangle } from 'lucide-react';
 import { puterService } from '../lib/puter';
 
 interface FolderStat { name: string; size: number; }
@@ -39,6 +39,8 @@ async function sumDir(path: string): Promise<number> {
 
 export default function Settings() {
     const restoreInputRef = useRef<HTMLInputElement>(null);
+    const [resetConfirm, setResetConfirm] = useState(false);
+    const [resetting, setResetting] = useState(false);
     const [usage, setUsage] = useState<any>(null);
     const [detailedUsage, setDetailedUsage] = useState<any>(null);
     const [loadingUsage, setLoadingUsage] = useState(true);
@@ -151,6 +153,27 @@ export default function Settings() {
             alert('Failed to restore backup. Make sure the file is a valid Apex Scholar backup.');
         } finally {
             e.target.value = '';
+        }
+    };
+
+    const handleReset = async () => {
+        setResetting(true);
+        try {
+            const ALL_KEYS = [
+                'research_entries',
+                'research_resources',
+                'research_insights',
+                'research_knowledgebase',
+                'research_kanban',
+                'research_funding',
+                'research_projects',
+            ];
+            await Promise.all(ALL_KEYS.map(key => puterService.kvSet(key, [])));
+            window.location.reload();
+        } catch (err) {
+            console.error('Reset failed', err);
+            setResetting(false);
+            setResetConfirm(false);
         }
     };
 
@@ -332,6 +355,52 @@ export default function Settings() {
                     ) : (
                         <p className="text-sm text-zinc-500 py-4">Usage data not available.</p>
                     )}
+                </section>
+
+                {/* ── Danger Zone ──────────────────────────────── */}
+                <section className="bg-rose-950/20 border border-rose-500/20 rounded-2xl p-3 sm:p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <AlertTriangle className="w-5 h-5 text-rose-400" />
+                        <h2 className="text-xl font-semibold text-rose-400">Danger Zone</h2>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-rose-500/5 rounded-xl border border-rose-500/15">
+                        <div>
+                            <h3 className="text-sm font-medium text-white mb-1">Reset All Data</h3>
+                            <p className="text-xs text-zinc-400">Permanently delete all entries, resources, projects, funding, kanban, insights, and knowledgebase. This cannot be undone.</p>
+                        </div>
+
+                        {!resetConfirm ? (
+                            <button
+                                onClick={() => setResetConfirm(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:text-rose-300 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                Reset All Data
+                            </button>
+                        ) : (
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0">
+                                <p className="text-xs text-rose-300 font-medium sm:max-w-[160px] text-center">Are you absolutely sure? This is irreversible.</p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setResetConfirm(false)}
+                                        disabled={resetting}
+                                        className="flex-1 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-zinc-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleReset}
+                                        disabled={resetting}
+                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                                    >
+                                        {resetting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                        {resetting ? 'Resetting…' : 'Yes, Reset'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </section>
             </div>
         </div>

@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
-import { Download, Upload, Activity, Loader2, HardDrive, FolderOpen, Trash2, AlertTriangle } from 'lucide-react';
-import { puterService } from '../lib/puter';
+import { Download, Upload, Activity, Loader2, HardDrive, FolderOpen, Trash2, AlertTriangle, Lock, Shield, Key, Eye, EyeOff, Unlock, LockOpen } from 'lucide-react';
+import { puterService, initE2EE, enableE2EE, unlockE2EE, disableE2EE, isE2EEEnabled, getE2EEConfig, migrateDataToE2EE, changeE2EEPassphrase } from '../lib/puter';
 
 interface FolderStat { name: string; size: number; }
 
@@ -50,6 +50,41 @@ export default function Settings() {
     const [storageFolders, setStorageFolders] = useState<FolderStat[]>([]);
     const [loadingStorage, setLoadingStorage] = useState(true);
     const [storageError, setStorageError] = useState<string | null>(null);
+
+    // E2EE State
+    const [e2eeStatus, setE2EEStatus] = useState<'initializing' | 'enabled' | 'disabled'>('initializing');
+    const [e2eeUnlocked, setE2eeUnlocked] = useState(false);
+    const [e2eePassphrase, setE2eePassphrase] = useState('');
+    const [e2eeConfirm, setE2eeConfirm] = useState('');
+    const [e2eeError, setE2EEError] = useState<string | null>(null);
+    const [e2eeMigrating, setE2eeMigrating] = useState(false);
+    const [showPassphrase, setShowPassphrase] = useState(false);
+    const [changePass, setChangePass] = useState<{old: string, new: string} | null>(null);
+
+    // Initialize E2EE on mount
+    useEffect(() => {
+        const setupE2EE = async () => {
+            try {
+                await initE2EE();
+                const config = getE2EEConfig();
+                if (config.enabled) {
+                    setE2EEStatus('enabled');
+                    // Check if we have the key in memory (unlocked)
+                    if (isE2EEEnabled()) {
+                        setE2eeUnlocked(true);
+                    } else {
+                        setE2eeUnlocked(false);
+                    }
+                } else {
+                    setE2EEStatus('disabled');
+                }
+            } catch (err) {
+                console.error('E2EE init failed', err);
+                setE2EEError('Failed to initialize encryption');
+            }
+        };
+        setupE2EE();
+    }, []);
     // Puter free tier is 1 GB
     const STORAGE_LIMIT_BYTES = 1 * 1024 * 1024 * 1024;
 
@@ -177,6 +212,84 @@ export default function Settings() {
         }
     };
 
+    // ── E2EE Handlers ─────────────────────────────────────
+    const handleEnableE2EE = async () => {
+        setE2EEError(null);
+        if (e2eePassphrase.length < 8) {
+            setE2EEError('Passphrase must be at least 8 characters');
+            return;
+        }
+        if (e2eePassphrase !== e2eeConfirm) {
+            setE2EEError('Passphrases do not match');
+            return;
+        }
+        try {
+            const ok = await enableE2EE(e2eePassphrase);
+            if (!ok) throw new Error('Failed to enable E2EE');
+            // Migrate existing data to encrypted format
+            setE2eeMigrating(true);
+            const result = await migrateDataToE2EE();
+            console.log('E2EE migration complete:', result);
+            setE2eeMigrating(false);
+            setE2EEStatus('enabled');
+            setE2eeUnlocked(true);
+            setE2eePassphrase('');
+            setE2eeConfirm('');
+            alert(`Encryption enabled! ${result.success} items secured.`);
+        } catch (err: any) {
+            setE2EEError(err.message || 'Failed to enable encryption');
+            setE2eeMigrating(false);
+        }
+    };
+
+    const handleUnlockE2EE = async () => {
+        setE2EEError(null);
+        if (!e2eePassphrase) {
+            setE2EEError('Enter your passphrase');
+            return;
+        }
+        try {
+            const ok = await unlockE2EE(e2eePassphrase);
+            if (!ok) throw new Error('Incorrect passphrase');
+            setE2eeUnlocked(true);
+            setE2eePassphrase('');
+        } catch (err: any) {
+            setE2EEError(err.message || 'Failed to unlock');
+        }
+    };
+
+    const handleDisableE2EE = async () => {
+        if (!confirm('Disabling encryption will leave your data unprotected. Are you sure?')) return;
+        try {
+            // Note: Disabling E2EE does NOT decrypt existing data automatically.
+            // User should first decrypt data by re-enabling with same key, then disable.
+            // For simplicity, we'll just disable the flag - data will remain unreadable.
+            // Better UX: Suggest user to export backup, disable, then re-import (which will store unencrypted).
+            alert('Note: Disabling E2EE will not automatically decrypt your stored data. To recover data, re-enable with the same passphrase, then export and re-import as unencrypted.');
+            disableE2EE();
+            setE2EEStatus('disabled');
+            setE2eeUnlocked(false);
+        } catch (err) {
+            console.error('Disable failed', err);
+        }
+    };
+
+    const handleChangePassphrase = async () => {
+        if (!changePass) return;
+        if (changePass.new.length < 8) {
+            alert('New passphrase must be at least 8 characters');
+            return;
+        }
+        try {
+            const ok = await changeE2EEPassphrase(changePass.old, changePass.new);
+            if (!ok) throw new Error('Failed to change passphrase');
+            setChangePass(null);
+            alert('Passphrase changed successfully');
+        } catch (err: any) {
+            alert('Failed: ' + err.message);
+        }
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <header>
@@ -187,6 +300,180 @@ export default function Settings() {
             </header>
 
             <div className="space-y-6">
+                {/* ── End-to-End Encryption ───────────────────────────── */}
+                <section className="bg-zinc-900/40 border border-indigo-500/20 rounded-2xl p-3 sm:p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Shield className="w-5 h-5 text-indigo-400" />
+                        <h2 className="text-xl font-semibold text-white">End-to-End Encryption</h2>
+                    </div>
+
+                    {e2eeStatus === 'initializing' ? (
+                        <div className="flex items-center gap-2 text-indigo-300 py-4">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span className="text-sm">Initializing encryption system...</span>
+                        </div>
+                    ) : e2eeStatus === 'disabled' ? (
+                        <div className="space-y-4">
+                            <p className="text-sm text-zinc-300">
+                                Protect your research data with client-side encryption. Only you can access it, even from this app's server.
+                            </p>
+                            <div className="space-y-3 max-w-md">
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 mb-1">New Passphrase</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showPassphrase ? "text" : "password"}
+                                            value={e2eePassphrase}
+                                            onChange={e => setE2eePassphrase(e.target.value)}
+                                            placeholder="At least 8 characters"
+                                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassphrase(!showPassphrase)}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                                        >
+                                            {showPassphrase ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 mb-1">Confirm Passphrase</label>
+                                    <input
+                                        type={showPassphrase ? "text" : "password"}
+                                        value={e2eeConfirm}
+                                        onChange={e => setE2eeConfirm(e.target.value)}
+                                        placeholder="Re-enter your passphrase"
+                                        className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                </div>
+                                {e2eeError && <p className="text-sm text-red-400">{e2eeError}</p>}
+                                <button
+                                    onClick={handleEnableE2EE}
+                                    disabled={e2eeMigrating}
+                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                                >
+                                    {e2eeMigrating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+                                    {e2eeMigrating ? 'Encrypting Data...' : 'Enable Encryption'}
+                                </button>
+                                <p className="text-xs text-zinc-500">
+                                    Existing data will be automatically encrypted after you set your passphrase. This process may take a moment.
+                                </p>
+                            </div>
+                        </div>
+                    ) : e2eeStatus === 'enabled' ? (
+                        <div className="space-y-4">
+                            {e2eeUnlocked ? (
+                                <div className="flex items-start gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                                    <Shield className="w-5 h-5 text-emerald-400 mt-0.5" />
+                                    <div className="flex-1">
+                                        <h3 className="text-sm font-medium text-emerald-300 mb-1">Encryption Active</h3>
+                                        <p className="text-xs text-zinc-300 mb-3">
+                                            Your data is securely encrypted and only accessible with your passphrase. All new data is automatically encrypted.
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            <button
+                                                onClick={() => setChangePass({old: '', new: ''})}
+                                                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-xs text-zinc-300 transition-colors"
+                                            >
+                                                <Key className="w-3.5 h-3.5" />
+                                                Change Passphrase
+                                            </button>
+                                            <button
+                                                onClick={handleDisableE2EE}
+                                                className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 rounded-lg text-xs font-medium transition-colors"
+                                            >
+                                                <LockOpen className="w-3.5 h-3.5" />
+                                                Disable Encryption
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-3 max-w-md">
+                                    <div className="flex items-start gap-2 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+                                        <Lock className="w-4 h-4 text-indigo-400 mt-0.5" />
+                                        <p className="text-xs text-zinc-300">
+                                            The vault is locked. Enter your passphrase to access your encrypted data.
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-zinc-400 mb-1">Passphrase</label>
+                                        <div className="relative">
+                                            <input
+                                                type={showPassphrase ? "text" : "password"}
+                                                value={e2eePassphrase}
+                                                onChange={e => setE2eePassphrase(e.target.value)}
+                                                placeholder="Enter your encryption passphrase"
+                                                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                onKeyDown={e => e.key === 'Enter' && handleUnlockE2EE()}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassphrase(!showPassphrase)}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                                            >
+                                                {showPassphrase ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {e2eeError && <p className="text-sm text-red-400">{e2eeError}</p>}
+                                    <button
+                                        onClick={handleUnlockE2EE}
+                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
+                                    >
+                                        <Unlock className="w-4 h-4" />
+                                        Unlock Vault
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Change Passphrase Modal */}
+                            {changePass && (
+                                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                                    <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+                                        <h3 className="text-lg font-semibold text-white mb-4">Change Passphrase</h3>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-xs font-medium text-zinc-400 mb-1">Current Passphrase</label>
+                                                <input
+                                                    type="password"
+                                                    value={changePass.old}
+                                                    onChange={e => setChangePass({...changePass, old: e.target.value})}
+                                                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-zinc-400 mb-1">New Passphrase</label>
+                                                <input
+                                                    type="password"
+                                                    value={changePass.new}
+                                                    onChange={e => setChangePass({...changePass, new: e.target.value})}
+                                                    placeholder="At least 8 characters"
+                                                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                />
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setChangePass(null)}
+                                                    className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-300 rounded-lg text-sm font-medium transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={handleChangePassphrase}
+                                                    className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
+                                                >
+                                                    Update
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : null}
+                </section>
                 <section className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-3 sm:p-6">
                     <h2 className="text-xl font-semibold text-white mb-4">Data Management</h2>
                     <div className="space-y-4">

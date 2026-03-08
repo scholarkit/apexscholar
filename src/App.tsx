@@ -14,7 +14,7 @@ import Insights from './pages/Insights';
 import Composr from './pages/Composr';
 import Analytics from './pages/Analytics';
 import Login from './components/Login';
-import { puterService } from './lib/puter';
+import { puterService, initE2EE, isE2EEEnabled, unlockE2EE, getE2EEConfig } from './lib/puter';
 import Explore from './pages/Explore';
 import Kanban from './pages/Kanban';
 import Funding from './pages/Funding';
@@ -24,9 +24,31 @@ import Learn from './pages/Learn';
 import CourseView from './pages/CourseView';
 import LessonView from './pages/LessonView';
 import { ProjectProvider } from './contexts/ProjectContext';
+import { Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [e2eeRequired, setE2eeRequired] = useState(false);
+  const [e2eeUnlocked, setE2eeUnlocked] = useState(false);
+  const [e2eePassphrase, setE2eePassphrase] = useState('');
+  const [e2eeError, setE2EEError] = useState<string | null>(null);
+  const [unlocking, setUnlocking] = useState(false);
+  const [showPassphrase, setShowPassphrase] = useState(false);
+
+  // Initialize E2EE system
+  useEffect(() => {
+    const setup = async () => {
+      await initE2EE();
+      const config = getE2EEConfig();
+      if (config.enabled) {
+        setE2eeRequired(true);
+        if (isE2EEEnabled()) {
+          setE2eeUnlocked(true);
+        }
+      }
+    };
+    setup();
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -36,7 +58,23 @@ export default function App() {
     checkAuth();
   }, []);
 
-  if (isAuthenticated === null) {
+  const handleUnlock = async () => {
+    setE2EEError(null);
+    setUnlocking(true);
+    try {
+      const ok = await unlockE2EE(e2eePassphrase);
+      if (!ok) throw new Error('Incorrect passphrase');
+      setE2eeUnlocked(true);
+      setE2eePassphrase('');
+    } catch (err: any) {
+      setE2EEError(err.message || 'Failed to unlock');
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
+  // Loading state while checking auth + E2EE
+  if (isAuthenticated === null || (e2eeRequired && !e2eeUnlocked && !isAuthenticated)) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
         <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
@@ -46,6 +84,66 @@ export default function App() {
 
   if (!isAuthenticated) {
     return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
+  // E2EE Unlock Screen (appears over the app)
+  if (e2eeRequired && !e2eeUnlocked) {
+    return (
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-zinc-900 border border-indigo-500/20 rounded-2xl p-8 shadow-2xl">
+          <div className="flex flex-col items-center text-center mb-6">
+            <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mb-4">
+              <Lock className="w-7 h-7 text-indigo-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Vault Locked</h2>
+            <p className="text-sm text-zinc-400">Enter your encryption passphrase to access your research data.</p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">Passphrase</label>
+              <div className="relative">
+                <input
+                  type={showPassphrase ? "text" : "password"}
+                  value={e2eePassphrase}
+                  onChange={e => setE2eePassphrase(e.target.value)}
+                  placeholder="Your encryption passphrase"
+                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  onKeyDown={e => e.key === 'Enter' && handleUnlock()}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassphrase(!showPassphrase)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                >
+                  {showPassphrase ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {e2eeError && (
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-sm text-rose-300">
+                {e2eeError}
+              </div>
+            )}
+
+            <button
+              onClick={handleUnlock}
+              disabled={unlocking}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
+            >
+              {unlocking ? <Loader2 className="w-5 h-5 animate-spin" /> : <Lock className="w-5 h-5" />}
+              {unlocking ? 'Unlocking...' : 'Unlock Vault'}
+            </button>
+
+            <p className="text-xs text-zinc-500 text-center">
+              Forgot your passphrase? You will need to restore from an unencrypted backup.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

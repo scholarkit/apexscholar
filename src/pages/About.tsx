@@ -1,4 +1,4 @@
-import { Heart, Coffee, CreditCard, Sparkles, Code2, Globe, Mail } from 'lucide-react';
+import { Heart, Coffee, CreditCard, Sparkles, Code2, Globe, Mail, BookOpen } from 'lucide-react';
 
 export default function About() {
     return (

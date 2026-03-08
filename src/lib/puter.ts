@@ -132,7 +132,8 @@ export async function migrateDataToE2EE(): Promise<{success: number; failed: num
       // Check if already encrypted
       try {
         const parsed = JSON.parse(rawValue);
-        if (e2eeService.isEncryptedFormat(parsed)) {
+        // Check if parsed object has encryption fields
+        if (parsed && typeof parsed === 'object' && parsed.version && parsed.iv && parsed.ciphertext) {
           // Already encrypted, skip
           skipped++;
           continue;
@@ -230,17 +231,16 @@ export const puterService = {
       return rawValue;
     }
 
-    // Check if this is an encrypted payload
-    if (e2eeService.isEncryptedFormat(parsedValue)) {
+    // Check if this is an encrypted payload by inspecting the parsed object
+    if (parsedValue && typeof parsedValue === 'object' && parsedValue.version && parsedValue.iv && parsedValue.ciphertext) {
       if (!e2eeService.isEnabled()) {
-        // Data is encrypted but E2EE is not enabled/ unlocked
-        // This could happen if user disabled E2EE but data remains encrypted
+        // Data is encrypted but E2EE is not enabled/unlocked
         console.warn(`Encrypted data found for key "${key}" but E2EE is not enabled.`);
         return null; // or throw?
       }
       try {
-        const encrypted = e2eeService.parse(parsedValue);
-        return await e2eeService.decrypt(encrypted);
+        // parsedValue already matches EncryptedPayload shape
+        return await e2eeService.decrypt(parsedValue);
       } catch (error) {
         console.error(`E2EE decryption failed for key ${key}:`, error);
         throw error;

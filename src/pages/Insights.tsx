@@ -191,14 +191,14 @@ SUMMARY:`;
   if (!activeProject) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6">
+        <div className="w-16 h-16 bg-red-500/10 rounded-xl flex items-center justify-center mb-6">
           <AlertCircle className="w-8 h-8 text-red-500" />
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">No Active Project</h2>
         <p className="text-zinc-500 mb-8 max-w-sm">You must select or create a project before accessing AI Insights.</p>
         <button
           onClick={() => navigate('/projects')}
-          className="flex items-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-xl font-semibold transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-all"
         >
           <ArrowLeft className="w-4 h-4" />
           Go to Projects
@@ -212,13 +212,13 @@ SUMMARY:`;
       <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">AI Insights Engine</h1>
-          <p className="text-xs sm:text-base text-zinc-400">Generate intelligent summaries from your recent research entries.</p>
+          <h1 className="text-lg sm:text-2xl font-semibold text-white">AI Insights Engine</h1>
+          <p className="text-sm sm:text-base text-zinc-400">Generate intelligent summaries from your recent research entries.</p>
         </div>
         <button
           onClick={generateInsights}
           disabled={loading}
-          className="mt-2 sm:mt-0 w-full sm:w-fit flex items-center gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors  "
+          className="mt-2 sm:mt-0 w-full sm:w-fit flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl font-medium transition-colors  "
         >
           {loading ? (
             <RefreshCw className="w-4 h-4 animate-spin" />
@@ -229,7 +229,7 @@ SUMMARY:`;
         </button>
       </header>
 
-      <div className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-2 sm:p-4 min-h-[400px] relative overflow-hidden">
+      <div className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-2 sm:p-4 min-h-[400px] relative overflow-hidden">
         {/* Decorative background element */}
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -238,30 +238,30 @@ SUMMARY:`;
             <div className="relative">
               <div className="w-16 h-16 border-4 border-indigo-500/20 rounded-full animate-pulse" />
               <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin absolute inset-0" />
-              <Sparkles className="w-6 h-6 text-[#3B82F6] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              <Sparkles className="w-6 h-6 text-indigo-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
             <p className="text-zinc-400 font-medium animate-pulse">Reading recent journal entries...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-full py-20 text-center">
-            <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-4 border border-red-500/20">
+            <div className="w-16 h-16 bg-red-500/10 rounded-xl flex items-center justify-center mb-4 border border-red-500/20">
               <FileText className="w-8 h-8 text-red-400" />
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">Analysis Failed</h3>
             <p className="text-zinc-400 max-w-md">{error}</p>
             <button
               onClick={generateInsights}
-              className="mt-6 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-lg font-medium transition-colors"
+              className="mt-6 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-colors"
             >
               Try Again
             </button>
           </div>
         ) : summary ? (
-          <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-headings:text-white prose-a:text-[#3B82F6] hover:prose-a:text-indigo-300 prose-code:text-indigo-300 prose-pre:bg-black/50 prose-pre:border prose-pre:   border-[#1f2937] relative z-10 transition-all duration-700">
+          <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-headings:text-white prose-a:text-indigo-500 hover:prose-a:text-indigo-300 prose-code:text-indigo-300 prose-pre:bg-black/50 prose-pre:border prose-pre:   border-neutral-800 relative z-10 transition-all duration-700">
             {/* <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-indigo-500/20 rounded-xl border border-indigo-500/30">
-                  <Lightbulb className="w-6 h-6 text-[#3B82F6]" />
+                  <Lightbulb className="w-6 h-6 text-indigo-500" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-white m-0">Research Summary</h2>
@@ -272,7 +272,7 @@ SUMMARY:`;
               <button
                 onClick={exportToPDF}
                 disabled={exporting}
-                className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-medium transition-all text-zinc-300 hover:text-white"
+                className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-medium transition-all text-zinc-300 hover:text-white"
               >
                 {exporting ? (
                   <RefreshCw className="w-3 h-3 animate-spin" />
@@ -288,7 +288,7 @@ SUMMARY:`;
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-20 text-center">
-            <div className="w-20 h-20 bg-black rounded-3xl flex items-center justify-center mb-6 border    border-[#1f2937] shadow-2xl">
+            <div className="w-20 h-20 bg-black rounded-xl flex items-center justify-center mb-6 border    border-neutral-800 shadow-2xl">
               <Lightbulb className="w-10 h-10 text-zinc-600" />
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">Ready to Analyze</h3>
@@ -297,7 +297,7 @@ SUMMARY:`;
             </p>
             <button
               onClick={generateInsights}
-              className="flex items-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors  "
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-colors"
             >
               <Sparkles className="w-5 h-5" />
               Generate First Insight

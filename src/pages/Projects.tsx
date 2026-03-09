@@ -5,6 +5,14 @@ import { useNavigate } from 'react-router-dom';
 
 const MODULES = [
     {
+        id: 'explore',
+        name: 'Explore Papers',
+        description: 'Discover and cite new research',
+        icon: <FolderSearch className="w-6 h-6" />,
+        color: 'teal',
+        path: '/explore'
+    },
+    {
         id: 'journal',
         name: 'Research Journal',
         description: 'Log progress, notes, and observations',
@@ -27,14 +35,6 @@ const MODULES = [
         icon: <SquareKanban className="w-6 h-6" />,
         color: 'orange',
         path: '/kanban'
-    },
-    {
-        id: 'explore',
-        name: 'Explore Papers',
-        description: 'Discover and cite new research',
-        icon: <FolderSearch className="w-6 h-6" />,
-        color: 'teal',
-        path: '/explore'
     },
     {
         id: 'insights',
@@ -84,12 +84,12 @@ export default function Projects() {
             {/* Header */}
             <header className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">Research Projects</h1>
+                    <h1 className="text-lg sm:text-2xl font-semibold text-white">Research Projects</h1>
                     <p className="text-sm sm:text-base text-zinc-400">Organize and manage your research workspaces.</p>
                 </div>
                 <button
                     onClick={() => setIsCreating(true)}
-                    className="w-full sm:w-fit flex items-center justify-center gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors  "
+                    className="w-full sm:w-fit flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-colors  "
                 >
                     <Plus className="w-4 h-4" />
                     New Project
@@ -98,7 +98,7 @@ export default function Projects() {
 
             {/* Inline Creation Form */}
             {isCreating && (
-                <div className="p-6 rounded-2xl bg-zinc-900/50 border    border-[#1f2937] backdrop-blur-sm animate-in zoom-in-95 duration-200">
+                <div className="p-6 rounded-xl bg-zinc-900/50 border    border-neutral-800 backdrop-blur-sm animate-in zoom-in-95 duration-200">
                     <h3 className="text-lg font-semibold text-white mb-4">Create New Project</h3>
                     <form onSubmit={handleCreateProject} className="space-y-4">
                         <div>
@@ -107,7 +107,7 @@ export default function Projects() {
                                 autoFocus
                                 value={newProject.name}
                                 onChange={e => setNewProject({ ...newProject, name: e.target.value })}
-                                className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                                 placeholder="e.g., Quantum Computing Foundations"
                             />
                         </div>
@@ -116,7 +116,7 @@ export default function Projects() {
                             <textarea
                                 value={newProject.description}
                                 onChange={e => setNewProject({ ...newProject, description: e.target.value })}
-                                className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-24 resize-none"
+                                className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-24 resize-none"
                                 placeholder="Briefly describe the research scope..."
                             />
                         </div>
@@ -130,7 +130,7 @@ export default function Projects() {
                             </button>
                             <button
                                 type="submit"
-                                className="px-6 py-2 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-lg font-semibold transition-colors  "
+                                className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-colors  "
                             >
                                 Create Workspace
                             </button>
@@ -143,7 +143,7 @@ export default function Projects() {
             {projects.length > 0 ? (
                 <div className="space-y-8">
                     {/* Active Project Card & Switcher */}
-                    <div className="bg-gradient-to-br from-indigo-500/10 via-zinc-900/50 to-zinc-900/30 border border-indigo-500/20 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-indigo-500/10 via-zinc-900/50 to-zinc-900/30 border border-indigo-500/20 rounded-xl p-6 sm:p-8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none -mr-32 -mt-32" />
 
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
@@ -167,7 +167,7 @@ export default function Projects() {
                                 )}
                             </div>
 
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0 bg-black/40 p-2.5 rounded-2xl border border-white/5 backdrop-blur-md">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0 bg-black/40 p-2.5 rounded-xl border border-white/5 backdrop-blur-md">
                                 <div className="relative flex-1 sm:w-64">
                                     <label className="absolute -top-2.5 left-3 px-1.5 bg-[#121214] text-[10px] uppercase font-bold text-zinc-400 tracking-wider rounded">Switch Project</label>
                                     <select
@@ -203,7 +203,7 @@ export default function Projects() {
 
                     {activeProject ? (
                         <div className="space-y-6">
-                            <div className="flex items-center gap-2 border-b    border-[#1f2937] pb-4">
+                            <div className="flex items-center gap-2 border-b    border-neutral-800 pb-4">
                                 <LayoutDashboard className="w-5 h-5 text-indigo-400" />
                                 <h2 className="text-xl font-semibold text-white">Project Modules</h2>
                             </div>
@@ -212,7 +212,7 @@ export default function Projects() {
                                     <button
                                         key={module.id}
                                         onClick={() => navigate(module.path)}
-                                        className="group p-6 rounded-2xl bg-zinc-900/50 border    border-[#1f2937] hover:bg-zinc-900/80 hover:border-indigo-500/30 transition-all text-left backdrop-blur-sm relative overflow-hidden"
+                                        className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm group p-6 border hover:bg-neutral-800 hover:border-indigo-500/30 transition-all text-left backdrop-blur-sm relative overflow-hidden"
                                     >
                                         <div className={`absolute top-0 right-0 w-24 h-24 bg-${module.color}-500/5 blur-3xl rounded-full -mr-8 -mt-8 group-hover:bg-${module.color}-500/10 transition-colors`} />
 
@@ -237,7 +237,7 @@ export default function Projects() {
                             </div>
                         </div>
                     ) : (
-                        <div className="py-20 text-center bg-zinc-900/20 border border-dashed border-white/10 rounded-3xl">
+                        <div className="py-20 text-center bg-zinc-900/20 border border-dashed border-white/10 rounded-xl">
                             <LayoutDashboard className="w-16 h-16 text-zinc-800 mx-auto mb-4" />
                             <h3 className="text-xl font-semibold text-white mb-2">Workspace Locked</h3>
                             <p className="text-zinc-500 max-w-sm mx-auto">Select a project above to unlock its modules and insights.</p>
@@ -245,15 +245,15 @@ export default function Projects() {
                     )}
                 </div>
             ) : (
-                <div className="h-[60vh] flex flex-col items-center justify-center text-center p-6 bg-zinc-900/20 border border-dashed border-white/10 rounded-3xl animate-in fade-in duration-700">
-                    <div className="w-20 h-20 bg-[#3B82F6]/10 rounded-3xl flex items-center justify-center mb-8">
+                <div className="h-[60vh] flex flex-col items-center justify-center text-center p-6 bg-zinc-900/20 border border-dashed border-white/10 rounded-xl animate-in fade-in duration-700">
+                    <div className="w-20 h-20 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-8">
                         <FolderGit className="w-10 h-10 text-indigo-500" />
                     </div>
                     <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">Begin Your Research Journey</h2>
                     <p className="text-zinc-500 mb-10 max-w-md leading-relaxed text-sm sm:text-base">Create your first research project area to start documenting discoveries, managing resources, and generating AI-powered insights.</p>
                     <button
                         onClick={() => setIsCreating(true)}
-                        className="flex items-center gap-3 px-8 py-4 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-2xl font-bold text-lg transition-all shadow-xl shadow-indigo-500/20 hover:-translate-y-1 active:scale-95"
+                        className="flex items-center gap-3 px-8 py-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold text-lg transition-all hover:-translate-y-1 active:scale-95"
                     >
                         <Plus className="w-6 h-6" />
                         Initialize Project

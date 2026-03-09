@@ -59,7 +59,7 @@ export default function Settings() {
     const [e2eeError, setE2EEError] = useState<string | null>(null);
     const [e2eeMigrating, setE2eeMigrating] = useState(false);
     const [showPassphrase, setShowPassphrase] = useState(false);
-    const [changePass, setChangePass] = useState<{old: string, new: string} | null>(null);
+    const [changePass, setChangePass] = useState<{ old: string, new: string } | null>(null);
 
     // Initialize E2EE on mount
     useEffect(() => {
@@ -296,12 +296,12 @@ export default function Settings() {
                 <div className="flex items-center gap-3 mb-1">
                     <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white">Settings</h1>
                 </div>
-                <p className="text-xs sm:text-base text-zinc-400">Manage your Apex Scholar data and preferences.</p>
+                <p className="text-sm sm:text-base text-zinc-400">Manage your Apex Scholar data and preferences.</p>
             </header>
 
             <div className="space-y-6">
                 {/* ── End-to-End Encryption ───────────────────────────── */}
-                <section className="bg-zinc-900/40 border border-indigo-500/20 rounded-2xl p-3 sm:p-6">
+                <section className="bg-zinc-900/40 border border-indigo-500/20 rounded-xl p-3 sm:p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Shield className="w-5 h-5 text-indigo-400" />
                         <h2 className="text-xl font-semibold text-white">End-to-End Encryption</h2>
@@ -326,7 +326,7 @@ export default function Settings() {
                                             value={e2eePassphrase}
                                             onChange={e => setE2eePassphrase(e.target.value)}
                                             placeholder="At least 8 characters"
-                                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                         />
                                         <button
                                             type="button"
@@ -344,14 +344,14 @@ export default function Settings() {
                                         value={e2eeConfirm}
                                         onChange={e => setE2eeConfirm(e.target.value)}
                                         placeholder="Re-enter your passphrase"
-                                        className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     />
                                 </div>
                                 {e2eeError && <p className="text-sm text-red-400">{e2eeError}</p>}
                                 <button
                                     onClick={handleEnableE2EE}
                                     disabled={e2eeMigrating}
-                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-600 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
                                 >
                                     {e2eeMigrating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
                                     {e2eeMigrating ? 'Encrypting Data...' : 'Enable Encryption'}
@@ -373,15 +373,15 @@ export default function Settings() {
                                         </p>
                                         <div className="flex flex-wrap gap-2">
                                             <button
-                                                onClick={() => setChangePass({old: '', new: ''})}
-                                                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-xs text-zinc-300 transition-colors"
+                                                onClick={() => setChangePass({ old: '', new: '' })}
+                                                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl text-xs text-zinc-300 transition-colors"
                                             >
                                                 <Key className="w-3.5 h-3.5" />
                                                 Change Passphrase
                                             </button>
                                             <button
                                                 onClick={handleDisableE2EE}
-                                                className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 rounded-lg text-xs font-medium transition-colors"
+                                                className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 rounded-xl text-xs font-medium transition-colors"
                                             >
                                                 <LockOpen className="w-3.5 h-3.5" />
                                                 Disable Encryption
@@ -391,7 +391,7 @@ export default function Settings() {
                                 </div>
                             ) : (
                                 <div className="space-y-3 max-w-md">
-                                    <div className="flex items-start gap-2 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+                                    <div className="flex items-start gap-2 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
                                         <Lock className="w-4 h-4 text-indigo-400 mt-0.5" />
                                         <p className="text-xs text-zinc-300">
                                             The vault is locked. Enter your passphrase to access your encrypted data.
@@ -405,7 +405,7 @@ export default function Settings() {
                                                 value={e2eePassphrase}
                                                 onChange={e => setE2eePassphrase(e.target.value)}
                                                 placeholder="Enter your encryption passphrase"
-                                                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 onKeyDown={e => e.key === 'Enter' && handleUnlockE2EE()}
                                             />
                                             <button
@@ -420,7 +420,7 @@ export default function Settings() {
                                     {e2eeError && <p className="text-sm text-red-400">{e2eeError}</p>}
                                     <button
                                         onClick={handleUnlockE2EE}
-                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
+                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-600 text-white rounded-xl text-sm font-medium transition-colors"
                                     >
                                         <Unlock className="w-4 h-4" />
                                         Unlock Vault
@@ -431,7 +431,7 @@ export default function Settings() {
                             {/* Change Passphrase Modal */}
                             {changePass && (
                                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                                    <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+                                    <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-md w-full shadow-2xl">
                                         <h3 className="text-lg font-semibold text-white mb-4">Change Passphrase</h3>
                                         <div className="space-y-4">
                                             <div>
@@ -439,8 +439,8 @@ export default function Settings() {
                                                 <input
                                                     type="password"
                                                     value={changePass.old}
-                                                    onChange={e => setChangePass({...changePass, old: e.target.value})}
-                                                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                    onChange={e => setChangePass({ ...changePass, old: e.target.value })}
+                                                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 />
                                             </div>
                                             <div>
@@ -448,21 +448,21 @@ export default function Settings() {
                                                 <input
                                                     type="password"
                                                     value={changePass.new}
-                                                    onChange={e => setChangePass({...changePass, new: e.target.value})}
+                                                    onChange={e => setChangePass({ ...changePass, new: e.target.value })}
                                                     placeholder="At least 8 characters"
-                                                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 />
                                             </div>
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => setChangePass(null)}
-                                                    className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-300 rounded-lg text-sm font-medium transition-colors"
+                                                    className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-300 rounded-xl text-sm font-medium transition-colors"
                                                 >
                                                     Cancel
                                                 </button>
                                                 <button
                                                     onClick={handleChangePassphrase}
-                                                    className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
+                                                    className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-600 text-white rounded-xl text-sm font-medium transition-colors"
                                                 >
                                                     Update
                                                 </button>
@@ -474,24 +474,24 @@ export default function Settings() {
                         </div>
                     ) : null}
                 </section>
-                <section className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-3 sm:p-6">
+                <section className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-3 sm:p-6">
                     <h2 className="text-xl font-semibold text-white mb-4">Data Management</h2>
                     <div className="space-y-4">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border    border-[#1f2937]">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border    border-neutral-800">
                             <div>
                                 <h3 className="text-sm font-medium text-white mb-1">Export Backup</h3>
                                 <p className="text-xs text-zinc-400">Download a JSON file containing all your entries, resources, insights, kanban, and knowledgebase.</p>
                             </div>
                             <button
                                 onClick={handleBackup}
-                                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-white transition-colors flex-shrink-0"
+                                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-medium text-white transition-colors flex-shrink-0"
                             >
                                 <Download className="w-4 h-4" />
                                 Export Backup
                             </button>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border    border-[#1f2937]">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border    border-neutral-800">
                             <div>
                                 <h3 className="text-sm font-medium text-white mb-1">Import Backup</h3>
                                 <p className="text-xs text-zinc-400">Restore your data from a previously exported JSON backup file. This will overwrite current data.</p>
@@ -505,7 +505,7 @@ export default function Settings() {
                             />
                             <button
                                 onClick={() => restoreInputRef.current?.click()}
-                                className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-[#3B82F6] hover:text-indigo-300 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-600/20 border border-indigo-500/20 text-indigo-500 hover:text-indigo-300 rounded-xl text-sm font-medium transition-colors flex-shrink-0"
                             >
                                 <Upload className="w-4 h-4" />
                                 Import Backup
@@ -515,7 +515,7 @@ export default function Settings() {
                 </section>
 
                 {/* ── Storage Usage ──────────────────────────────── */}
-                <section className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-3 sm:p-6">
+                <section className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-3 sm:p-6">
                     <div className="flex items-center gap-2 mb-5">
                         <HardDrive className="w-5 h-5 text-emerald-400" />
                         <h2 className="text-xl font-semibold text-white">Storage Usage</h2>
@@ -583,9 +583,9 @@ export default function Settings() {
                 </section>
 
                 {/* ── Monthly Usage ──────────────────────────────── */}
-                <section className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-3 sm:p-6">
+                <section className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-3 sm:p-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <Activity className="w-5 h-5 text-[#3B82F6]" />
+                        <Activity className="w-5 h-5 text-indigo-500" />
                         <h2 className="text-xl font-semibold text-white">Monthly Usage</h2>
                     </div>
                     {loadingUsage ? (
@@ -616,7 +616,7 @@ export default function Settings() {
 
                                 {/* Allowance Info */}
                                 {usage.allowanceInfo && (
-                                    <div className="p-4 rounded-xl border    border-[#1f2937] bg-zinc-900/20 flex flex-col gap-3">
+                                    <div className="p-4 rounded-xl border    border-neutral-800 bg-zinc-900/20 flex flex-col gap-3">
                                         <div className="flex justify-between items-end">
                                             <h3 className="text-sm font-medium text-white">Monthly Resource Allowance</h3>
                                             <span className="text-xs text-zinc-400">
@@ -645,7 +645,7 @@ export default function Settings() {
                 </section>
 
                 {/* ── Danger Zone ──────────────────────────────── */}
-                <section className="bg-rose-950/20 border border-rose-500/20 rounded-2xl p-3 sm:p-6">
+                <section className="bg-rose-950/20 border border-rose-500/20 rounded-xl p-3 sm:p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <AlertTriangle className="w-5 h-5 text-rose-400" />
                         <h2 className="text-xl font-semibold text-rose-400">Danger Zone</h2>
@@ -660,7 +660,7 @@ export default function Settings() {
                         {!resetConfirm ? (
                             <button
                                 onClick={() => setResetConfirm(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:text-rose-300 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
+                                className="flex items-center gap-2 px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:text-rose-300 rounded-xl text-sm font-medium transition-colors flex-shrink-0"
                             >
                                 <Trash2 className="w-4 h-4" />
                                 Reset All Data
@@ -672,14 +672,14 @@ export default function Settings() {
                                     <button
                                         onClick={() => setResetConfirm(false)}
                                         disabled={resetting}
-                                        className="flex-1 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-zinc-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                                        className="flex-1 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-zinc-300 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         onClick={handleReset}
                                         disabled={resetting}
-                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
                                     >
                                         {resetting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                                         {resetting ? 'Resetting…' : 'Yes, Reset'}

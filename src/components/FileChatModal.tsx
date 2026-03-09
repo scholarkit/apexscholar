@@ -115,11 +115,11 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-zinc-950 border border-white/10 w-full max-w-2xl h-[80vh] flex flex-col rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="bg-zinc-950 border border-white/10 w-full max-w-2xl h-[80vh] flex flex-col rounded-xl animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-white/10">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-500/10 rounded-lg">
+                        <div className="p-2 bg-indigo-500/10 rounded-xl">
                             <Bot className="w-5 h-5 text-indigo-400" />
                         </div>
                         <div>
@@ -157,7 +157,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                         </div>
                     ) : messages.length === 0 && !streamingMessage ? (
                         <div className="h-full flex flex-col items-center justify-center text-center px-8">
-                            <div className="w-12 h-12 bg-indigo-500/5 rounded-2xl flex items-center justify-center mb-4 border border-indigo-500/10">
+                            <div className="w-12 h-12 bg-indigo-500/5 rounded-xl flex items-center justify-center mb-4 border border-indigo-500/10">
                                 <Bot className="w-6 h-6 text-indigo-400" />
                             </div>
                             <h3 className="text-white font-medium mb-1">Upload successful</h3>
@@ -169,12 +169,12 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                         <>
                             {messages.map((m, i) => (
                                 <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${m.role === 'user' ? 'bg-[#3B82F6] text-white' : 'bg-zinc-900 border border-white/10 text-zinc-400'
+                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${m.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-zinc-900 border border-white/10 text-zinc-400'
                                         }`}>
                                         {m.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                                     </div>
-                                    <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${m.role === 'user'
-                                        ? 'bg-[#3B82F6] text-white'
+                                    <div className={`max-w-[85%] rounded-xl p-3 text-sm ${m.role === 'user'
+                                        ? 'bg-indigo-500 text-white'
                                         : 'bg-zinc-900/50 border border-white/5 text-zinc-300 prose prose-invert prose-sm max-w-none'
                                         }`}>
                                         {m.role === 'assistant' ? (
@@ -187,10 +187,10 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                             ))}
                             {streamingMessage && (
                                 <div className="flex gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/10 text-zinc-400 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-white/10 text-zinc-400 flex items-center justify-center flex-shrink-0">
                                         <Bot className="w-4 h-4" />
                                     </div>
-                                    <div className="max-w-[85%] rounded-2xl p-3 text-sm bg-zinc-900/50 border border-white/5 text-zinc-300 prose prose-invert prose-sm max-w-none">
+                                    <div className="max-w-[85%] rounded-xl p-3 text-sm bg-zinc-900/50 border border-white/5 text-zinc-300 prose prose-invert prose-sm max-w-none">
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingMessage}</ReactMarkdown>
                                         <div className="inline-block w-1 h-3 bg-indigo-500 ml-1 animate-pulse" />
                                     </div>
@@ -215,7 +215,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                         <button
                             type="submit"
                             disabled={!input.trim() || loading}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-[#3B82F6] hover:bg-indigo-500 disabled:bg-zinc-700 disabled:opacity-50 text-white rounded-lg transition-all"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-500 hover:bg-indigo-600 disabled:bg-zinc-700 disabled:opacity-50 text-white rounded-xl transition-all"
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                         </button>

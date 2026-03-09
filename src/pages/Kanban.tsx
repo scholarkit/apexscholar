@@ -82,7 +82,7 @@ function TaskCard({ task, deleteIdea }: { task: Task; deleteIdea?: (id: string) 
         <div
             ref={setNodeRef}
             style={style}
-            className="group relative bg-zinc-900 border    border-[#1f2937] hover:border-white/10 p-3 rounded-xl shadow-sm text-sm text-zinc-300 transition-colors flex flex-col gap-2"
+            className="group relative bg-zinc-900 border    border-neutral-800 hover:border-white/10 p-3 rounded-xl shadow-sm text-sm text-zinc-300 transition-colors flex flex-col gap-2"
         >
             <div className="flex gap-2 w-full">
                 <div
@@ -259,14 +259,14 @@ export default function Kanban() {
     if (!activeProject) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-                <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6">
+                <div className="w-16 h-16 bg-red-500/10 rounded-xl flex items-center justify-center mb-6">
                     <AlertCircle className="w-8 h-8 text-red-500" />
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">No Active Project</h2>
                 <p className="text-zinc-500 mb-8 max-w-sm">You must select or create a project before accessing the Kanban Board.</p>
                 <button
                     onClick={() => navigate('/projects')}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-xl font-semibold transition-all"
+                    className="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-all"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Go to Projects
@@ -289,19 +289,19 @@ export default function Kanban() {
         <div className="flex flex-col h-full">
             <Breadcrumbs />
             <header className="mb-6 shrink-0">
-                <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">Kanban Board</h1>
+                <h1 className="text-lg sm:text-2xl font-semibold text-white">Kanban Board</h1>
                 <p className="text-sm sm:text-base text-zinc-400">Track the progress of your research projects and papers.</p>
             </header>
 
             <div className="flex-1 w-full overflow-x-auto pb-4 custom-scrollbar">
                 {tasks.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center border border-dashed border-white/10 rounded-2xl bg-zinc-900/20 py-20">
+                    <div className="h-full flex flex-col items-center justify-center border border-dashed border-white/10 rounded-xl bg-zinc-900/20 py-20">
                         <SquareKanban className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-white mb-2">Your board is empty</h3>
                         <p className="text-zinc-500 text-sm max-w-sm mx-auto text-center mb-6">Create your first task to start organizing your research pipeline and tracking progress.</p>
                         <button
                             onClick={() => addTask(COLUMNS[0].id)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors  "
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-colors"
                         >
                             <Plus className="w-4 h-4" /> Add First Task
                         </button>
@@ -369,7 +369,7 @@ function Column({
 
             <div
                 ref={setNodeRef}
-                className="flex-1 bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-2 flex flex-col gap-2 overflow-y-auto custom-scrollbar"
+                className="flex-1 bg-zinc-900/40 border    border-neutral-800 rounded-xl p-2 flex flex-col gap-2 overflow-y-auto custom-scrollbar"
             >
                 <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
                     {tasks.map(task => (

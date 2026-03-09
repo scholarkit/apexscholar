@@ -78,28 +78,28 @@ export default function Analytics() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-1">Analytics & Progress</h1>
-          <p className="text-xs sm:text-base text-zinc-400">Visualize your research activity and milestones.</p>
+          <h1 className="text-lg sm:text-2xl font-semibold text-white">Analytics & Progress</h1>
+          <p className="text-sm sm:text-base text-zinc-400">Visualize your research activity and milestones.</p>
         </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Activity Chart */}
-        <div className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-3 sm:p-6 col-span-full">
+        <div className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-3 sm:p-6 col-span-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
-                <Activity className="w-5 h-5 text-[#3B82F6]" />
+              <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                <Activity className="w-5 h-5 text-indigo-500" />
               </div>
               <h2 className="text-xl font-semibold text-white">Research Activity</h2>
             </div>
 
-            <div className="flex bg-black p-1 rounded-xl border    border-[#1f2937]">
+            <div className="flex bg-black p-1 rounded-xl border    border-neutral-800">
               {ranges.map((r) => (
                 <button
                   key={r.id}
                   onClick={() => setTimeRange(r.id as any)}
-                  className={`w-full px-2 sm:px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${timeRange === r.id
+                  className={`w-full px-2 sm:px-4 py-1.5 text-xs font-medium rounded-xl transition-all ${timeRange === r.id
                     ? 'bg-indigo-500 text-white  '
                     : 'text-zinc-500 hover:text-zinc-300'
                     }`}
@@ -127,9 +127,9 @@ export default function Analytics() {
         </div>
 
         {/* Entry Types Distribution */}
-        <div className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-3 sm:p-6">
+        <div className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-3 sm:p-6">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+            <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
               <Calendar className="w-5 h-5 text-emerald-400" />
             </div>
             <h2 className="text-xl font-semibold text-white">Entry Distribution</h2>
@@ -152,9 +152,9 @@ export default function Analytics() {
         </div>
 
         {/* Timeline */}
-        <div className="bg-zinc-900/40 border    border-[#1f2937] rounded-2xl p-3 sm:p-6">
+        <div className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-3 sm:p-6">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 bg-purple-500/10 rounded-lg border border-purple-500/20">
+            <div className="p-2.5 bg-purple-500/10 rounded-xl border border-purple-500/20">
               <GitCommit className="w-5 h-5 text-purple-400" />
             </div>
             <h2 className="text-xl font-semibold text-white">Recent Milestones</h2>
@@ -162,10 +162,10 @@ export default function Analytics() {
           <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
             {entries.slice(0, 5).map((entry, i) => (
               <div key={entry.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-zinc-900 text-zinc-500 group-[.is-active]:text-[#3B82F6] group-[.is-active]:border-indigo-500/30 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-zinc-900 text-zinc-500 group-[.is-active]:text-indigo-500 group-[.is-active]:border-indigo-500/30 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
                   <GitCommit className="w-4 h-4" />
                 </div>
-                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border    border-[#1f2937] bg-zinc-900/50 shadow">
+                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border    border-neutral-800 bg-zinc-900/50 shadow">
                   <div className="flex items-center justify-between space-x-2 mb-1">
                     <div className="font-bold text-white text-xs sm:text-sm">{entry.entry_type}</div>
                     <time className="font-mono text-xs text-zinc-500">{format(parseEntryDate(entry.date), 'MMM d')}</time>

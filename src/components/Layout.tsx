@@ -49,18 +49,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     : '?';
 
   return (
-    <div className="flex h-screen bg-black text-zinc-50 font-sans selection:bg-indigo-500/30 overflow-hidden">
+    <div className="flex h-screen font-sans selection:bg-indigo-500/30 overflow-hidden">
       {/* Sidebar */}
       <aside
         className={cn(
-          "relative z-20 flex-shrink-0 border-r    border-[#1f2937] bg-[#0A0A0A] backdrop-blur-xl flex flex-col transition-all duration-300 ease-in-out",
+          "relative z-20 flex-shrink-0 border-r border-neutral-900 flex flex-col transition-all duration-300 ease-in-out",
           isCollapsed ? "w-20" : "w-64"
         )}
       >
         {/* Collapse Toggle */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-12 w-6 h-6 rounded-full bg-[#3B82F6] flex items-center justify-center text-white border border-white/10   hover:bg-indigo-500 transition-colors z-50"
+          className="absolute bg-neutral-950 -right-3 top-12 w-6 h-6 rounded-full flex items-center justify-center text-white border border-neutral-800 z-50"
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
@@ -86,21 +86,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 to={item.path}
                 title={isCollapsed ? item.label : undefined}
                 className={cn(
-                  "items-center rounded-lg text-sm font-medium transition-all duration-200 group",
+                  "items-center rounded-xl text-sm font-medium transition-all duration-200 group",
                   item.hideOnMobile ? "hidden sm:flex" : "flex",
                   isCollapsed ? "justify-center w-10 h-10 mx-auto" : "gap-3 px-3 py-2.5",
                   isActive
-                    ? "bg-white/10 text-white shadow-sm"
+                    ? "bg-white/10 text-white"
                     : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                 )}
               >
-                <Icon className={cn(isActive ? "text-[#3B82F6]" : "text-zinc-500 group-hover:text-zinc-300",
+                <Icon className={cn(isActive ? "text-indigo-500" : "text-zinc-500 group-hover:text-zinc-300",
                   isCollapsed ? "w-4 h-4 flex-shrink-0" : "w-5 h-5 flex-shrink-0"
                 )} />
                 {!isCollapsed && <div>
                   <span className="animate-in fade-in slide-in-from-left-1 duration-300">{item.label}</span>
                   {item.beta && (
-                    <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-[#3B82F6] text-[10px] font-bold uppercase tracking-wider">
+                    <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-500 text-[10px] font-bold uppercase tracking-wider">
                       Beta
                     </span>
                   )}
@@ -117,7 +117,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               {/* Avatar only when collapsed */}
               <div
                 title={user?.username || 'User'}
-                className="w-10 h-10 rounded-xl bg-[#3B82F6]/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0"
+                className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0"
               >
                 {user ? initials : <User className="w-4 h-4" />}
               </div>
@@ -134,7 +134,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <>
               {/* Full profile card */}
               <div className="flex items-center gap-3 rounded-xl animate-in fade-in slide-in-from-left-2 duration-300">
-                <div className="w-9 h-9 rounded-lg bg-[#3B82F6]/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
                   {user ? initials : <User className="w-4 h-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -161,8 +161,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-black relative custom-scrollbar">
-        <div className="absolute inset-0 bg-black pointer-events-none" />
+      <main className="flex-1 overflow-auto relative custom-scrollbar">
+        <div className="absolute inset-0 pointer-events-none" />
         <div className="relative p-4 sm:p-8 max-w-6xl mx-auto min-h-full">
           {children}
         </div>

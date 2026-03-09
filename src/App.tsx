@@ -90,7 +90,7 @@ export default function App() {
   if (e2eeRequired && !e2eeUnlocked) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-zinc-900 border border-indigo-500/20 rounded-2xl p-8 shadow-2xl">
+        <div className="max-w-md w-full bg-zinc-900 border border-indigo-500/20 rounded-xl p-8">
           <div className="flex flex-col items-center text-center mb-6">
             <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mb-4">
               <Lock className="w-7 h-7 text-indigo-400" />
@@ -123,7 +123,7 @@ export default function App() {
             </div>
 
             {e2eeError && (
-              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-sm text-rose-300">
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-sm text-rose-300">
                 {e2eeError}
               </div>
             )}
@@ -131,7 +131,7 @@ export default function App() {
             <button
               onClick={handleUnlock}
               disabled={unlocking}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-600 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
             >
               {unlocking ? <Loader2 className="w-5 h-5 animate-spin" /> : <Lock className="w-5 h-5" />}
               {unlocking ? 'Unlocking...' : 'Unlock Vault'}

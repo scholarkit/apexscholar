@@ -88,6 +88,77 @@ async function startServer() {
     }
   });
 
+  app.get("/api/resolve-pdf", async (req, res) => {
+    try {
+      const targetUrl = req.query.url as string;
+      if (!targetUrl) return res.status(400).json({ error: "Missing url" });
+
+      const response = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        },
+        redirect: 'follow'
+      });
+
+      if (!response.ok) return res.status(500).json({ error: "Failed to fetch target URL" });
+
+      const finalUrl = response.url;
+      const contentType = response.headers.get('content-type')?.toLowerCase() || "";
+
+      // If already a PDF, or redirects to one
+      if (finalUrl.toLowerCase().endsWith('.pdf') || contentType.includes('application/pdf')) {
+        return res.json({ pdfUrl: finalUrl });
+      }
+
+      // If not HTML/Text, we can't parse it with cheerio
+      if (!contentType.includes('text/html') && !contentType.includes('text/plain')) {
+        return res.json({ pdfUrl: "" });
+      }
+
+      const html = await response.text();
+      console.log(html);
+
+      const $ = (await import('cheerio')).load(html);
+
+      let pdfUrl = $('meta[name="citation_pdf_url"]').attr('content') || "";
+
+      if (!pdfUrl) {
+        const ogUrl = $('meta[property="og:url"]').attr('content');
+        if (ogUrl && ogUrl.includes('/abs/')) {
+          pdfUrl = ogUrl.replace('/abs/', '/pdf/') + ".pdf";
+        }
+      }
+
+      // 2. Link tags
+      if (!pdfUrl) {
+        pdfUrl = $('link[type="application/pdf"]').attr('href') ||
+          $('link[rel="alternate"][href$=".pdf"]').attr('href') || "";
+      }
+
+      // 3. Anchor tags
+      if (!pdfUrl) {
+        $('a').each((_, el) => {
+          const href = $(el).attr('href');
+          const text = $(el).text().toLowerCase();
+          if (href && (href.toLowerCase().endsWith('.pdf') || text.includes('download pdf'))) {
+            pdfUrl = href;
+            return false;
+          }
+        });
+      }
+
+      if (pdfUrl && !pdfUrl.startsWith('http')) {
+        const base = new URL(targetUrl).origin;
+        pdfUrl = new URL(pdfUrl, base).href;
+      }
+
+      res.json({ pdfUrl });
+    } catch (err) {
+      console.error('PDF resolution error:', err);
+      res.status(500).json({ error: "PDF resolution failed" });
+    }
+  });
+
   app.post("/api/compile", async (req, res) => {
     const { content } = req.body;
     if (!content) return res.status(400).json({ error: "Missing content" });

@@ -174,11 +174,11 @@ export default function Funding() {
                             Tracker
                         </span>
                     </h1>
-                    <p className="text-xs sm:text-base text-zinc-400">Manage proposals, observe deadlines, and track your research funding.</p>
+                    <p className="text-sm sm:text-base text-zinc-400">Manage proposals, observe deadlines, and track your research funding.</p>
                 </div>
                 <button
                     onClick={() => { setEditingGrant(null); setIsModalOpen(true); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-xl font-medium transition-all  "
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-all  "
                 >
                     <Plus className="w-4 h-4" />
                     New Grant
@@ -190,7 +190,7 @@ export default function Funding() {
                 <MetricCard
                     title="Active Proposals"
                     value={metrics.activeProposals.toString()}
-                    icon={<FileText className="w-5 h-5 text-[#3B82F6]" />}
+                    icon={<FileText className="w-5 h-5 text-indigo-500" />}
                     trend="In progress"
                 />
                 <MetricCard
@@ -205,7 +205,7 @@ export default function Funding() {
                     icon={<DollarSign className="w-5 h-5 text-amber-400" />}
                     trend={metrics.totalAwarded > 0 ? `${Math.round((metrics.totalSpent / metrics.totalAwarded) * 100)}% of awarded` : 'No funds awarded yet'}
                 />
-                <div className="bg-zinc-900/50 border    border-[#1f2937] p-4 rounded-2xl flex flex-col justify-between group hover:border-white/10 transition-colors">
+                <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm">
                     <div className="flex items-start justify-between mb-4">
                         <span className="text-sm font-medium text-zinc-400">Approaching Deadlines</span>
                         <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center">
@@ -231,14 +231,14 @@ export default function Funding() {
             {/* Main Content Area */}
             <div className="space-y-6">
                 {/* Toolbar */}
-                <div className="flex flex-col sm:flex-row justify-between gap-4 bg-zinc-900/30 p-2 rounded-2xl border    border-[#1f2937]">
+                <div className="flex flex-col sm:flex-row justify-between gap-4">
                     <div className="flex flex-col sm:flex-row gap-1 p-1 bg-zinc-900/80 rounded-xl">
                         {(['overview', 'requirements', 'budget'] as const).map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={cn(
-                                    "px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center gap-2",
+                                    "px-4 py-2 rounded-xl text-sm font-medium transition-all capitalize flex items-center gap-2",
                                     activeTab === tab
                                         ? "bg-white/10 text-white shadow-sm"
                                         : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
@@ -282,7 +282,7 @@ export default function Funding() {
 
                 {/* Content Views */}
                 {filteredGrants.length === 0 ? (
-                    <div className="text-center py-10 sm:py-20 bg-zinc-900/20 border border-dashed border-white/10 rounded-2xl">
+                    <div className="text-center py-10 sm:py-20 bg-zinc-900/20 border border-dashed border-white/10 rounded-xl">
                         <Landmark className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-white mb-2">No grants found</h3>
                         <p className="text-zinc-500 text-sm max-w-sm mx-auto">
@@ -293,7 +293,7 @@ export default function Funding() {
                         {grants.length === 0 && (
                             <button
                                 onClick={() => { setEditingGrant(null); setIsModalOpen(true); }}
-                                className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-[#3B82F6]/10 text-[#3B82F6] hover:bg-[#3B82F6]/20 border border-indigo-500/20 rounded-xl font-medium transition-colors"
+                                className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-colors"
                             >
                                 <Plus className="w-4 h-4" /> Add your first grant
                             </button>
@@ -331,7 +331,7 @@ export default function Funding() {
 
 function MetricCard({ title, value, icon, trend }: { title: string, value: string, icon: React.ReactNode, trend: string }) {
     return (
-        <div className="bg-zinc-900/50 border    border-[#1f2937] p-4 rounded-2xl flex flex-col justify-between group hover:border-white/10 transition-colors">
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm">
             <div className="flex items-start justify-between mb-4">
                 <span className="text-sm font-medium text-zinc-400">{title}</span>
                 <div className="w-10 h-10 rounded-xl bg-zinc-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -349,7 +349,7 @@ function MetricCard({ title, value, icon, trend }: { title: string, value: strin
 function StatusBadge({ status }: { status: Grant['status'] }) {
     const colors = {
         planned: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
-        drafting: 'bg-indigo-500/10 text-[#3B82F6] border-indigo-500/20',
+        drafting: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
         submitted: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
         awarded: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
         rejected: 'bg-rose-500/10 text-rose-400 border-rose-500/20'
@@ -385,13 +385,13 @@ function GrantCard({
     const isDueToday = Boolean(deadlineDay && deadlineDay.getTime() === today.getTime());
 
     return (
-        <div className="bg-zinc-900/40 border    border-[#1f2937] hover:border-white/10 hover:bg-zinc-900/60 transition-all rounded-2xl p-2.5 sm:p-5 flex flex-col gap-4 group relative">
+        <div className="bg-zinc-900/40 border    border-neutral-800 hover:border-white/10 hover:bg-zinc-900/60 transition-all rounded-xl p-2.5 sm:p-5 flex flex-col gap-4 group relative">
             {/* Context Actions */}
             <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={onEdit} className="p-1.5 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Edit">
+                <button onClick={onEdit} className="p-1.5 text-zinc-500 hover:text-white hover:bg-white/10 rounded-xl transition-colors" title="Edit">
                     <Edit2 className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={onDelete} className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete">
+                <button onClick={onDelete} className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                 </button>
             </div>
@@ -411,7 +411,7 @@ function GrantCard({
             </div>
 
             {/* Conditional Body based on View */}
-            <div className="flex-1 mt-2 border-t    border-[#1f2937] pt-4">
+            <div className="flex-1 mt-2 border-t    border-neutral-800 pt-4">
                 {view === 'overview' && (
                     <div className="space-y-3">
                         {grant.deadline ? (
@@ -430,7 +430,7 @@ function GrantCard({
 
                         {grant.documentUrl && (
                             <a href={grant.documentUrl} target="_blank" rel="noopener noreferrer"
-                                className="flex items-center gap-2 text-sm text-[#3B82F6] hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-2 rounded-xl transition-colors w-fit">
+                                className="flex items-center gap-2 text-sm text-indigo-500 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-600/20 px-3 py-2 rounded-xl transition-colors w-fit">
                                 <FileUp className="w-4 h-4" /> Open Proposal Doc
                             </a>
                         )}
@@ -450,7 +450,7 @@ function GrantCard({
                 {view === 'requirements' && (
                     <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-medium text-white mb-3">
-                            <ListTodo className="w-4 h-4 text-[#3B82F6]" /> Checklist
+                            <ListTodo className="w-4 h-4 text-indigo-500" /> Checklist
                         </div>
                         {grant.requirements.length === 0 ? (
                             <p className="text-xs text-zinc-500 italic">No requirements tracked.</p>
@@ -492,7 +492,7 @@ function GrantCard({
                                 <span className="text-zinc-500">Awarded</span>
                                 <span className="font-semibold text-emerald-400">${Number(grant.budget.awarded).toLocaleString()}</span>
                             </div>
-                            <div className="flex justify-between text-sm pt-2 border-t    border-[#1f2937]">
+                            <div className="flex justify-between text-sm pt-2 border-t    border-neutral-800">
                                 <span className="text-zinc-500">Spent</span>
                                 <span className="font-semibold text-amber-400">${Number(grant.budget.spent).toLocaleString()}</span>
                             </div>
@@ -561,12 +561,12 @@ function GrantFormModal({ grant, onSave, onClose }: { grant: Grant | null, onSav
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-black border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-black border border-white/10 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between p-5 border-b border-white/10">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">
                         {grant ? 'Edit Grant Proposal' : 'New Grant Proposal'}
                     </h2>
-                    <button onClick={onClose} className="p-1.5 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                    <button onClick={onClose} className="p-1.5 text-zinc-500 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -575,7 +575,7 @@ function GrantFormModal({ grant, onSave, onClose }: { grant: Grant | null, onSav
                     {/* Basic Info */}
                     <div className="space-y-4">
                         <h3 className="text-sm font-semibold text-white/90 uppercase tracking-wider flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-[#3B82F6]" /> Basic Details
+                            <FileText className="w-4 h-4 text-indigo-500" /> Basic Details
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="col-span-1 md:col-span-2">
@@ -613,7 +613,7 @@ function GrantFormModal({ grant, onSave, onClose }: { grant: Grant | null, onSav
                         </div>
                     </div>
 
-                    <hr className="   border-[#1f2937]" />
+                    <hr className="   border-neutral-800" />
 
                     {/* Budget */}
                     <div className="space-y-4">
@@ -639,16 +639,16 @@ function GrantFormModal({ grant, onSave, onClose }: { grant: Grant | null, onSav
                         </div>
                     </div>
 
-                    <hr className="   border-[#1f2937]" />
+                    <hr className="   border-neutral-800" />
 
                     {/* Requirements */}
                     <div className="space-y-4">
                         <h3 className="text-sm font-semibold text-white/90 uppercase tracking-wider flex items-center gap-2">
                             <ListTodo className="w-4 h-4 text-amber-400" /> Requirements Checklist
                         </h3>
-                        <div className="p-4 bg-zinc-900/50 border    border-[#1f2937] rounded-xl space-y-3">
+                        <div className="p-4 bg-zinc-900/50 border    border-neutral-800 rounded-xl space-y-3">
                             {formData.requirements?.map((req, i) => (
-                                <div key={req.id} className="flex items-center gap-2 p-2 bg-zinc-900 border    border-[#1f2937] rounded-lg">
+                                <div key={req.id} className="flex items-center gap-2 p-2 bg-zinc-900 border    border-neutral-800 rounded-xl">
                                     <CheckSquare className="w-4 h-4 text-zinc-600" />
                                     <span className="text-sm text-zinc-300 flex-1">{req.description}</span>
                                     <button type="button" onClick={() => removeReq(req.id)} className="p-1 hover:text-red-400 text-zinc-500 transition-colors">
@@ -658,10 +658,10 @@ function GrantFormModal({ grant, onSave, onClose }: { grant: Grant | null, onSav
                             ))}
                             <div className="flex gap-2">
                                 <input type="text" value={newReq} onChange={e => setNewReq(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addReq())}
-                                    className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50 placeholder:text-zinc-600"
+                                    className="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50 placeholder:text-zinc-600"
                                     placeholder="Add a new requirement (e.g. Budget justification doc)..." />
                                 <button type="button" onClick={addReq} disabled={!newReq.trim()}
-                                    className="px-3 py-2 bg-[#3B82F6]/20 hover:bg-[#3B82F6]/30 text-[#3B82F6] rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
+                                    className="px-3 py-2 bg-indigo-500/20 hover:bg-indigo-600/30 text-indigo-500 rounded-xl text-sm font-medium transition-colors disabled:opacity-50">
                                     Add
                                 </button>
                             </div>
@@ -673,7 +673,7 @@ function GrantFormModal({ grant, onSave, onClose }: { grant: Grant | null, onSav
                     <button type="button" onClick={onClose} className="px-4 py-2 font-medium text-sm text-zinc-400 hover:text-white transition-colors">
                         Cancel
                     </button>
-                    <button type="submit" form="grant-form" className="px-5 py-2 bg-[#3B82F6] hover:bg-indigo-500 text-white rounded-xl text-sm font-medium transition-colors  ">
+                    <button type="submit" form="grant-form" className="px-5 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-medium transition-colors  ">
                         {grant ? 'Save Changes' : 'Create Grant'}
                     </button>
                 </div>

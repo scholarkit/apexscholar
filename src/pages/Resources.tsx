@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Upload, FileText, Image as ImageIcon, File, Trash2, Search, FolderOpen, Quote, MessagesSquare, ExternalLink } from 'lucide-react';
+import { Upload, FileText, Image as ImageIcon, File, Trash2, Search, FolderOpen, Quote, MessagesSquare, ExternalLink, Database, BookMarked, Library, Folder, CheckCircle2, Download } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Resource, puterService } from '../lib/puter';
 import CitationModal from '../components/CitationModal';
 import FileChatModal from '../components/FileChatModal';
 import { useProject } from '../contexts/ProjectContext';
 import Breadcrumbs from '../components/Breadcrumbs';
+import ZoteroImportModal from '../components/ZoteroImportModal';
 
 export default function Resources() {
   const { activeProject } = useProject();
@@ -16,6 +17,7 @@ export default function Resources() {
   const [downloadUrls, setDownloadUrls] = useState<Record<string, string>>({});
   const [citingResource, setCitingResource] = useState<Resource | null>(null);
   const [chattingWith, setChattingWith] = useState<Resource | null>(null);
+  const [showZoteroModal, setShowZoteroModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const UPLOADS_DIR = 'research-dashboard/uploads';
@@ -150,6 +152,15 @@ export default function Resources() {
             <Upload className="w-4 h-4" />
             {uploading ? 'Uploading...' : 'Upload File'}
           </button>
+          
+          <button
+            onClick={() => setShowZoteroModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl font-medium transition-colors"
+          >
+            <BookMarked className="w-4 h-4" />
+            Import from Zotero
+          </button>
+          
           <input
             type="file"
             ref={fileInputRef}
@@ -245,6 +256,15 @@ export default function Resources() {
         <FileChatModal
           resource={chattingWith}
           onClose={() => setChattingWith(null)}
+        />
+      )}
+
+      {showZoteroModal && (
+        <ZoteroImportModal
+          onClose={() => setShowZoteroModal(false)}
+          onImport={() => {
+            alert('Import functionality to be implemented!');
+          }}
         />
       )}
     </div>

@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
-import { Download, Upload, Activity, Loader2, HardDrive, FolderOpen, Trash2, AlertTriangle, Lock, Shield, Key, Eye, EyeOff, Unlock, LockOpen } from 'lucide-react';
+import { Download, Upload, Activity, Loader2, HardDrive, FolderOpen, Trash2, AlertTriangle, Lock, Shield, Key, Eye, EyeOff, Unlock, LockOpen, Link2, CheckCircle2 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { puterService, initE2EE, enableE2EE, unlockE2EE, disableE2EE, isE2EEEnabled, getE2EEConfig, migrateDataToE2EE, changeE2EEPassphrase } from '../lib/puter';
+import { zoteroService } from '../lib/zotero';
 
 interface FolderStat { name: string; size: number; }
 
@@ -44,6 +46,7 @@ export default function Settings() {
     const [usage, setUsage] = useState<any>(null);
     const [detailedUsage, setDetailedUsage] = useState<any>(null);
     const [loadingUsage, setLoadingUsage] = useState(true);
+    const [searchParams, setSearchParams] = useSearchParams();
 
     // Storage usage
     const [storageTotal, setStorageTotal] = useState<number | null>(null);
@@ -60,6 +63,11 @@ export default function Settings() {
     const [e2eeMigrating, setE2eeMigrating] = useState(false);
     const [showPassphrase, setShowPassphrase] = useState(false);
     const [changePass, setChangePass] = useState<{ old: string, new: string } | null>(null);
+
+    // Zotero State
+    const [zoteroConnected, setZoteroConnected] = useState(false);
+    const [zoteroConnecting, setZoteroConnecting] = useState(false);
+    const [zoteroError, setZoteroError] = useState<string | null>(null);
 
     // Initialize E2EE on mount
     useEffect(() => {
@@ -85,6 +93,26 @@ export default function Settings() {
         };
         setupE2EE();
     }, []);
+
+    // Also check if Zotero is already connected
+    useEffect(() => {
+        puterService.kvGet('zotero_credentials').then(creds => {
+            if (creds && creds.apiKey && creds.userId) {
+                setZoteroConnected(true);
+            }
+        });
+    }, []);
+
+    // Handle OAuth Callback
+    useEffect(() => {
+        const oauthToken = searchParams.get('oauth_token');
+        const oauthVerifier = searchParams.get('oauth_verifier');
+
+        if (oauthToken && oauthVerifier) {
+            handleZoteroCallback(oauthToken, oauthVerifier);
+        }
+    }, [searchParams]);
+
     // Puter free tier is 1 GB
     const STORAGE_LIMIT_BYTES = 1 * 1024 * 1024 * 1024;
 
@@ -290,6 +318,71 @@ export default function Settings() {
         }
     };
 
+    // ── Zotero Handlers ─────────────────────────────────────
+    const handleConnectZotero = async () => {
+        setZoteroConnecting(true);
+        setZoteroError(null);
+        try {
+            // Get the current URL to return to after authorization
+            const callbackUrl = window.location.origin + window.location.pathname;
+
+            // Get request token
+            const { token, secret, url } = await zoteroService.getRequestToken(callbackUrl);
+
+            // Store token secret temporarily in localStorage for the callback phase
+            localStorage.setItem('zotero_oauth_secret', secret);
+
+            // Redirect user to Zotero authorization page
+            window.location.href = url;
+
+        } catch (err: any) {
+            console.error('Failed to initiate Zotero connection:', err);
+            setZoteroError('Failed to connect to Zotero. Check API credentials.');
+            setZoteroConnecting(false);
+        }
+    };
+
+    const handleZoteroCallback = async (oauthToken: string, oauthVerifier: string) => {
+        setZoteroConnecting(true);
+        setZoteroError(null);
+        try {
+            const secret = localStorage.getItem('zotero_oauth_secret');
+            if (!secret) {
+                throw new Error('OAuth secret not found in local storage. Please try connecting again.');
+            }
+
+            // Exchange for access token
+            const credentials = await zoteroService.getAccessToken(oauthToken, secret, oauthVerifier);
+
+            // Save securely
+            await puterService.kvSet('zotero_credentials', credentials);
+
+            // Clean up
+            localStorage.removeItem('zotero_oauth_secret');
+
+            // Clear search params from URL safely without causing full reload
+            setSearchParams(new URLSearchParams());
+
+            setZoteroConnected(true);
+        } catch (err: any) {
+            console.error('Zotero callback error:', err);
+            setZoteroError(err.message || 'Failed to complete Zotero authorization.');
+        } finally {
+            setZoteroConnecting(false);
+        }
+    };
+
+    const handleDisconnectZotero = async () => {
+        if (!confirm('Are you sure you want to disconnect your Zotero account? Your synced items will remain in Apex Scholar.')) return;
+
+        try {
+            await puterService.kvDelete('zotero_credentials');
+            setZoteroConnected(false);
+        } catch (err) {
+            console.error('Failed to disconnect Zotero:', err);
+        }
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <header>
@@ -474,6 +567,46 @@ export default function Settings() {
                         </div>
                     ) : null}
                 </section>
+
+                {/* ── Integrations ───────────────────────────── */}
+                <section className="bg-zinc-900/40 border border-neutral-800 rounded-xl p-3 sm:p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Link2 className="w-5 h-5 text-indigo-400" />
+                        <h2 className="text-xl font-semibold text-white">Integrations</h2>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-neutral-800">
+                        <div>
+                            <h3 className="text-sm font-medium text-white mb-1">Zotero</h3>
+                            <p className="text-xs text-zinc-400">Connect your Zotero account to sync your research libraries and collections.</p>
+                            {zoteroError && <p className="text-xs text-red-400 mt-2">{zoteroError}</p>}
+                        </div>
+                        {zoteroConnected ? (
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                                <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-medium">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Connected
+                                </div>
+                                <button
+                                    onClick={handleDisconnectZotero}
+                                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-medium transition-colors"
+                                >
+                                    Disconnect
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleConnectZotero}
+                                disabled={zoteroConnecting}
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-600/20 border border-indigo-500/20 text-indigo-400 rounded-xl text-sm font-medium transition-colors flex-shrink-0 disabled:opacity-50"
+                            >
+                                {zoteroConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
+                                {zoteroConnecting ? 'Connecting...' : 'Connect Account'}
+                            </button>
+                        )}
+                    </div>
+                </section>
+
                 <section className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-3 sm:p-6">
                     <h2 className="text-xl font-semibold text-white mb-4">Data Management</h2>
                     <div className="space-y-4">

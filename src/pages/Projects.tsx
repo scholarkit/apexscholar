@@ -141,12 +141,12 @@ export default function Projects() {
 
             {/* Main Content Area */}
             {projects.length > 0 ? (
-                <div className="space-y-8">
+                <div className="space-y-4 sm:space-y-8">
                     {/* Active Project Card & Switcher */}
-                    <div className="bg-gradient-to-br from-indigo-500/10 via-zinc-900/50 to-zinc-900/30 border border-indigo-500/20 rounded-xl p-6 sm:p-8 relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-indigo-500/10 via-zinc-900/50 to-zinc-900/30 border border-indigo-500/20 rounded-xl p-3 sm:p-6 sm:p-8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none -mr-32 -mt-32" />
 
-                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 sm:gap-6 relative z-10">
                             <div className="flex-1 space-y-4">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2.5 bg-indigo-500/20 rounded-xl border border-indigo-500/30 shadow-inner">
@@ -207,12 +207,12 @@ export default function Projects() {
                                 <LayoutDashboard className="w-5 h-5 text-indigo-400" />
                                 <h2 className="text-xl font-semibold text-white">Project Modules</h2>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                                 {MODULES.map((module) => (
                                     <button
                                         key={module.id}
                                         onClick={() => navigate(module.path)}
-                                        className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm group p-6 border hover:bg-neutral-800 hover:border-indigo-500/30 transition-all text-left backdrop-blur-sm relative overflow-hidden"
+                                        className="rounded-xl border border-neutral-800 bg-neutral-900 shadow-sm group p-3 sm:p-6 border hover:bg-neutral-800 hover:border-indigo-500/30 transition-all text-left backdrop-blur-sm relative overflow-hidden"
                                     >
                                         <div className={`absolute top-0 right-0 w-24 h-24 bg-${module.color}-500/5 blur-3xl rounded-full -mr-8 -mt-8 group-hover:bg-${module.color}-500/10 transition-colors`} />
 

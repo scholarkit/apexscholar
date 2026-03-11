@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookMarked, ChevronRight, CheckCircle2, Lock, GraduationCap } from 'lucide-react';
+import { ChevronRight, CheckCircle2, Lock, GraduationCap, Microscope, Book, Search, BookCopy } from 'lucide-react';
 import { COURSES_2, PROGRESS_KV_KEY, CourseProgress } from '../lib/courseData';
 import { puterService } from '../lib/puter';
 
@@ -14,6 +14,13 @@ export default function Learn() {
             setLoading(false);
         });
     }, []);
+
+    const getIcon = (icon: string) => {
+        if (icon == 'microscope') return <Microscope className='w-8 sm:w-16 h-8 sm:h-16 text-indigo-400' />
+        if (icon == 'search') return <Search className='w-8 sm:w-16 h-8 sm:h-16 text-indigo-400' />
+        if (icon == 'book-copy') return <BookCopy className='w-8 sm:w-16 h-8 sm:h-16 text-indigo-400' />
+        return <Book className='w-8 sm:w-16 h-8 sm:h-16 text-indigo-400' />
+    }
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -43,8 +50,8 @@ export default function Learn() {
                             className="group flex flex-col bg-zinc-900/40 border    border-neutral-800 rounded-xl p-6 hover:border-indigo-500/40 hover:bg-zinc-900/70 transition-all duration-200 hover:shadow-xl hover:shadow-indigo-500/5"
                         >
                             {/* Emoji + Level */}
-                            <div className="flex items-start justify-between mb-5">
-                                <div className="text-4xl leading-none select-none">{course.coverEmoji}</div>
+                            <div className="flex gap-2 items-start justify-between mb-5">
+                                <div className="text-4xl leading-none select-none">{getIcon(course.coverEmoji)}</div>
                                 <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border
                   ${course.level === 'Beginner' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                                         : course.level === 'Intermediate' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'

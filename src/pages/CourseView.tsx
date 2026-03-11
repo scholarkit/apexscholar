@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, CheckCircle2, Circle, Lock, Clock, ChevronRight } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, Circle, Lock, Clock, ChevronRight, Microscope, Search, BookCopy, Book } from 'lucide-react';
 import { COURSES_2, PROGRESS_KV_KEY, CourseProgress } from '../lib/courseData';
 import { puterService } from '../lib/puter';
 
@@ -28,6 +28,13 @@ export default function CourseView() {
         );
     }
 
+    const getIcon = (icon: string) => {
+        if (icon == 'microscope') return <Microscope className='w-8 sm:w-16 h-8 sm:h-16 text-indigo-400' />
+        if (icon == 'search') return <Search className='w-8 sm:w-16 h-8 sm:h-16 text-indigo-400' />
+        if (icon == 'book-copy') return <BookCopy className='w-8 sm:w-16 h-8 sm:h-16 text-indigo-400' />
+        return <Book className='w-8 sm:w-16 h-8 sm:h-16 text-indigo-400' />
+    }
+
     const courseProgress = progress[course.id] || {};
     const completedCount = Object.values(courseProgress).filter(Boolean).length;
     const totalLessons = course.lessons.length;
@@ -48,7 +55,7 @@ export default function CourseView() {
             {/* Course Header */}
             <div className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-6 sm:p-8">
                 <div className="flex items-start gap-5 mb-6">
-                    <div className="text-5xl leading-none select-none">{course.coverEmoji}</div>
+                    <div className="text-5xl leading-none select-none">{getIcon(course.coverEmoji)}</div>
                     <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                             <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border

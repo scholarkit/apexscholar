@@ -178,7 +178,7 @@ export default function Funding() {
                 </div>
                 <button
                     onClick={() => { setEditingGrant(null); setIsModalOpen(true); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-all  "
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-all  "
                 >
                     <Plus className="w-4 h-4" />
                     New Grant
@@ -205,7 +205,7 @@ export default function Funding() {
                     icon={<DollarSign className="w-5 h-5 text-amber-400" />}
                     trend={metrics.totalAwarded > 0 ? `${Math.round((metrics.totalSpent / metrics.totalAwarded) * 100)}% of awarded` : 'No funds awarded yet'}
                 />
-                <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm">
+                <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm">
                     <div className="flex items-start justify-between mb-4">
                         <span className="text-sm font-medium text-zinc-400">Approaching Deadlines</span>
                         <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center">
@@ -331,7 +331,7 @@ export default function Funding() {
 
 function MetricCard({ title, value, icon, trend }: { title: string, value: string, icon: React.ReactNode, trend: string }) {
     return (
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm">
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm">
             <div className="flex items-start justify-between mb-4">
                 <span className="text-sm font-medium text-zinc-400">{title}</span>
                 <div className="w-10 h-10 rounded-xl bg-zinc-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">

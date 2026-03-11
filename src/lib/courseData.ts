@@ -29,7 +29,7 @@ export const COURSES: Course[] = [
         title: 'Research Fundamentals',
         description:
             'A structured, end-to-end journey through the research process — from choosing a topic to publishing your findings.',
-        coverEmoji: '🔬',
+        coverEmoji: 'microscope',
         accentColor: 'indigo',
         level: 'Beginner',
         tags: ['Introduction', 'Overview'],
@@ -261,7 +261,7 @@ export const COURSES_2: Course[] = [...COURSES,
     title: 'Problem Identification in Research',
     description:
         'Learn to identify, evaluate, and formulate research problems — the most critical skill every researcher must master before starting any project.',
-    coverEmoji: '🔍',
+    coverEmoji: 'search',
     accentColor: 'violet',
     level: 'Intermediate',
     tags: ['Problem Formulation', 'Research Gaps', 'Critical Thinking'],
@@ -987,7 +987,7 @@ Read the literature summary below and complete all three tasks:
     title: 'Literature Review in Research',
     description:
         'Learn to locate, read, analyse, and synthesize academic literature — turning a sea of papers into a clear, compelling literature review.',
-    coverEmoji: '📚',
+    coverEmoji: 'book-copy',
     accentColor: 'emerald',
     level: 'Intermediate',
     tags: ['Literature Review', 'Academic Reading', 'Research Gaps'],

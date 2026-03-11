@@ -74,13 +74,14 @@ export const zoteroService = {
             start: start.toString(),
             limit: limit.toString(),
             format: 'json',
+            itemType: '-attachment'
         };
 
         if (sinceVersion) {
             params.since = sinceVersion.toString();
         }
 
-        const endpoint = collectionId === 'library' ? 'items' : `collections/${collectionId}/items`;
+        const endpoint = collectionId === 'library' ? 'items/top' : `collections/${collectionId}/items/top`;
         return this.fetchAPI(endpoint, credentials, params);
     }
 };

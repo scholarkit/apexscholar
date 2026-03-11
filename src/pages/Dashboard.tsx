@@ -33,18 +33,18 @@ export default function Dashboard() {
             <div className="h-4 w-72 bg-zinc-800/60 rounded-xl animate-pulse"></div>
           </div>
 
-          <div className="flex gap-3">
+          {/* <div className="flex gap-3">
             <div className="h-10 w-32 bg-zinc-800/60 rounded-xl animate-pulse"></div>
             <div className="h-10 w-32 bg-zinc-800/60 rounded-xl animate-pulse"></div>
             <div className="h-10 w-28 bg-zinc-800/60 rounded-xl animate-pulse"></div>
-          </div>
+          </div> */}
         </header>
 
         {/* KPI Overview Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="p-6 rounded-xl bg-zinc-900/50 border    border-neutral-800 backdrop-blur-sm">
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
                 <div className="w-12 h-12 bg-zinc-800/60 rounded-xl animate-pulse"></div>
                 <div className="h-5 w-24 bg-zinc-800/60 rounded-xl animate-pulse"></div>
               </div>
@@ -78,7 +78,7 @@ export default function Dashboard() {
           <h1 className="text-lg sm:text-2xl font-semibold text-white">Dashboard</h1>
           <p className="text-sm sm:text-base text-zinc-400">Welcome back. Here's what's happening in your research.</p>
         </div>
-        <div className="w-full sm:w-fit mt-2 sm:mt-0 flex flex-col sm:flex-row gap-3">
+        {/* <div className="w-full sm:w-fit mt-2 sm:mt-0 flex flex-col sm:flex-row gap-3">
           <Link to="/journal" className="flex items-center gap-2 px-4 py-2 rounded-lg text-neutral-300 hover:bg-neutral-800 transition">
             <PlusIcon className="w-4 h-4" />
             New Entry
@@ -91,12 +91,12 @@ export default function Dashboard() {
             <Upload className="w-4 h-4" />
             Upload
           </Link>
-        </div>
+        </div> */}
       </header>
 
       {/* KPI Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-3 bg-blue-500/10 rounded-xl">
               <BookOpen className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400" />
@@ -106,8 +106,8 @@ export default function Dashboard() {
           <p className="text-2xl sm:text-4xl font-semibold text-white">{entries.length}</p>
         </div>
 
-        <Link to="/projects" className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm hover:border-violet-500/30 hover:bg-zinc-900/70 transition-all group">
-          <div className="flex items-center gap-4 mb-4">
+        <Link to="/projects" className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm hover:border-violet-500/30 hover:bg-zinc-900/70 transition-all group">
+          <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
             <div className="p-3 bg-violet-500/10 rounded-xl group-hover:bg-violet-500/20 transition-colors">
               <Layers className="w-4 h-4 sm:w-6 sm:h-6 text-violet-400" />
             </div>
@@ -116,8 +116,8 @@ export default function Dashboard() {
           <p className="text-2xl sm:text-4xl font-semibold text-white">{projects.length}</p>
         </Link>
 
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm">
+          <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
             <div className="p-3 bg-emerald-500/10 rounded-xl">
               <FolderOpen className="w-4 h-4 sm:w-6 sm:h-6 text-emerald-400" />
             </div>
@@ -126,8 +126,8 @@ export default function Dashboard() {
           <p className="text-2xl sm:text-4xl font-semibold text-white">{resources.length}</p>
         </div>
 
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm">
+          <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
             <div className="p-3 bg-purple-500/10 rounded-xl">
               <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-purple-400" />
             </div>

@@ -34,9 +34,20 @@ export interface Resource {
   id: string;
   projectId?: string;
   name: string;
+  source: 'apexscholar' | 'zotero';
+  source_id: string;
   type: string;
+  abstract?: string;
+  doi?: string;
+  url?: string;
+  year?: number;
+  journal?: string;
+  authors?: string[];
   path: string;
   date_added: string;
+  metadata?: any;
+  zotero_version?: any;
+  zotero_meta?: any;
 }
 
 export interface Insight {

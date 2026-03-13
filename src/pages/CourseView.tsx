@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, CheckCircle2, Circle, Lock, Clock, ChevronRight, Microscope, Search, BookCopy, Book } from 'lucide-react';
+import { CheckCircle2, Circle, Lock, Clock, ChevronRight, Microscope, Search, BookCopy, Book } from 'lucide-react';
 import { COURSES_2, PROGRESS_KV_KEY, CourseProgress } from '../lib/courseData';
 import { puterService } from '../lib/puter';
+import { kv } from '../lib/kv';
 
 export default function CourseView() {
     const { courseId } = useParams<{ courseId: string }>();
@@ -13,7 +14,7 @@ export default function CourseView() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        puterService.kvGet(PROGRESS_KV_KEY).then((data: CourseProgress | null) => {
+        kv.get(PROGRESS_KV_KEY).then((data: CourseProgress | null) => {
             setProgress(data || {});
             setLoading(false);
         });
@@ -54,6 +55,7 @@ export default function CourseView() {
 
             {/* Course Header */}
             <div className="bg-zinc-900/40 border border-neutral-800 rounded-xl p-6 sm:p-8">
+                <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div className="flex items-start gap-5 mb-6">
                     <div className="text-5xl leading-none select-none">{getIcon(course.coverEmoji)}</div>
                     <div className="flex-1 min-w-0">

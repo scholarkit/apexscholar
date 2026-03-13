@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, FolderOpen, Activity, Plus, Upload, Clock, Layers, PlusIcon } from 'lucide-react';
+import { BookOpen, FolderOpen, Activity, Plus, Clock, Layers } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { Entry, Resource, puterService } from '../lib/puter';
+import { Entry, Resource } from '../lib/puter';
 import { parseEntryDate } from '../utils/dateUtils';
+import { kv } from '../lib/kv';
 
 export default function Dashboard() {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -13,9 +14,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadData = async () => {
-      const entriesData = await puterService.kvGet('research_entries') || [];
-      const resourcesData = await puterService.kvGet('research_resources') || [];
-      const projectsData = await puterService.kvGet('research_projects') || [];
+      const entriesData = await kv.get('research_entries') || [];
+      const resourcesData = await kv.get('research_resources') || [];
+      const projectsData = await kv.get('research_projects') || [];
       setEntries(entriesData);
       setResources(resourcesData);
       setProjects(projectsData);
@@ -41,7 +42,7 @@ export default function Dashboard() {
         </header>
 
         {/* KPI Overview Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="p-6 rounded-xl bg-zinc-900/50 border    border-neutral-800 backdrop-blur-sm">
               <div className="flex items-center gap-4 mb-4">
@@ -74,6 +75,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       <header className="flex flex-col sm:flex-row items-center justify-between">
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
           <h1 className="text-2xl font-semibold text-white">Dashboard</h1>
           <p className="text-base text-zinc-400">Welcome back. Here's what's happening in your research.</p>
@@ -133,7 +135,7 @@ export default function Dashboard() {
             </div>
             <h3 className="text-zinc-400 font-medium">Last Activity</h3>
           </div>
-          <p className="text-right sm:text-left text-lg sm:text-4xl font-semibold text-white">
+          <p className="text-right sm:text-left text-lg sm:text-2xl font-semibold text-white">
             {lastActivity ? formatDistanceToNow(parseEntryDate(lastActivity), { addSuffix: true }) : 'No activity yet'}
           </p>
         </div>
@@ -148,10 +150,10 @@ export default function Dashboard() {
 
         <div className="space-y-4">
           {entries.slice(0, 5).map((entry) => (
-            <div key={entry.id} className="p-5 rounded-xl bg-zinc-900/30 border    border-neutral-800 hover:bg-zinc-900/50 transition-colors group">
+            <div key={entry.id} className="p-5 rounded-xl bg-neutral-900 border border-neutral-800 transition-colors group">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-3">
-                  <span className="px-1 sm:px-2.5 py-1 rounded-xl bg-zinc-800 text-xs font-medium text-zinc-300 border    border-neutral-800">
+                  <span className="px-1 sm:px-2.5 py-1 rounded-xl bg-zinc-800 text-xs font-medium text-zinc-300 border border-neutral-800">
                     {entry.entry_type}
                   </span>
                   <span className="text-xs sm:text-sm text-zinc-500">

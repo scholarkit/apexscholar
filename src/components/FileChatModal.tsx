@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Send, Loader2, User, Bot, Trash2 } from 'lucide-react';
 import { Resource, puterService } from '../lib/puter';
+import { ai } from '../lib/ai';
+import { storage } from '../lib/storage';
+import { kv } from '../lib/kv';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -35,7 +38,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
     const loadHistory = async () => {
         setLoadingHistory(true);
         try {
-            const history = await puterService.kvGet(HISTORY_KEY);
+            const history = await kv.get(HISTORY_KEY);
             if (history) {
                 setMessages(history);
             }
@@ -61,10 +64,9 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
         setLoading(true);
 
         try {
-            const puter = (window as any).puter;
-            const stat = await puter.fs.stat(resource.path);
+            const stat = await storage.stat(resource.path);
             const fullPath = stat.path;
-            const response = await puter.ai.chat(
+            const response = await ai.chat(
                 [
                     ...newMessages.slice(0, -1).map(m => ({ role: m.role, content: m.content })),
                     {
@@ -94,7 +96,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
             setStreamingMessage('');
 
             // Save to KV
-            await puterService.kvSet(HISTORY_KEY, finalMessages);
+            await kv.set(HISTORY_KEY, finalMessages);
         } catch (err) {
             console.error('Chat failed', err);
             alert('Failed to get AI response. Please try again.');
@@ -106,7 +108,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
     const clearHistory = async () => {
         if (!confirm('Clear chat history for this file?')) return;
         try {
-            await puterService.kvDelete(HISTORY_KEY);
+            await kv.delete(HISTORY_KEY);
             setMessages([]);
         } catch (err) {
             console.error('Failed to clear history', err);

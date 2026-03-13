@@ -3,7 +3,6 @@ import {
     Calendar, Users, Hash, ExternalLink, Loader2, AlertCircle, X, Bookmark, CheckCircle2, Telescope, Library, GraduationCap, Lightbulb, Network, ChevronDown, ArrowLeft
 } from 'lucide-react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { puterService } from '../lib/puter';
 import { CitationMetadata } from '../lib/citationPipeline';
 import QuickCiteModal from '../components/QuickCiteModal';
 import { useCallback, useEffect, useState } from 'react';
@@ -12,6 +11,8 @@ import { useProject } from '../contexts/ProjectContext';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ai } from '../lib/ai';
+import { kv } from '../lib/kv';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const INSIGHTS_KV_KEY = 'research_paper_insights';
@@ -369,14 +370,9 @@ export function normalizeInsight(data: any, paperId: string): PaperInsight {
 }
 
 export async function extractInsight(paper: Paper): Promise<PaperInsight> {
-    const input = `\nTitle: ${paper.title}\nAbstract: ${paper.abstract}\n`;
+    const input = `\nTitle: ${paper?.title || ''}\nAbstract: ${paper?.abstract || ''}\n`;
 
-    // Check if puter.ai.chat exists
-    if (!window.puter?.ai?.chat) {
-        throw new Error("Puter AI not available.");
-    }
-
-    const res = await window.puter.ai.chat(INSIGHT_PROMPT + input, {
+    const res = await ai.chat([INSIGHT_PROMPT + input], {
         temperature: 0.1,
         model: 'minimax-m2.5',
     });
@@ -396,57 +392,6 @@ export function extractEntities(insight: PaperInsight) {
         domains: insight.domain ? [insight.domain] : [],
         ideas: insight.keyIdeas || [],
     };
-}
-
-export async function compressConcepts(insight: PaperInsight): Promise<PaperInsight> {
-    const COMPRESS_PROMPT = `
-You are a concept extraction engine for a Knowledge Graph. 
-I will give you a verbose JSON insight extracted from a research paper.
-Your job is to COMPRESS every text field into ultra-concise, noun-based conceptual phrases (ideally 1 to 3 words max). 
-
-For example:
-"problem": "we address the issue of slow training speeds in deep neural networks" -> "slow training"
-"method": "we propose a novel attention-based mechanism that is bidirectional" -> "bidirectional attention"
-"domain": "natural language processing for clinical documents" -> "clinical nlp"
-"datasets": ["we evaluate on the widely used GLUE benchmark", "SQuAD v2.0 dataset"] -> ["GLUE", "SQuAD v2.0"]
-
-If a field is empty, return it empty. Do NOT summarize abstractly; extract the specific core entity names.
-Return STRICT JSON matching the schema I provide.
-
-Input JSON to compress:
-${JSON.stringify({
-        problem: insight.problem,
-        method: insight.method,
-        domain: insight.domain,
-        datasets: insight.datasets,
-        metrics: insight.metrics,
-        keyIdeas: insight.keyIdeas
-    }, null, 2)}
-`;
-
-    if (!window.puter?.ai?.chat) return insight; // Fallback to raw if no AI
-
-    try {
-        const res = await window.puter.ai.chat(COMPRESS_PROMPT, {
-            temperature: 0.1,
-            model: 'claude-3-5-sonnet'
-        });
-        const parsed = safeParseJSON(res?.message?.content || "{}");
-
-        // Return a hybrid: keep original insight structure but overwrite string fields with compressed versions
-        return {
-            ...insight,
-            problem: parsed.problem || insight.problem,
-            method: parsed.method || insight.method,
-            domain: parsed.domain || insight.domain,
-            datasets: Array.isArray(parsed.datasets) && parsed.datasets.length ? parsed.datasets : insight.datasets,
-            metrics: Array.isArray(parsed.metrics) && parsed.metrics.length ? parsed.metrics : insight.metrics,
-            keyIdeas: Array.isArray(parsed.keyIdeas) && parsed.keyIdeas.length ? parsed.keyIdeas : insight.keyIdeas
-        };
-    } catch (e) {
-        console.error("Compression failed, using raw strings", e);
-        return insight;
-    }
 }
 
 export function normalize(text: string) {
@@ -1002,18 +947,18 @@ export default function Explore() {
     useEffect(() => {
         if (!activeProject) return;
 
-        puterService.kvGet(KV_KEY).then((data: Paper[] | null) => {
+        kv.get(KV_KEY).then((data: Paper[] | null) => {
             const allSaved = data || [];
             setSavedPapers(allSaved.filter(p => p.projectId === activeProject.id));
         });
 
-        puterService.kvGet(INSIGHTS_KV_KEY).then((data: Record<string, PaperInsight> | null) => {
+        kv.get(INSIGHTS_KV_KEY).then((data: Record<string, PaperInsight> | null) => {
             // Insights are harder to filter if they are a Record by paperId, 
             // but Paper itself has projectId.
             setSavedInsights(data || {});
         });
 
-        puterService.kvGet(KG_KV_KEY).then((data: KGGraph[] | null) => {
+        kv.get(KG_KV_KEY).then((data: KGGraph[] | null) => {
             // Knowledge Graph should ideally be per project.
             // If it was a single object, we might need to change it to an array or KV per project.
             // For now, let's assume it's stored in a way that we can filter.
@@ -1021,7 +966,7 @@ export default function Explore() {
         });
 
         const historyKey = `research_explore_history_${activeProject.id}`;
-        puterService.kvGet(historyKey).then((data: string[] | null) => {
+        kv.get(historyKey).then((data: string[] | null) => {
             const history = data || [];
             setRecentQueries(history);
             if (history.length > 0) {
@@ -1063,7 +1008,7 @@ export default function Explore() {
         const updatedHistory = [query, ...recentQueries.filter(q => q !== query)].slice(0, 5);
         setRecentQueries(updatedHistory);
         const historyKey = `research_explore_history_${activeProject?.id}`;
-        puterService.kvSet(historyKey, updatedHistory).catch(console.error);
+        kv.set(historyKey, updatedHistory).catch(console.error);
 
         try {
             const sources: { id: SourceFilter, fetcher: (q: string) => Promise<Paper[]> }[] = [
@@ -1109,24 +1054,24 @@ export default function Explore() {
 
     const handleImport = async (paper: Paper) => {
         if (!activeProject) return;
-        const allPapers: Paper[] = await puterService.kvGet(KV_KEY) || [];
+        const allPapers: Paper[] = await kv.get(KV_KEY) || [];
         const newPaper = { ...paper, saved: true, projectId: activeProject.id };
         const updated = [newPaper, ...allPapers];
         setSavedPapers(prev => [newPaper, ...prev]);
-        await puterService.kvSet(KV_KEY, updated);
+        await kv.set(KV_KEY, updated);
     };
 
     const handleRemove = async (paper: Paper) => {
-        const allPapers: Paper[] = await puterService.kvGet(KV_KEY) || [];
+        const allPapers: Paper[] = await kv.get(KV_KEY) || [];
         const updated = allPapers.filter(p => p.id !== paper.id);
         setSavedPapers(prev => prev.filter(p => p.id !== paper.id));
-        await puterService.kvSet(KV_KEY, updated);
+        await kv.set(KV_KEY, updated);
 
         // Optionally remove insight
-        const allInsights: Record<string, PaperInsight> = await puterService.kvGet(INSIGHTS_KV_KEY) || {};
+        const allInsights: Record<string, PaperInsight> = await kv.get(INSIGHTS_KV_KEY) || {};
         delete allInsights[paper.id];
         setSavedInsights(allInsights);
-        await puterService.kvSet(INSIGHTS_KV_KEY, allInsights);
+        await kv.set(INSIGHTS_KV_KEY, allInsights);
     };
 
     const handleIdentifyGap = async () => {
@@ -1162,7 +1107,7 @@ export default function Explore() {
             Return STRICT Markdown. Keep it concise.
             `;
 
-            const response = await window.puter.ai.chat(prompt, { model: 'gpt-4o' });
+            const response = await ai.chat([prompt], { model: 'gpt-4o' });
             let cleanResponse = response.toString().trim();
             // Strip markdown code block fences if present
             if (cleanResponse.startsWith('```')) {
@@ -1177,32 +1122,30 @@ export default function Explore() {
         }
     };
 
-    const handleSaveInsight = async (insight: PaperInsight) => {
-        // 1. Save original verbose insight
-        const updatedInsights = { ...savedInsights, [insight.paperId]: insight };
-        setSavedInsights(updatedInsights);
-        await puterService.kvSet(INSIGHTS_KV_KEY, updatedInsights);
-
-        // 2. Rebuild graph from all insights using concept compression
+    const rebuildGraph = async () => {
         setIsRebuildingGraph(true);
         try {
             const newGraph: KGGraph = { nodes: [], edges: [] };
 
             // Compress all sequentially or in parallel (parallel might hit rate limits, but we try Promise.all)
-            const insightList = Object.values(updatedInsights);
-            const compressedInsights = await Promise.all(
-                insightList.map(i => compressConcepts(i))
-            );
-
-            compressedInsights.forEach(compressed => updateGraphFromInsight(newGraph, compressed));
-
+            const insightList = Object.values(savedInsights);
+            insightList.forEach(insight => updateGraphFromInsight(newGraph, insight))
             setGraph(newGraph);
-            await puterService.kvSet(KG_KV_KEY, newGraph);
+            await kv.set(KG_KV_KEY, newGraph);
         } catch (e) {
             console.error("Failed to build compressed graph", e);
         } finally {
             setIsRebuildingGraph(false);
         }
+    }
+
+    const handleSaveInsight = async (insight: PaperInsight) => {
+        // 1. Save original verbose insight
+        const updatedInsights = { ...savedInsights, [insight.paperId]: insight };
+        setSavedInsights(updatedInsights);
+        await kv.set(INSIGHTS_KV_KEY, updatedInsights);
+
+        rebuildGraph
     };
 
     if (!activeProject) {
@@ -1449,11 +1392,11 @@ export default function Explore() {
                             <Network className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-white mb-2">Graph is empty</h3>
                             <p className="text-zinc-500 text-sm max-w-sm mx-auto">Extract insights from papers in your Knowledge Base to build the reasoning graph.</p>
-                            <button onClick={() => setActiveTab('saved')}
+                            <button onClick={() => rebuildGraph()}
                                 className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-medium transition-colors"
                             >
                                 <BookMarked className="w-4 h-4" />
-                                Go to Knowledge Base
+                                Build Graph
                             </button>
                         </div>
                     ) : (
@@ -1483,6 +1426,7 @@ export default function Explore() {
                                     </button>
                                 </div>
                                 <ForceGraph2D
+                                    height={450}
                                     graphData={{ nodes: graph.nodes, links: graph.edges }}
                                     nodeLabel="label"
                                     nodeRelSize={6}

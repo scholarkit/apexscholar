@@ -5,6 +5,7 @@ export default function About() {
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-8 animate-in fade-in duration-500 pb-32 sm:pb-8">
             {/* Header */}
             <header className="text-center space-y-4 pt-12 pb-6 border-b    border-neutral-800">
+                <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20 mb-2">
                     <Heart className="w-8 h-8 text-indigo-500" fill="currentColor" />
                 </div>

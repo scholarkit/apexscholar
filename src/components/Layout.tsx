@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Home, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Info,
@@ -18,9 +18,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [user, setUser] = useState<PuterUser | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
 
-  // Close drawer on route change
-  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
+  // Close drawer and scroll to top on route change
+  useEffect(() => {
+    setDrawerOpen(false);
+    if (mainRef.current) {
+      mainRef.current.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -67,8 +73,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       ────────────────────────────────────────────── */}
       <aside
         className={cn(
-          "hidden lg:flex relative z-20 flex-shrink-0 border-r border-neutral-900 flex-col transition-all duration-300 ease-in-out",
-          isCollapsed ? "w-20" : "w-64"
+          "hidden md:flex relative z-20 flex-shrink-0 border-r border-neutral-900 flex-col transition-all duration-300 ease-in-out",
+          isCollapsed ? "w-16" : "w-64"
         )}
       >
         {/* Collapse Toggle */}
@@ -81,7 +87,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Logo */}
         <div className={cn("px-2 py-4 flex items-center", isCollapsed ? "justify-center" : "gap-2")}>
-          <img src="/logo-transparent.png" alt="logo" className={cn(isCollapsed ? "w-8 h-8" : "w-12 h-12")} />
+          <img src="/logo-transparent.png" alt="logo" className="w-12 h-12" />
           {!isCollapsed && <h1 className="logo-title">Apex Scholar</h1>}
         </div>
 
@@ -102,8 +108,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 )}
               >
                 <Icon className={cn(
+                  "w-5 h-5 flex-shrink-0",
                   isActive ? "text-indigo-500" : "text-zinc-500 group-hover:text-zinc-300",
-                  isCollapsed ? "w-4 h-4 flex-shrink-0" : "w-5 h-5 flex-shrink-0"
                 )} />
                 {!isCollapsed && (
                   <div>
@@ -134,7 +140,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </>
           ) : (
             <>
-              <div className="flex items-center gap-3 rounded-xl animate-in fade-in slide-in-from-left-2 duration-300">
+              <div className="flex items-center gap-3 rounded-xl">
                 <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
                   {user ? initials : <User className="w-4 h-4" />}
                 </div>
@@ -161,14 +167,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Backdrop */}
       {drawerOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
           onClick={() => setDrawerOpen(false)}
         />
       )}
 
       {/* Slide-in Drawer */}
       <div className={cn(
-        "lg:hidden fixed top-0 left-0 h-full w-72 z-50 flex flex-col border-r border-neutral-800 bg-neutral-950 transition-transform duration-300 ease-in-out",
+        "md:hidden fixed top-0 left-0 h-full w-72 z-50 flex flex-col border-r border-neutral-800 bg-neutral-950 transition-transform duration-300 ease-in-out",
         drawerOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Drawer Header */}
@@ -236,11 +242,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ──────────────────────────────────────────────
           MAIN CONTENT
       ────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-auto relative custom-scrollbar flex flex-col">
+      <main ref={mainRef} className="flex-1 overflow-auto relative custom-scrollbar flex flex-col">
         <div className="absolute inset-0 pointer-events-none" />
 
         {/* Mobile top bar with hamburger */}
-        <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 border-b border-neutral-900 bg-neutral-950/90 backdrop-blur-md">
+        <div className="md:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 border-b border-neutral-900 bg-neutral-950/90 backdrop-blur-md">
           <button
             onClick={() => setDrawerOpen(true)}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
@@ -262,7 +268,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* ──────────────────────────────────────────────
             MOBILE BOTTOM TAB BAR
         ────────────────────────────────────────────── */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around px-2 py-2 border-t border-neutral-800 bg-neutral-950/95 backdrop-blur-md safe-area-bottom">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around px-2 py-2 border-t border-neutral-800 bg-neutral-950/95 backdrop-blur-md safe-area-bottom">
           {bottomTabItems.map((item) => {
             const isActive = item.path === '/'
               ? location.pathname === '/'

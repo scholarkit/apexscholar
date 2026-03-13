@@ -4,6 +4,7 @@ import { format, subDays, eachDayOfInterval } from 'date-fns';
 import { Entry, puterService } from '../lib/puter';
 import { Activity, Calendar, GitCommit } from 'lucide-react';
 import { parseEntryDate } from '../utils/dateUtils';
+import { kv } from '../lib/kv';
 
 export default function Analytics() {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -11,7 +12,7 @@ export default function Analytics() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '3m' | 'all'>('30d');
 
   useEffect(() => {
-    puterService.kvGet('research_entries').then((data: Entry[] | null) => {
+    kv.get('research_entries').then((data: Entry[] | null) => {
       setEntries(data || []);
       setLoading(false);
     });
@@ -77,6 +78,7 @@ export default function Analytics() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       <header className="flex flex-col sm:flex-row items-center justify-between">
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
           <h1 className="text-2xl font-semibold text-white">Analytics & Progress</h1>
           <p className="text-base text-zinc-400">Visualize your research activity and milestones.</p>

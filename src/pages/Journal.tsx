@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, Save, Trash2, Edit2, X, FileText, Mic, Radio } from 'lucide-react';
 import { format } from 'date-fns';
 import Markdown from 'react-markdown';
-import { Entry, puterService } from '../lib/puter';
+import { Entry } from '../lib/puter';
 import { parseEntryDate } from '../utils/dateUtils';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { kv } from '../lib/kv';
 
 export default function Journal() {
   const { activeProject } = useProject();
@@ -64,14 +65,14 @@ export default function Journal() {
 
   useEffect(() => {
     fetchEntries();
-  }, []);
+  }, [activeProject]);
 
   const fetchEntries = async () => {
     if (!activeProject) {
       setLoading(false);
       return;
     }
-    const data = await puterService.kvGet('research_entries') || [];
+    const data = await kv.get('research_entries') || [];
     const projectEntries = data.filter((e: Entry) => e.projectId === activeProject.id);
     setEntries(projectEntries.sort((a: Entry, b: Entry) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     setLoading(false);
@@ -95,7 +96,7 @@ export default function Journal() {
       entry_type: currentEntry.entry_type
     };
 
-    const allEntries = await puterService.kvGet('research_entries') || [];
+    const allEntries = await kv.get('research_entries') || [];
     let updatedEntries;
     if (isNew) {
       updatedEntries = [newEntry, ...allEntries];
@@ -103,7 +104,7 @@ export default function Journal() {
       updatedEntries = allEntries.map((e: Entry) => e.id === newEntry.id ? newEntry : e);
     }
 
-    await puterService.kvSet('research_entries', updatedEntries);
+    await kv.set('research_entries', updatedEntries);
 
     setIsEditing(false);
     setCurrentEntry({});
@@ -112,9 +113,9 @@ export default function Journal() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this entry?')) return;
-    const allEntries = await puterService.kvGet('research_entries') || [];
+    const allEntries = await kv.get('research_entries') || [];
     const updatedEntries = allEntries.filter((e: Entry) => e.id !== id);
-    await puterService.kvSet('research_entries', updatedEntries);
+    await kv.set('research_entries', updatedEntries);
     fetchEntries();
   };
 
@@ -226,6 +227,7 @@ export default function Journal() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
           <h1 className="text-2xl font-semibold text-white">Research Journal</h1>
           <p className="text-base text-zinc-400">Log your progress, meetings, and weekly diaries.</p>

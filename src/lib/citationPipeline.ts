@@ -5,11 +5,12 @@
  * 2. Extract text from first ~3 pages
  * 3. Detect DOI via regex across all text
  * 4. DOI lookup: CrossRef (primary) → OpenAlex (fallback)
- * 5. AI fallback via Puter.js if DOI missing or metadata incomplete
+ * 5. AI fallback if DOI missing or metadata incomplete
  * 6. Return structured CitationMetadata for formatting
  */
 
 import * as pdfjsLib from 'pdfjs-dist';
+import { ai } from './ai';
 
 // Vite/ESM worker setup
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -158,10 +159,9 @@ function isMetadataSufficient(m: Partial<CitationMetadata>): boolean {
   return !!(m.title && m.authors?.length && m.year);
 }
 
-// ─── Step 5: AI fallback via Puter.js ────────────────────────────────────────
+// ─── Step 5: AI fallback ────────────────────────────────────────
 
 async function aiExtractMetadata(text: string, filename: string): Promise<Partial<CitationMetadata>> {
-  const puter = window.puter;
   try {
     const snippet = text.slice(0, 3000); // keep prompt manageable
     const prompt = `You are a citation metadata extractor. Given the text from the first page of an academic paper (or a filename if no text is available), extract the following fields as a JSON object. Return ONLY valid JSON, no markdown, no explanation.
@@ -183,7 +183,7 @@ ${snippet || '(no text available, use filename only)'}
 
 JSON:`;
 
-    const response = await puter.ai.chat(prompt);
+    const response = await ai.chat([prompt]);
     const raw = typeof response === 'string' ? response : response?.message?.content || '';
     // Strip markdown code fences if present
     const cleaned = raw.replace(/```json?\s*/gi, '').replace(/```/g, '').trim();

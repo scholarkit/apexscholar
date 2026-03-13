@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, CheckCircle2, Lock, GraduationCap, Microscope, Book, Search, BookCopy } from 'lucide-react';
 import { COURSES_2, PROGRESS_KV_KEY, CourseProgress } from '../lib/courseData';
-import { puterService } from '../lib/puter';
+import { kv } from '../lib/kv';
 
 export default function Learn() {
     const [progress, setProgress] = useState<CourseProgress>({});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        puterService.kvGet(PROGRESS_KV_KEY).then((data: CourseProgress | null) => {
+        kv.get(PROGRESS_KV_KEY).then((data: CourseProgress | null) => {
             setProgress(data || {});
             setLoading(false);
         });
@@ -26,6 +26,7 @@ export default function Learn() {
         <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
             {/* Header */}
             <header>
+                <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div className="flex items-center gap-3 mb-1">
                     <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white">Learn</h1>
                 </div>

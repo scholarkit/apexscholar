@@ -21,11 +21,11 @@ import {
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { puterService } from '../lib/puter';
 import { Plus, GripVertical, Trash2, Calendar, SquareKanban, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { kv } from '../lib/kv';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -124,7 +124,7 @@ export default function Kanban() {
             setLoading(false);
             return;
         }
-        puterService.kvGet(KV_KEY).then((data: Task[] | null) => {
+        kv.get(KV_KEY).then((data: Task[] | null) => {
             const allTasks = data || [];
             const projectTasks = allTasks.filter(t => t.projectId === activeProject.id);
             setTasks(projectTasks);
@@ -137,11 +137,11 @@ export default function Kanban() {
         if (loading || !activeProject) return;
         const save = async () => {
             try {
-                const allTasks: Task[] = await puterService.kvGet(KV_KEY) || [];
+                const allTasks: Task[] = await kv.get(KV_KEY) || [];
                 // Replace tasks for this project only
                 const otherTasks = allTasks.filter(t => t.projectId !== activeProject.id);
                 const updatedTasks = [...otherTasks, ...tasks];
-                await puterService.kvSet(KV_KEY, updatedTasks);
+                await kv.set(KV_KEY, updatedTasks);
             } catch (err) {
                 console.error('Failed to auto-save Kanban board', err);
             }
@@ -289,6 +289,7 @@ export default function Kanban() {
         <div className="flex flex-col h-full">
             <Breadcrumbs />
             <header className="mb-6 shrink-0">
+                <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <h1 className="text-2xl font-semibold text-white">Kanban Board</h1>
                 <p className="text-base text-zinc-400">Track the progress of your research projects and papers.</p>
             </header>

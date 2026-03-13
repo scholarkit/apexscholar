@@ -1,8 +1,10 @@
 import { useRef, useState, useEffect, JSX } from 'react';
 import { Download, Upload, Activity, Loader2, HardDrive, FolderOpen, Trash2, AlertTriangle, Lock, Shield, Key, Eye, EyeOff, Unlock, LockOpen, Link2, CheckCircle2, ChevronLeft, ChevronRight, Database } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { puterService, initE2EE, enableE2EE, unlockE2EE, disableE2EE, isE2EEEnabled, getE2EEConfig, migrateDataToE2EE, changeE2EEPassphrase } from '../lib/puter';
+import { puterService } from '../lib/puter';
+import { changeE2EEPassphrase, disableE2EE, enableE2EE, getE2EEConfig, isE2EEEnabled, migrateDataToE2EE, initE2EE, unlockE2EE } from '../lib/e2ee';
 import { zoteroService } from '../lib/zotero';
+import { kv } from '../lib/kv';
 
 interface FolderStat { name: string; size: number; }
 
@@ -141,7 +143,7 @@ export default function Settings() {
 
     // Check if Zotero is already connected
     useEffect(() => {
-        puterService.kvGet('zotero_credentials').then(creds => {
+        kv.get('zotero_credentials').then(creds => {
             if (creds && creds.apiKey && creds.userId) {
                 setZoteroConnected(true);
             }
@@ -203,11 +205,11 @@ export default function Settings() {
     const handleBackup = async () => {
         try {
             const [entries, resources, insights, knowledgebase, kanban] = await Promise.all([
-                puterService.kvGet('research_entries'),
-                puterService.kvGet('research_resources'),
-                puterService.kvGet('research_insights'),
-                puterService.kvGet('research_knowledgebase'),
-                puterService.kvGet('research_kanban'),
+                kv.get('research_entries'),
+                kv.get('research_resources'),
+                kv.get('research_insights'),
+                kv.get('research_knowledgebase'),
+                kv.get('research_kanban'),
             ]);
             const backup = {
                 entries: entries || [],
@@ -241,11 +243,11 @@ export default function Settings() {
             const text = await file.text();
             const backup = JSON.parse(text);
             await Promise.all([
-                backup.entries && puterService.kvSet('research_entries', backup.entries),
-                backup.resources && puterService.kvSet('research_resources', backup.resources),
-                backup.insights && puterService.kvSet('research_insights', backup.insights),
-                backup.knowledgebase && puterService.kvSet('research_knowledgebase', backup.knowledgebase),
-                backup.kanban && puterService.kvSet('research_kanban', backup.kanban),
+                backup.entries && kv.set('research_entries', backup.entries),
+                backup.resources && kv.set('research_resources', backup.resources),
+                backup.insights && kv.set('research_insights', backup.insights),
+                backup.knowledgebase && kv.set('research_knowledgebase', backup.knowledgebase),
+                backup.kanban && kv.set('research_kanban', backup.kanban),
             ]);
             alert('Backup restored! Reloading...');
             window.location.reload();
@@ -269,7 +271,7 @@ export default function Settings() {
                 'research_funding',
                 'research_projects',
             ];
-            await Promise.all(ALL_KEYS.map(key => puterService.kvSet(key, [])));
+            await Promise.all(ALL_KEYS.map(key => kv.set(key, [])));
             window.location.reload();
         } catch (err) {
             console.error('Reset failed', err);
@@ -373,7 +375,7 @@ export default function Settings() {
             const secret = localStorage.getItem('zotero_oauth_secret');
             if (!secret) throw new Error('OAuth secret not found in local storage. Please try connecting again.');
             const credentials = await zoteroService.getAccessToken(oauthToken, secret, oauthVerifier);
-            await puterService.kvSet('zotero_credentials', credentials);
+            await kv.set('zotero_credentials', credentials);
             localStorage.removeItem('zotero_oauth_secret');
             setSearchParams(new URLSearchParams());
             setZoteroConnected(true);
@@ -388,7 +390,7 @@ export default function Settings() {
     const handleDisconnectZotero = async () => {
         if (!confirm('Are you sure you want to disconnect your Zotero account? Your synced items will remain in Apex Scholar.')) return;
         try {
-            await puterService.kvDelete('zotero_credentials');
+            await kv.delete('zotero_credentials');
             setZoteroConnected(false);
         } catch (err) {
             console.error('Failed to disconnect Zotero:', err);
@@ -702,6 +704,7 @@ export default function Settings() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
             <header className="flex items-center gap-3">
+                <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 {activeModule && (
                     <button
                         onClick={() => setActiveModule(null)}

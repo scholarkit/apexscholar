@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { kv } from '../lib/kv';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -64,7 +65,7 @@ export default function Funding() {
 
     // Initial load
     useEffect(() => {
-        puterService.kvGet(KV_KEY).then((data: Grant[] | null) => {
+        kv.get(KV_KEY).then((data: Grant[] | null) => {
             setGrants(data || []);
             setLoading(false);
         });
@@ -73,7 +74,7 @@ export default function Funding() {
     // Auto-save wrapper
     const saveGrants = async (newGrants: Grant[]) => {
         setGrants(newGrants);
-        await puterService.kvSet(KV_KEY, newGrants);
+        await kv.set(KV_KEY, newGrants);
     };
 
     // Derived Metrics
@@ -167,6 +168,7 @@ export default function Funding() {
         <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
             {/* Header */}
             <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div>
                     <h1 className="text-2xl font-semibold tracking-tight text-white mb-2 flex items-center gap-3">
                         Funding & Grants

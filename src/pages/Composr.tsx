@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
+import { kv } from '../lib/kv';
 
 // CodeMirror Imports
 import CodeMirror from '@uiw/react-codemirror';
@@ -231,7 +232,7 @@ Your abstract here.
         if (!activeProject) return;
         try {
             setLoading(true);
-            const data = await puterService.kvGet(`composr_${activeProject.id}`) as DocumentData;
+            const data = await kv.get(`composr_${activeProject.id}`) as DocumentData;
             if (data) {
                 setLatexContent(data.latexContent || '');
                 setDocsContent(data.docsContent || '');
@@ -254,7 +255,7 @@ Your abstract here.
         if (!activeProject) return;
         try {
             setIsSaving(true);
-            await puterService.kvSet(`composr_${activeProject.id}`, {
+            await kv.set(`composr_${activeProject.id}`, {
                 projectId: activeProject.id,
                 title,
                 latexContent,
@@ -355,6 +356,7 @@ Your abstract here.
 
             {/* Dynamic Header */}
             <header className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-6 shrink-0">
+                <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div className="flex items-center gap-4 w-full lg:w-1/3">
                     <div className="p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
                         <FileText className="w-6 h-6 text-indigo-400" />
@@ -392,50 +394,42 @@ Your abstract here.
             <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 relative">
                 {/* Editor Side */}
                 <div className={`flex-1 flex flex-col bg-zinc-900/50 rounded-xl overflow-hidden backdrop-blur-sm transition-all duration-300 ${isPreviewOnly ? 'hidden lg:flex' : 'flex'}`}>
-                    <div className="flex items-center justify-between px-6 py-4 bg-zinc-900/80 border-b border-zinc-800 shrink-0">
-                        <div className="flex items-center gap-2 text-zinc-400">
-                            {activeMode === 'latex' ? <Code2 className="w-4 h-4" /> : <Type className="w-4 h-4" />}
-                            <span className="text-xs font-bold uppercase tracking-wider">
-                                {activeMode === 'latex' ? 'LaTeX Editor' : 'Rich Text Editor'}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto lg:overflow-visible no-scrollbar pb-2 lg:pb-0">
-                            <button
-                                onClick={handleSave}
-                                disabled={isSaving}
-                                className="flex items-center justify-center gap-2 px-4 py-2 hover:bg-zinc-800 text-white rounded-xl text-sm font-medium transition-colors shrink-0"
-                            >
-                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                Save
-                            </button>
+                    <div className="flex items-center justify-end gap-4 px-6 py-4 bg-zinc-900/80 border-b border-zinc-800 shrink-0">
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className="flex items-center justify-center gap-2 hover:text-white hover:cursor-pointer text-sm font-medium transition-colors shrink-0"
+                        >
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            Save
+                        </button>
 
-                            <button
-                                onClick={downloadFile}
-                                className="flex items-center justify-center gap-2 px-4 py-2  hover:bg-zinc-800 text-white rounded-xl text-sm font-medium transition-colors shrink-0"
-                            >
-                                <FileDown className="w-4 h-4" />
-                                {activeMode === 'latex' ? '.tex' : '.html'}
-                            </button>
+                        <button
+                            onClick={downloadFile}
+                            className="flex items-center justify-center gap-2 hover:text-white hover:cursor-pointer text-sm font-medium transition-colors shrink-0"
+                        >
+                            <FileDown className="w-4 h-4" />
+                            {activeMode === 'latex' ? '.tex' : '.html'}
+                        </button>
 
-                            {activeMode === 'latex' && (
-                                <button
-                                    onClick={handleCompile}
-                                    disabled={isCompiling}
-                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors min-w-[140px] shrink-0"
-                                >
-                                    {isCompiling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Cpu className="w-4 h-4" />}
-                                    {isCompiling ? (compilationStatus || 'Compiling...') : 'Compile'}
-                                </button>
-                            )}
-
+                        {activeMode === 'latex' && (
                             <button
-                                onClick={() => setIsPreviewOnly(!isPreviewOnly)}
-                                className="lg:hidden flex items-center justify-center gap-2 px-4 py-2 bg-zinc-800 text-white rounded-xl text-sm font-medium transition-colors shrink-0"
+                                onClick={handleCompile}
+                                disabled={isCompiling}
+                                className="flex items-center justify-center gap-2 hover:text-white hover:cursor-pointer disabled:opacity-50 text-sm font-medium transition-colors shrink-0"
                             >
-                                {isPreviewOnly ? <Code2 className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                {isPreviewOnly ? 'Edit' : 'View'}
+                                {isCompiling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Cpu className="w-4 h-4" />}
+                                {isCompiling ? (compilationStatus || 'Compiling...') : 'Compile'}
                             </button>
-                        </div>
+                        )}
+
+                        <button
+                            onClick={() => setIsPreviewOnly(!isPreviewOnly)}
+                            className="lg:hidden flex items-center justify-center gap-2 hover:text-white hover:cursor-pointer text-sm font-medium transition-colors shrink-0"
+                        >
+                            {isPreviewOnly ? <Code2 className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            {isPreviewOnly ? 'Edit' : 'View'}
+                        </button>
                     </div>
 
                     <div className="flex-1 overflow-hidden flex flex-col">
@@ -469,24 +463,22 @@ Your abstract here.
                 {/* Preview Side (Only for LaTeX) */}
                 {activeMode === 'latex' && (
                     <div className={`flex-1 flex flex-col bg-zinc-900/30 rounded-xl overflow-hidden backdrop-blur-md transition-all duration-300 ${!isPreviewOnly ? 'hidden lg:flex' : 'flex'}`}>
-                        <div className="flex items-center justify-between px-6 py-4 bg-zinc-900/80 border-b border-zinc-800 shrink-0">
-                            <div className="flex items-center gap-4">
-                                <button
-                                    onClick={() => setActiveTab('preview')}
-                                    className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 'preview' ? 'text-indigo-400' : 'text-zinc-500 hover:text-zinc-300'}`}
-                                >
-                                    <Eye className="w-4 h-4" />
-                                    Draft View
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('pdf')}
-                                    disabled={!pdfUrl}
-                                    className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 'pdf' ? 'text-indigo-400' : 'text-zinc-500 hover:text-zinc-300 disabled:opacity-30'}`}
-                                >
-                                    <FileText className="w-4 h-4" />
-                                    PDF Proof
-                                </button>
-                            </div>
+                        <div className="flex items-center justify-end gap-4 px-6 py-4 bg-zinc-900/80 border-b border-zinc-800 shrink-0">
+                            <button
+                                onClick={() => setActiveTab('preview')}
+                                className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 'preview' ? 'text-indigo-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            >
+                                <Eye className="w-4 h-4" />
+                                Draft View
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('pdf')}
+                                disabled={!pdfUrl}
+                                className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 'pdf' ? 'text-indigo-400' : 'text-zinc-500 hover:text-zinc-300 disabled:opacity-30'}`}
+                            >
+                                <FileText className="w-4 h-4" />
+                                PDF Proof
+                            </button>
                             {isPreviewOnly && (
                                 <button
                                     onClick={() => setIsPreviewOnly(false)}

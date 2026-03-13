@@ -8,6 +8,7 @@ interface ProjectContextType {
     setActiveProject: (project: Project) => void;
     refreshProjects: () => Promise<void>;
     createProject: (name: string, description: string) => Promise<Project>;
+    updateProject: (id: string, patch: Partial<Pick<Project, 'name' | 'description'>>) => Promise<void>;
     deleteProject: (id: string) => Promise<void>;
 }
 
@@ -60,6 +61,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         return proj;
     };
 
+    const updateProject = async (id: string, patch: Partial<Pick<Project, 'name' | 'description'>>) => {
+        const updated = await projectService.updateProject(id, patch);
+        if (activeProject?.id === id) {
+            setActiveProjectState(updated);
+        }
+        await fetchProjects();
+    };
+
     const deleteProject = async (id: string) => {
         await projectService.deleteProject(id);
 
@@ -78,6 +87,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             setActiveProject,
             refreshProjects: fetchProjects,
             createProject,
+            updateProject,
             deleteProject
         }}>
             {children}

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Plus, FolderPlus, FolderGit, LayoutDashboard, BookOpen, FolderSearch, SquareKanban, Sparkles, Lightbulb, ChevronRight, AlertCircle, Trash2, FolderOpen, PenTool, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, FolderPlus, FolderGit, LayoutDashboard, BookOpen, FolderSearch, SquareKanban, Sparkles, Lightbulb, ChevronRight, AlertCircle, Settings, FolderOpen, PenTool, ChevronDown } from 'lucide-react';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -55,7 +55,7 @@ const MODULES = [
 ];
 
 export default function Projects() {
-    const { projects, activeProject, setActiveProject, createProject, deleteProject, loading } = useProject();
+    const { projects, activeProject, setActiveProject, createProject, loading } = useProject();
     const navigate = useNavigate();
     const [isCreating, setIsCreating] = useState(false);
     const [newProject, setNewProject] = useState({ name: '', description: '' });
@@ -83,6 +83,7 @@ export default function Projects() {
         <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
             {/* Header */}
             <header className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div>
                     <h1 className="text-2xl font-semibold text-white">Research Projects</h1>
                     <p className="text-base text-zinc-400">Organize and manage your research workspaces.</p>
@@ -98,7 +99,7 @@ export default function Projects() {
 
             {/* Inline Creation Form */}
             {isCreating && (
-                <div className="p-6 rounded-xl bg-zinc-900/50 border    border-neutral-800 backdrop-blur-sm animate-in zoom-in-95 duration-200">
+                <div className="p-6 rounded-xl bg-zinc-900/50 border border-neutral-800 backdrop-blur-sm animate-in zoom-in-95 duration-200">
                     <h3 className="text-lg font-semibold text-white mb-4">Create New Project</h3>
                     <form onSubmit={handleCreateProject} className="space-y-4">
                         <div>
@@ -120,7 +121,7 @@ export default function Projects() {
                                 placeholder="Briefly describe the research scope..."
                             />
                         </div>
-                        <div className="flex gap-3 pt-2">
+                        <div className="flex items-center justify-end gap-3 pt-2">
                             <button
                                 type="button"
                                 onClick={() => setIsCreating(false)}
@@ -186,16 +187,12 @@ export default function Projects() {
                                 </div>
                                 <div className="w-px h-10 bg-white/10 hidden sm:block mx-1" />
                                 <button
-                                    onClick={() => {
-                                        if (confirm(`Delete project "${activeProject?.name}" and all associated research data? This cannot be undone.`)) {
-                                            if (activeProject) deleteProject(activeProject.id);
-                                        }
-                                    }}
-                                    className="flex flex-row items-center justify-center p-3 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20 group"
-                                    title="Delete Workspace"
+                                    onClick={() => navigate('/projects/settings')}
+                                    className="flex flex-row items-center justify-center p-3 text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-xl transition-all border border-transparent hover:border-indigo-500/20 group"
+                                    title="Project Settings"
                                 >
-                                    <Trash2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                    <span className="sm:hidden font-medium ml-2">Delete Project</span>
+                                    <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
+                                    <span className="sm:hidden font-medium ml-2">Project Settings</span>
                                 </button>
                             </div>
                         </div>

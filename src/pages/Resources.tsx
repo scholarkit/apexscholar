@@ -7,6 +7,7 @@ import FileChatModal from '../components/FileChatModal';
 import { useProject } from '../contexts/ProjectContext';
 import Breadcrumbs from '../components/Breadcrumbs';
 import ZoteroImportModal from '../components/ZoteroImportModal';
+import { kv } from '../lib/kv';
 
 export default function Resources() {
   const { activeProject } = useProject();
@@ -24,14 +25,14 @@ export default function Resources() {
 
   useEffect(() => {
     fetchResources();
-  }, []);
+  }, [activeProject]);
 
   const fetchResources = async () => {
     if (!activeProject) {
       setLoading(false);
       return;
     }
-    const data = await puterService.kvGet('research_resources') || [];
+    const data = await kv.get('research_resources') || [];
     const projectResources = data.filter((r: Resource) => r.projectId === activeProject.id);
     setResources(projectResources.sort((a: Resource, b: Resource) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime()));
 
@@ -73,9 +74,9 @@ export default function Resources() {
         date_added: new Date().toISOString()
       };
 
-      const allResources = await puterService.kvGet('research_resources') || [];
+      const allResources = await kv.get('research_resources') || [];
       const updatedResources = [resource, ...allResources];
-      await puterService.kvSet('research_resources', updatedResources);
+      await kv.set('research_resources', updatedResources);
 
       fetchResources();
     } catch (error) {
@@ -94,9 +95,9 @@ export default function Resources() {
       await puterService.fsDelete(path);
 
       // Update KV metadata
-      const allResources = await puterService.kvGet('research_resources') || [];
+      const allResources = await kv.get('research_resources') || [];
       const updatedResources = allResources.filter((r: Resource) => r.id !== id);
-      await puterService.kvSet('research_resources', updatedResources);
+      await kv.set('research_resources', updatedResources);
 
       fetchResources();
     } catch (err) {
@@ -106,11 +107,12 @@ export default function Resources() {
   };
 
   const getIcon = (type: string) => {
-    if (type.includes('book')) return <Book className="w-8 h-8 text-indigo-400" />;
-    if (type.includes('webpage')) return <Globe className="w-8 h-8 text-red-400" />;
-    if (type.includes('pdf')) return <FileText className="w-8 h-8 text-red-400" />;
-    if (type.includes('image')) return <ImageIcon className="w-8 h-8 text-emerald-400" />;
-    if (type.includes('text')) return <FileText className="w-8 h-8 text-blue-400" />;
+    const classes = "w-4 h-4 text-indigo-400";
+    if (type.includes('book')) return <Book className={classes} />;
+    if (type.includes('webpage')) return <Globe className={classes} />;
+    if (type.includes('pdf')) return <FileText className={classes} />;
+    if (type.includes('image')) return <ImageIcon className={classes} />;
+    if (type.includes('text')) return <FileText className={classes} />;
     return <File className="w-8 h-8 text-zinc-400" />;
   };
 
@@ -133,6 +135,7 @@ export default function Resources() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
           <h1 className="text-2xl font-semibold text-white">Resource Library</h1>
           <p className="text-base text-zinc-400">Manage your PDFs, images, and text files.</p>
@@ -193,6 +196,7 @@ export default function Resources() {
             <thead>
               <tr className="border-b border-neutral-800">
                 <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Resource</th>
+                <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Type</th>
                 <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Added</th>
                 <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -203,18 +207,18 @@ export default function Resources() {
                   {/* Icon + Name */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-black rounded-lg border border-neutral-800 shrink-0">
+                      <div className="shrink-0">
                         {getIcon(resource.type)}
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-white text-sm font-medium truncate max-w-[200px]" title={resource.name}>
-                          {resource.name}
-                        </p>
-                        <span className="px-1.5 py-0.5 rounded-full text-indigo-500 text-[8px] font-bold uppercase tracking-wider">
-                          {resource.type}
-                        </span>
-                      </div>
+                      <p className="text-white text-sm font-medium truncate max-w-[200px]" title={resource.name}>
+                        {resource.name}
+                      </p>
                     </div>
+                  </td>
+
+                  {/* Type */}
+                  <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
+                    {resource.type}
                   </td>
 
                   {/* Date Added */}

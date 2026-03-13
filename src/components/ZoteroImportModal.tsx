@@ -3,6 +3,8 @@ import { X, Library, Folder, CheckCircle2, Download, Loader2, AlertTriangle } fr
 import { puterService, Resource } from '../lib/puter';
 import { zoteroService, ZoteroCredentials } from '../lib/zotero';
 import { useProject } from '../contexts/ProjectContext';
+import { kv } from '../lib/kv';
+import { useNavigate } from 'react-router-dom';
 
 const UPLOADS_DIR = 'research-dashboard/uploads';
 
@@ -22,6 +24,8 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     loadZoteroData();
   }, []);
@@ -30,10 +34,10 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
     setIsLoading(true);
     setError(null);
     try {
-      const creds = await puterService.kvGet('zotero_credentials');
+      const creds = await kv.get('zotero_credentials');
       // creds.userId = '475425'; // For testing
       if (!creds || !creds.apiKey || !creds.userId) {
-        setError('Zotero is not connected. Please connect your account in Settings.');
+        setError('Please connect your Zotero account in Settings > Integrations.');
         setIsLoading(false);
         return;
       }
@@ -62,7 +66,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
       let hasMore = true;
 
       // Fetch last synced version for this collection
-      const syncVersions = await puterService.kvGet('zotero_sync_versions') || {};
+      const syncVersions = await kv.get('zotero_sync_versions') || {};
       const lastVersion = syncVersions[selectedCollection] || null;
 
       // Fetch paginated data
@@ -140,7 +144,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
       // Write content to files in Puter FS & update KV
       setImportProgress('Saving resources to storage...');
 
-      const existingData = await puterService.kvGet('research_resources') || [];
+      const existingData = await kv.get('research_resources') || [];
 
       // Save files
       for (const res of mappedResources) {
@@ -154,11 +158,11 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
       const filteredOld = existingData.filter((r: Resource) => !newDict.has(r.id));
 
       const finalData = [...mappedResources, ...filteredOld];
-      await puterService.kvSet('research_resources', finalData);
+      await kv.set('research_resources', finalData);
 
       // Save the new max version
       syncVersions[selectedCollection] = maxVersion;
-      await puterService.kvSet('zotero_sync_versions', syncVersions);
+      await kv.set('zotero_sync_versions', syncVersions);
 
       alert(`Successfully imported ${mappedResources.length} new items from Zotero!`);
       onImport();
@@ -210,6 +214,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
                   <div className="flex flex-col items-center justify-center py-6 text-rose-400">
                     <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
                     <span className="text-sm px-4 text-center">{error}</span>
+                    <button onClick={() => navigate('/settings')} className="text-indigo-400 hover:text-indigo-300 hover:cursor-pointer">Go to Settings</button>
                   </div>
                 ) : (
                   <>

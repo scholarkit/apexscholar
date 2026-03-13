@@ -16,8 +16,8 @@ import OAuth from 'oauth-1.0a';
 
 const oauth = new OAuth({
   consumer: {
-    key: process.env.VITE_ZOTERO_CLIENT_KEY || '',
-    secret: process.env.VITE_ZOTERO_CLIENT_SECRET || ''
+    key: process.env.ZOTERO_CLIENT_KEY || '',
+    secret: process.env.ZOTERO_CLIENT_SECRET || ''
   },
   signature_method: 'HMAC-SHA1',
   hash_function(base_string, key) {

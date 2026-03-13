@@ -1,15 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { Lightbulb, Sparkles, RefreshCw, FileText, Download, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Lightbulb, Sparkles, RefreshCw, FileText, AlertCircle, ArrowLeft } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
 // @ts-ignore - html2pdf doesn't have official types
 import html2pdf from 'html2pdf.js';
 
-import { Entry, Insight, puterService } from '../lib/puter';
+import { Entry, Insight } from '../lib/puter';
+import { kv } from '../lib/kv';
 
 export default function Insights() {
   const { activeProject } = useProject();
@@ -24,7 +24,7 @@ export default function Insights() {
     const fetchLatestInsight = async () => {
       if (!activeProject) return;
       try {
-        const insights: Insight[] = await puterService.kvGet('research_insights') || [];
+        const insights: Insight[] = await kv.get('research_insights') || [];
         const projectInsights = insights.filter(i => i.projectId === activeProject.id);
         if (projectInsights.length > 0) {
           // Sort by creation date and get the latest
@@ -45,7 +45,7 @@ export default function Insights() {
     setError(null);
     try {
       // 1. Fetch entries from Puter KV for context, filtered by active project
-      const allEntries: Entry[] = await puterService.kvGet('research_entries') || [];
+      const allEntries: Entry[] = await kv.get('research_entries') || [];
       const entries = allEntries.filter(e => e.projectId === activeProject?.id);
 
       if (entries.length === 0) {
@@ -80,8 +80,8 @@ SUMMARY:`;
         created_at: new Date().toISOString()
       };
 
-      const existingInsights: Insight[] = await puterService.kvGet('research_insights') || [];
-      await puterService.kvSet('research_insights', [newInsight, ...existingInsights]);
+      const existingInsights: Insight[] = await kv.get('research_insights') || [];
+      await kv.set('research_insights', [newInsight, ...existingInsights]);
 
       setSummary(generatedSummary);
     } catch (err) {
@@ -211,6 +211,7 @@ SUMMARY:`;
     <div className="space-y-4 sm:space-y-8 animate-in fade-in duration-500">
       <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
           <h1 className="text-2xl font-semibold text-white">AI Insights Engine</h1>
           <p className="text-base text-zinc-400">Generate intelligent summaries from your recent research entries.</p>

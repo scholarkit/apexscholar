@@ -14,7 +14,8 @@ import Insights from './pages/Insights';
 import Composr from './pages/Composr';
 import Analytics from './pages/Analytics';
 import Login from './components/Login';
-import { puterService, initE2EE, isE2EEEnabled, unlockE2EE, getE2EEConfig } from './lib/puter';
+import { puterService } from './lib/puter';
+import { initE2EE, isE2EEEnabled, unlockE2EE, getE2EEConfig } from './lib/e2ee';
 import Explore from './pages/Explore';
 import Kanban from './pages/Kanban';
 import Funding from './pages/Funding';
@@ -23,6 +24,7 @@ import Settings from './pages/Settings';
 import Learn from './pages/Learn';
 import CourseView from './pages/CourseView';
 import LessonView from './pages/LessonView';
+import ProjectSettings from './pages/ProjectSettings';
 import { ProjectProvider } from './contexts/ProjectContext';
 import { Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 
@@ -153,6 +155,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/settings" element={<ProjectSettings />} />
             <Route path="/journal" element={<Journal />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/explore" element={<Explore />} />

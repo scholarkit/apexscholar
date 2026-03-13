@@ -12,6 +12,8 @@
  * - All KV storage operations automatically encrypt/decrypt
  */
 
+import { kv } from './kv';
+
 // Type for encrypted payload stored in KV
 export interface EncryptedPayload {
   version: number;      // encryption format version
@@ -105,7 +107,7 @@ class E2EEService {
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt: salt as any,
         iterations: PBKDF2_ITERATIONS,
         hash: 'SHA-256'
       },
@@ -132,7 +134,7 @@ class E2EEService {
       this.config = {
         enabled: true,
         isInitialized: true,
-        salt: this.arrayBufferToBase64(salt)
+        salt: this.arrayBufferToBase64(salt.buffer)
       };
 
       this.saveConfig();
@@ -196,7 +198,7 @@ class E2EEService {
 
     return {
       version: E2EE_VERSION,
-      iv: this.arrayBufferToBase64(iv),
+      iv: this.arrayBufferToBase64(iv.buffer),
       salt: this.config.salt!, // already stored in config
       ciphertext: this.arrayBufferToBase64(ciphertext)
     };
@@ -258,7 +260,7 @@ class E2EEService {
   /**
    * Helper: Convert ArrayBuffer to base64 string
    */
-  private arrayBufferToBase64(buffer: ArrayBuffer): string {
+  private arrayBufferToBase64(buffer: ArrayBufferLike): string {
     let binary = '';
     const bytes = new Uint8Array(buffer);
     for (let i = 0; i < bytes.byteLength; i++) {
@@ -310,7 +312,7 @@ class E2EEService {
 
     // Update config with new salt
     this.cryptoKey = newKey;
-    this.config.salt = this.arrayBufferToBase64(newSalt);
+    this.config.salt = this.arrayBufferToBase64(newSalt.buffer);
     this.saveConfig();
 
     return true;
@@ -319,3 +321,131 @@ class E2EEService {
 
 // Export singleton
 export const e2eeService = new E2EEService();
+
+/**
+ * Initialize E2EE system (call on app startup)
+ */
+export async function initE2EE(): Promise<boolean> {
+  return await e2eeService.initialize();
+}
+
+/**
+ * Enable E2EE with user passphrase
+ */
+export async function enableE2EE(passphrase: string): Promise<boolean> {
+  return await e2eeService.enable(passphrase);
+}
+
+/**
+ * Unlock E2EE with passphrase (required after page reload when enabled)
+ */
+export async function unlockE2EE(passphrase: string): Promise<boolean> {
+  return await e2eeService.promptForPassphrase(passphrase);
+}
+
+/**
+ * Disable E2EE (use with caution - data remains encrypted unless re-encrypted)
+ */
+export function disableE2EE(): void {
+  e2eeService.disable();
+}
+
+/**
+ * Check if E2EE is active and ready
+ */
+export function isE2EEEnabled(): boolean {
+  return e2eeService.isEnabled();
+}
+
+/**
+ * Get E2EE configuration status
+ */
+export function getE2EEConfig() {
+  return e2eeService.getConfig();
+}
+
+/**
+ * Change E2EE passphrase (caller must re-encrypt all stored data after)
+ */
+export async function changeE2EEPassphrase(oldPassphrase: string, newPassphrase: string): Promise<boolean> {
+  return await e2eeService.changePassphrase(oldPassphrase, newPassphrase);
+}
+
+/**
+ * Re-encrypt all existing KV data with current E2EE key.
+ * Call after enabling E2EE to secure previously unencrypted data.
+ * Returns counts of success/failure.
+ */
+export async function migrateDataToE2EE(): Promise<{success: number; failed: number; skipped: number}> {
+  if (!isE2EEEnabled()) {
+    throw new Error('E2EE must be enabled before migrating data');
+  }
+
+  // List of all known KV keys used by the application
+  const KNOWN_KEYS = [
+    'research_projects',
+    'research_entries',
+    'research_resources',
+    'research_insights',
+    'research_knowledgebase',
+    'research_kanban',
+    // Add more keys as discovered
+  ];
+
+  let success = 0;
+  let failed = 0;
+  let skipped = 0;
+
+  for (const key of KNOWN_KEYS) {
+    try {
+      // Read raw value directly from Puter (bypassing decryption layer).
+      // Since kv.ts now auto-decrypts if E2EE is enabled, 
+      // we must retrieve raw from the window.puter object directly to avoid double processing, 
+      // OR we just use kvGet if it handles plain values gracefully. But to be safe:
+      const rawValue = await window.puter.kv.get(key);
+      if (rawValue === null) {
+        skipped++;
+        continue;
+      }
+
+      // Check if already encrypted
+      try {
+        const parsed = JSON.parse(rawValue);
+        // Check if parsed object has encryption fields
+        if (parsed && typeof parsed === 'object' && parsed.version && parsed.iv && parsed.ciphertext) {
+          // Already encrypted, skip
+          skipped++;
+          continue;
+        }
+        // Plain JSON - will be re-encrypted via kv.set
+        const value = parsed;
+        await kv.set(key, value);
+        success++;
+      } catch {
+        // Non-JSON value (unlikely), skip
+        skipped++;
+      }
+    } catch (err) {
+      console.error(`Failed to migrate key ${key}:`, err);
+      failed++;
+    }
+  }
+
+  return { success, failed, skipped };
+}
+
+/**
+ * List all KV keys in storage (for debugging/migration)
+ */
+export async function listAllKeys(): Promise<string[]> {
+  // Puter.js doesn't expose key listing directly in the SDK we have
+  // So we return known keys only for now
+  return [
+    'research_projects',
+    'research_entries',
+    'research_resources',
+    'research_insights',
+    'research_knowledgebase',
+    'research_kanban',
+  ];
+}

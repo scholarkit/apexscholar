@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ChevronLeft, ChevronRight, CheckCircle2, Circle, BookOpen, Volume2, Square, Loader2 } from 'lucide-react';
 import { COURSES_2, PROGRESS_KV_KEY, CourseProgress } from '../lib/courseData';
-import { puterService } from '../lib/puter';
+import { kv } from '../lib/kv';
 
 export default function LessonView() {
     const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
@@ -23,7 +23,7 @@ export default function LessonView() {
     const [audio, setAudio] = useState<any>(null);
 
     useEffect(() => {
-        puterService.kvGet(PROGRESS_KV_KEY).then((data: CourseProgress | null) => {
+        kv.get(PROGRESS_KV_KEY).then((data: CourseProgress | null) => {
             setProgress(data || {});
         });
     }, []);
@@ -41,7 +41,7 @@ export default function LessonView() {
             },
         };
         setProgress(updated);
-        await puterService.kvSet(PROGRESS_KV_KEY, updated);
+        await kv.set(PROGRESS_KV_KEY, updated);
         setSaving(false);
     }, [progress, courseId, lessonId, isDone]);
 
@@ -53,7 +53,7 @@ export default function LessonView() {
             [courseId]: { ...(progress[courseId] || {}), [lessonId]: true },
         };
         setProgress(updated);
-        await puterService.kvSet(PROGRESS_KV_KEY, updated);
+        await kv.set(PROGRESS_KV_KEY, updated);
         setSaving(false);
         if (nextLesson?.content) {
             navigate(`/learn/${courseId}/${nextLesson.id}`);
@@ -129,7 +129,7 @@ export default function LessonView() {
     const pct = Math.round((completedCount / course.lessons.length) * 100);
 
     return (
-        <div className="max-w-3xl animate-in fade-in duration-500 pb-32 sm:pb-8">
+        <div className="animate-in fade-in duration-500 pb-32 sm:pb-8">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-xs text-zinc-500 mb-6">
                 <Link to="/learn" className="hover:text-zinc-300 transition-colors">Learn</Link>
@@ -141,6 +141,7 @@ export default function LessonView() {
 
             {/* Lesson Header */}
             <div className="mb-8">
+                <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div className="flex items-center gap-2 mb-3">
                     <div className="p-1.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
                         <BookOpen className="w-4 h-4 text-indigo-400" />

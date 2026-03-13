@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, FolderOpen, Lightbulb, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Telescope, SquareKanban, Info, Settings, Landmark, BookMarked, SquareChartGantt } from 'lucide-react';
+import {
+  Home, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Info,
+  Settings, Landmark, BookMarked, SquareChartGantt, Menu, X
+} from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { puterService, PuterUser } from '../lib/puter';
@@ -12,12 +15,17 @@ export function cn(...inputs: ClassValue[]) {
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 1024);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [user, setUser] = useState<PuterUser | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+
+  // Close drawer on route change
+  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
 
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) setIsCollapsed(true);
+      if (window.innerWidth >= 1024) setDrawerOpen(false);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -34,26 +42,32 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     window.location.reload();
   };
 
-  const navItems: { path: string; icon: any; label: string; beta?: boolean; hideOnMobile?: boolean }[] = [
+  const navItems: { path: string; icon: any; label: string; beta?: boolean }[] = [
     { path: '/', icon: Home, label: 'Dashboard' },
     { path: '/projects', icon: SquareChartGantt, label: 'Projects' },
     { path: '/funding', icon: Landmark, label: 'Funding & Grants' },
     { path: '/analytics', icon: BarChart2, label: 'Analytics' },
     { path: '/learn', icon: BookMarked, label: 'Learn' },
     { path: '/settings', icon: Settings, label: 'Settings' },
-    { path: '/about', icon: Info, label: 'About' }
+    { path: '/about', icon: Info, label: 'About' },
   ];
+
+  // Bottom tab bar shows first 5 items; remaining accessible via drawer
+  const bottomTabItems = navItems.slice(0, 5);
 
   const initials = user?.username
     ? user.username.slice(0, 2).toUpperCase()
     : '?';
 
   return (
-    <div className="flex h-screen font-sans selection:bg-indigo-500/30 overflow-hidden">
-      {/* Sidebar */}
+    <div className="flex h-[100dvh] font-sans selection:bg-indigo-500/30 overflow-hidden">
+
+      {/* ──────────────────────────────────────────────
+          DESKTOP SIDEBAR  (hidden on mobile)
+      ────────────────────────────────────────────── */}
       <aside
         className={cn(
-          "relative z-20 flex-shrink-0 border-r border-neutral-900 flex flex-col transition-all duration-300 ease-in-out",
+          "hidden lg:flex relative z-20 flex-shrink-0 border-r border-neutral-900 flex-col transition-all duration-300 ease-in-out",
           isCollapsed ? "w-20" : "w-64"
         )}
       >
@@ -68,11 +82,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div className={cn("px-2 py-4 flex items-center", isCollapsed ? "justify-center" : "gap-2")}>
           <img src="/logo-transparent.png" alt="logo" className={cn(isCollapsed ? "w-8 h-8" : "w-12 h-12")} />
-          {!isCollapsed && (
-            <h1 className="logo-title">
-              Apex Scholar
-            </h1>
-          )}
+          {!isCollapsed && <h1 className="logo-title">Apex Scholar</h1>}
         </div>
 
         {/* Nav */}
@@ -86,25 +96,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 to={item.path}
                 title={isCollapsed ? item.label : undefined}
                 className={cn(
-                  "items-center rounded-xl text-sm font-medium transition-all duration-200 group",
-                  item.hideOnMobile ? "hidden sm:flex" : "flex",
+                  "flex items-center rounded-xl text-sm font-medium transition-all duration-200 group",
                   isCollapsed ? "justify-center w-10 h-10 mx-auto" : "gap-3 px-3 py-2.5",
-                  isActive
-                    ? "bg-white/10 text-white"
-                    : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                  isActive ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                 )}
               >
-                <Icon className={cn(isActive ? "text-indigo-500" : "text-zinc-500 group-hover:text-zinc-300",
+                <Icon className={cn(
+                  isActive ? "text-indigo-500" : "text-zinc-500 group-hover:text-zinc-300",
                   isCollapsed ? "w-4 h-4 flex-shrink-0" : "w-5 h-5 flex-shrink-0"
                 )} />
-                {!isCollapsed && <div>
-                  <span className="animate-in fade-in slide-in-from-left-1 duration-300">{item.label}</span>
-                  {item.beta && (
-                    <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-500 text-[10px] font-bold uppercase tracking-wider">
-                      Beta
-                    </span>
-                  )}
-                </div>}
+                {!isCollapsed && (
+                  <div>
+                    <span className="animate-in fade-in slide-in-from-left-1 duration-300">{item.label}</span>
+                    {item.beta && (
+                      <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-500 text-[10px] font-bold uppercase tracking-wider">
+                        Beta
+                      </span>
+                    )}
+                  </div>
+                )}
               </Link>
             );
           })}
@@ -114,42 +124,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className={cn("p-4 border-t border-white/10", isCollapsed ? "flex flex-col items-center gap-3" : "space-y-3")}>
           {isCollapsed ? (
             <>
-              {/* Avatar only when collapsed */}
-              <div
-                title={user?.username || 'User'}
-                className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0"
-              >
+              <div title={user?.username || 'User'} className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
                 {user ? initials : <User className="w-4 h-4" />}
               </div>
-              <button
-                onClick={handleSignOut}
-                disabled={signingOut}
-                title="Sign Out"
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-400/10 border border-transparent hover:border-red-400/20 transition-all"
-              >
+              <button onClick={handleSignOut} disabled={signingOut} title="Sign Out"
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-400/10 border border-transparent hover:border-red-400/20 transition-all">
                 <LogOut className="w-4 h-4" />
               </button>
             </>
           ) : (
             <>
-              {/* Full profile card */}
               <div className="flex items-center gap-3 rounded-xl animate-in fade-in slide-in-from-left-2 duration-300">
                 <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
                   {user ? initials : <User className="w-4 h-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate">
-                    {user?.username || 'Loading...'}
-                  </p>
+                  <p className="text-sm font-semibold text-white truncate">{user?.username || 'Loading...'}</p>
                   <p className="text-xs text-zinc-500 truncate">Puter Account</p>
                 </div>
               </div>
-
-              <button
-                onClick={handleSignOut}
-                disabled={signingOut}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-400/10 border border-transparent hover:border-red-400/20 transition-all disabled:opacity-50"
-              >
+              <button onClick={handleSignOut} disabled={signingOut}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-400/10 border border-transparent hover:border-red-400/20 transition-all disabled:opacity-50">
                 <LogOut className="w-4 h-4 flex-shrink-0" />
                 <span className="animate-in fade-in slide-in-from-left-1 duration-300">
                   {signingOut ? 'Signing out...' : 'Sign Out'}
@@ -160,12 +155,151 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto relative custom-scrollbar">
+      {/* ──────────────────────────────────────────────
+          MOBILE DRAWER OVERLAY  (shown on mobile only)
+      ────────────────────────────────────────────── */}
+      {/* Backdrop */}
+      {drawerOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      {/* Slide-in Drawer */}
+      <div className={cn(
+        "lg:hidden fixed top-0 left-0 h-full w-72 z-50 flex flex-col border-r border-neutral-800 bg-neutral-950 transition-transform duration-300 ease-in-out",
+        drawerOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between px-4 py-4 border-b border-neutral-800">
+          <div className="flex items-center gap-2">
+            <img src="/logo-transparent.png" alt="logo" className="w-9 h-9" />
+            <h1 className="logo-title">Apex Scholar</h1>
+          </div>
+          <button
+            onClick={() => setDrawerOpen(false)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Drawer Nav — all items */}
+        <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group",
+                  isActive ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                )}
+              >
+                <Icon className={cn(
+                  "w-5 h-5 flex-shrink-0",
+                  isActive ? "text-indigo-500" : "text-zinc-500 group-hover:text-zinc-300"
+                )} />
+                <span>{item.label}</span>
+                {item.beta && (
+                  <span className="ml-auto px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-500 text-[10px] font-bold uppercase tracking-wider">
+                    Beta
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Drawer Footer — user + sign out */}
+        <div className="p-4 border-t border-white/10 space-y-3">
+          <div className="flex items-center gap-3 rounded-xl">
+            <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
+              {user ? initials : <User className="w-4 h-4" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-white truncate">{user?.username || 'Loading...'}</p>
+              <p className="text-xs text-zinc-500 truncate">Puter Account</p>
+            </div>
+          </div>
+          <button onClick={handleSignOut} disabled={signingOut}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-400/10 border border-transparent hover:border-red-400/20 transition-all disabled:opacity-50">
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            {signingOut ? 'Signing out...' : 'Sign Out'}
+          </button>
+        </div>
+      </div>
+
+      {/* ──────────────────────────────────────────────
+          MAIN CONTENT
+      ────────────────────────────────────────────── */}
+      <main className="flex-1 overflow-auto relative custom-scrollbar flex flex-col">
         <div className="absolute inset-0 pointer-events-none" />
-        <div className="relative p-4 sm:p-8 max-w-6xl mx-auto min-h-full">
+
+        {/* Mobile top bar with hamburger */}
+        <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 border-b border-neutral-900 bg-neutral-950/90 backdrop-blur-md">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+            aria-label="Open menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2">
+            <img src="/logo-transparent.png" alt="logo" className="w-7 h-7" />
+            <span className="logo-title text-base">Apex Scholar</span>
+          </div>
+        </div>
+
+        {/* Page content */}
+        <div className="relative p-4 sm:p-8 w-full min-h-full">
           {children}
         </div>
+
+        {/* ──────────────────────────────────────────────
+            MOBILE BOTTOM TAB BAR
+        ────────────────────────────────────────────── */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around px-2 py-2 border-t border-neutral-800 bg-neutral-950/95 backdrop-blur-md safe-area-bottom">
+          {bottomTabItems.map((item) => {
+            const isActive = item.path === '/'
+              ? location.pathname === '/'
+              : location.pathname.startsWith(item.path);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className="relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 group min-w-0"
+              >
+                {isActive && (
+                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-indigo-500" />
+                )}
+                <Icon className={cn(
+                  "w-5 h-5 flex-shrink-0 transition-colors duration-200",
+                  isActive ? "text-indigo-400" : "text-zinc-500 group-hover:text-zinc-300"
+                )} />
+                <span className={cn(
+                  "text-[10px] font-medium truncate max-w-[56px] transition-colors duration-200",
+                  isActive ? "text-indigo-400" : "text-zinc-600 group-hover:text-zinc-400"
+                )}>
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+
+          {/* "More" button opens drawer for the remaining items */}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 group"
+          >
+            <Menu className="w-5 h-5 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
+            <span className="text-[10px] font-medium text-zinc-600 group-hover:text-zinc-400 transition-colors">More</span>
+          </button>
+        </nav>
       </main>
     </div>
   );

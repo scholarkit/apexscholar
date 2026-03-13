@@ -818,7 +818,7 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
     };
 
     return (
-        <div className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-2.5 sm:p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col gap-3">
+        <div className="bg-zinc-900/40 border border-neutral-800 rounded-xl p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col gap-3">
             {/* Source badge + year */}
             <div className="flex items-center justify-between gap-2">
                 <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${paper.source === 'arxiv' ? 'text-orange-400 bg-orange-500/10 border-orange-500/20' :
@@ -1225,7 +1225,7 @@ export default function Explore() {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
             <Breadcrumbs />
             {/* Header */}
             <header className="relative">
@@ -1236,13 +1236,13 @@ export default function Explore() {
                     </h1>
                     <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-500/15 text-indigo-500 border border-indigo-500/25 rounded-full">Beta</span>
                 </div>
-                <p className="text-sm sm:text-base text-zinc-400 max-w-2xl leading-relaxed">
+                <p className="text-base text-zinc-400 max-w-2xl leading-relaxed">
                     Aggregate research from <span className="text-zinc-200">arXiv</span>, <span className="text-zinc-200">OpenAlex</span>, <span className="text-zinc-200">Google Scholar</span>, <span className="text-zinc-200">CrossRef</span> and <span className="text-zinc-200">Semantic Scholar</span> instantly.
                 </p>
             </header>
 
             {/* Tabs */}
-            <div className="flex flex-wrap gap-1 bg-zinc-900/50 border    border-neutral-800 p-1 rounded-xl w-fit">
+            <div className="flex flex-wrap gap-1 bg-zinc-900/50 border border-neutral-800 p-1 rounded-xl w-fit">
                 {(['search', 'saved', 'graph'] as const).map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
                         className={`w-full sm:w-fit px-4 py-2 rounded-xl text-sm font-medium transition-all capitalize flex items-center gap-2 ${activeTab === tab ? 'bg-white/10 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'
@@ -1349,7 +1349,7 @@ export default function Explore() {
                                 <div className="space-y-4 animate-pulse">
                                     <div className="h-6 w-48 bg-zinc-800 rounded"></div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {[1, 2].map(i => <div key={i} className="h-48 bg-zinc-900 border    border-neutral-800 rounded-xl"></div>)}
+                                        {[1, 2].map(i => <div key={i} className="h-48 bg-zinc-900 border border-neutral-800 rounded-xl"></div>)}
                                     </div>
                                 </div>
                             ) : recommendations.length > 0 ? (
@@ -1533,7 +1533,7 @@ export default function Explore() {
                                 </div>
                             </div>
 
-                            <div className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-5 overflow-y-auto space-y-4">
+                            <div className="bg-zinc-900/40 border border-neutral-800 rounded-xl p-5 overflow-y-auto space-y-4">
                                 {selectedNode ? (
                                     <div className="space-y-6">
                                         <div>
@@ -1548,7 +1548,7 @@ export default function Explore() {
                                                     const p = savedPapers.find(sp => sp.id === pid);
                                                     if (!p) return null;
                                                     return (
-                                                        <div key={pid} className="bg-zinc-900/80 border    border-neutral-800 p-3 rounded-xl">
+                                                        <div key={pid} className="bg-zinc-900/80 border border-neutral-800 p-3 rounded-xl">
                                                             <div className="text-xs text-zinc-400 mb-1">{p.year}</div>
                                                             <div className="text-sm font-medium text-white leading-snug">{p.title}</div>
                                                         </div>

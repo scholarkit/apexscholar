@@ -29,7 +29,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#09090b] selection:bg-indigo-500/30">
+        <div className="min-h-[100dvh] flex items-center justify-center bg-[#09090b] selection:bg-indigo-500/30">
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-[25%] -left-[25%] w-[50%] h-[50%] bg-indigo-500/10 blur-[120px] rounded-full animate-pulse" />
                 <div className="absolute -bottom-[25%] -right-[25%] w-[50%] h-[50%] bg-purple-500/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
@@ -37,8 +37,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
             <div className="relative w-full max-w-md p-8">
                 <div className="text-center mb-10">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-xl bg-indigo-500/10 border border-indigo-500/20 mb-6 shadow-2xl shadow-indigo-500/10">
-                        <Shield className="w-10 h-10 text-indigo-500" />
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-xl mb-6 shadow-2xl shadow-indigo-500/10">
+                        <img src="/logo-transparent.png" alt="logo" className="w-16 h-16" />
                     </div>
                     <h1 className="text-4xl font-bold text-white tracking-tight mb-3">
                         Apex Scholar

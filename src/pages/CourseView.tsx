@@ -44,7 +44,7 @@ export default function CourseView() {
     const nextLesson = course.lessons.find((l) => !courseProgress[l.id] && l.content);
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 max-w-3xl">
+        <div className="space-y-8 animate-in fade-in duration-500">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-xs text-zinc-500">
                 <Link to="/learn" className="hover:text-zinc-300 transition-colors">Learn</Link>
@@ -53,7 +53,7 @@ export default function CourseView() {
             </nav>
 
             {/* Course Header */}
-            <div className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-6 sm:p-8">
+            <div className="bg-zinc-900/40 border border-neutral-800 rounded-xl p-6 sm:p-8">
                 <div className="flex items-start gap-5 mb-6">
                     <div className="text-5xl leading-none select-none">{getIcon(course.coverEmoji)}</div>
                     <div className="flex-1 min-w-0">

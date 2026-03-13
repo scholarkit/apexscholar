@@ -223,12 +223,12 @@ export default function Journal() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
-          <h1 className="text-lg sm:text-2xl font-semibold text-white">Research Journal</h1>
-          <p className="text-sm sm:text-base text-zinc-400">Log your progress, meetings, and weekly diaries.</p>
+          <h1 className="text-2xl font-semibold text-white">Research Journal</h1>
+          <p className="text-base text-zinc-400">Log your progress, meetings, and weekly diaries.</p>
         </div>
         {!isEditing && (
           <button

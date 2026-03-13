@@ -2,7 +2,7 @@ import { Heart, Coffee, CreditCard, Sparkles, Code2, Globe, Mail, BookOpen } fro
 
 export default function About() {
     return (
-        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-8 animate-in fade-in duration-500 pb-12">
+        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-8 animate-in fade-in duration-500 pb-32 sm:pb-8">
             {/* Header */}
             <header className="text-center space-y-4 pt-12 pb-6 border-b    border-neutral-800">
                 <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20 mb-2">

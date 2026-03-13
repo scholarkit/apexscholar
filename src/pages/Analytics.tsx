@@ -75,11 +75,11 @@ export default function Analytics() {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
-          <h1 className="text-lg sm:text-2xl font-semibold text-white">Analytics & Progress</h1>
-          <p className="text-sm sm:text-base text-zinc-400">Visualize your research activity and milestones.</p>
+          <h1 className="text-2xl font-semibold text-white">Analytics & Progress</h1>
+          <p className="text-base text-zinc-400">Visualize your research activity and milestones.</p>
         </div>
       </header>
 

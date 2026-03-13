@@ -700,7 +700,7 @@ export default function Settings() {
     const activeModuleInfo = MODULES.find(m => m.id === activeModule);
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
             <header className="flex items-center gap-3">
                 {activeModule && (
                     <button
@@ -716,7 +716,7 @@ export default function Settings() {
                             {activeModuleInfo ? activeModuleInfo.name : 'Settings'}
                         </h1>
                     </div>
-                    <p className="text-sm sm:text-base text-zinc-400 pl-1 mt-1">
+                    <p className="text-base text-zinc-400 pl-1 mt-1">
                         {activeModuleInfo ? activeModuleInfo.description : 'Manage your Apex Scholar data and preferences.'}
                     </p>
                 </div>
@@ -729,16 +729,16 @@ export default function Settings() {
                 </div>
             ) : (
                 /* ── Module Grid ── */
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {MODULES.map((module) => (
                         <button
                             key={module.id}
                             onClick={() => setActiveModule(module.id)}
-                            className={`rounded-xl border shadow-sm group p-3 sm:p-6 hover:bg-neutral-900/10 transition-all text-left backdrop-blur-sm relative overflow-hidden ${module.id === 'danger' ? 'border-rose-500/20 hover:border-rose-500/40' : 'border-neutral-800 hover:border-indigo-500/30'}`}
+                            className={`rounded-xl bg-neutral-900 border shadow-sm group p-6 transition-all text-left backdrop-blur-sm relative overflow-hidden ${module.id === 'danger' ? 'border-rose-500/20 hover:border-rose-500/40' : 'border-neutral-800 hover:border-indigo-500/30'}`}
                         >
                             <div className={`absolute top-0 right-0 w-24 h-24 bg-${module.color}-500/5 blur-3xl rounded-full -mr-8 -mt-8 group-hover:bg-${module.color}-500/10 transition-colors`} />
-                            <div className="flex items-start justify-between mb-4 relative z-10">
-                                <div className={`p-1 sm:p-3 bg-${module.color}-500/10 rounded-xl group-hover:scale-110 transition-transform duration-300`}>
+                            <div className="flex items-center sm:items-start justify-between gap-2 mb-4 relative z-10">
+                                <div className={`p-3 bg-${module.color}-500/10 rounded-xl group-hover:scale-110 transition-transform duration-300`}>
                                     <div className={
                                         module.color === 'blue' ? 'text-blue-400' :
                                             module.color === 'emerald' ? 'text-emerald-400' :
@@ -750,7 +750,7 @@ export default function Settings() {
                                         {module.icon}
                                     </div>
                                 </div>
-                                <h3 className="sm:hidden text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2 relative z-10">{module.name}</h3>
+                                <h3 className="sm:hidden text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2 relative z-10 mr-auto">{module.name}</h3>
 
                                 <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-zinc-400 transition-colors" />
                             </div>

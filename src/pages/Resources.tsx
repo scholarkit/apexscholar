@@ -130,12 +130,12 @@ export default function Resources() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
-          <h1 className="text-lg sm:text-2xl font-semibold text-white">Resource Library</h1>
-          <p className="text-sm sm:text-base text-zinc-400">Manage your PDFs, images, and text files.</p>
+          <h1 className="text-2xl font-semibold text-white">Resource Library</h1>
+          <p className="text-base text-zinc-400">Manage your PDFs, images, and text files.</p>
         </div>
         <div className="w-full sm:w-fit flex flex-col sm:flex-row gap-3 mt-2 sm:mt-0">
           <div className="relative">

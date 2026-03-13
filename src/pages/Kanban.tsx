@@ -289,8 +289,8 @@ export default function Kanban() {
         <div className="flex flex-col h-full">
             <Breadcrumbs />
             <header className="mb-6 shrink-0">
-                <h1 className="text-lg sm:text-2xl font-semibold text-white">Kanban Board</h1>
-                <p className="text-sm sm:text-base text-zinc-400">Track the progress of your research projects and papers.</p>
+                <h1 className="text-2xl font-semibold text-white">Kanban Board</h1>
+                <p className="text-base text-zinc-400">Track the progress of your research projects and papers.</p>
             </header>
 
             <div className="flex-1 w-full overflow-x-auto pb-4 custom-scrollbar">

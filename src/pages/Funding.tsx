@@ -164,17 +164,17 @@ export default function Funding() {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+        <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
             {/* Header */}
             <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-2 flex items-center gap-3">
+                    <h1 className="text-2xl font-semibold tracking-tight text-white mb-2 flex items-center gap-3">
                         Funding & Grants
                         <span className="px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
                             Tracker
                         </span>
                     </h1>
-                    <p className="text-sm sm:text-base text-zinc-400">Manage proposals, observe deadlines, and track your research funding.</p>
+                    <p className="text-base text-zinc-400">Manage proposals, observe deadlines, and track your research funding.</p>
                 </div>
                 <button
                     onClick={() => { setEditingGrant(null); setIsModalOpen(true); }}

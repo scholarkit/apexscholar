@@ -212,8 +212,8 @@ SUMMARY:`;
       <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
-          <h1 className="text-lg sm:text-2xl font-semibold text-white">AI Insights Engine</h1>
-          <p className="text-sm sm:text-base text-zinc-400">Generate intelligent summaries from your recent research entries.</p>
+          <h1 className="text-2xl font-semibold text-white">AI Insights Engine</h1>
+          <p className="text-base text-zinc-400">Generate intelligent summaries from your recent research entries.</p>
         </div>
         <button
           onClick={generateInsights}

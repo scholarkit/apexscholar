@@ -129,7 +129,7 @@ export default function LessonView() {
     const pct = Math.round((completedCount / course.lessons.length) * 100);
 
     return (
-        <div className="max-w-3xl animate-in fade-in duration-500">
+        <div className="max-w-3xl animate-in fade-in duration-500 pb-32 sm:pb-8">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-xs text-zinc-500 mb-6">
                 <Link to="/learn" className="hover:text-zinc-300 transition-colors">Learn</Link>
@@ -205,7 +205,7 @@ export default function LessonView() {
         prose-ul:text-zinc-400 prose-ol:text-zinc-400
         prose-li:marker:text-indigo-500
         prose-hr:   border-neutral-800
-        bg-zinc-900/40 border    border-neutral-800 rounded-xl p-6 sm:p-8 mb-8">
+        bg-zinc-900/40 border border-neutral-800 rounded-xl p-6 sm:p-8 mb-8">
                 {lesson.content ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {lesson.content}
@@ -225,7 +225,7 @@ export default function LessonView() {
                 {prevLesson ? (
                     <Link
                         to={`/learn/${course.id}/${prevLesson.id}`}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border    border-neutral-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-all text-sm"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-all text-sm"
                     >
                         <ChevronLeft className="w-4 h-4" />
                         <span className="truncate max-w-[160px]">{prevLesson.title}</span>
@@ -233,7 +233,7 @@ export default function LessonView() {
                 ) : (
                     <Link
                         to={`/learn/${course.id}`}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border    border-neutral-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-all text-sm"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-all text-sm"
                     >
                         <ChevronLeft className="w-4 h-4" /> Back to Course
                     </Link>

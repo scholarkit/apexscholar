@@ -26,7 +26,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8 w-full">
         <header className="flex items-center justify-between">
           <div>
             <div className="h-8 w-40 bg-zinc-800/60 rounded-xl animate-pulse mb-2"></div>
@@ -44,7 +44,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="p-6 rounded-xl bg-zinc-900/50 border    border-neutral-800 backdrop-blur-sm">
-              <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
+              <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-zinc-800/60 rounded-xl animate-pulse"></div>
                 <div className="h-5 w-24 bg-zinc-800/60 rounded-xl animate-pulse"></div>
               </div>
@@ -72,11 +72,11 @@ export default function Dashboard() {
   const lastActivity = entries.length > 0 ? entries[0].date : (resources.length > 0 ? resources[0].date_added : null);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div>
-          <h1 className="text-lg sm:text-2xl font-semibold text-white">Dashboard</h1>
-          <p className="text-sm sm:text-base text-zinc-400">Welcome back. Here's what's happening in your research.</p>
+          <h1 className="text-2xl font-semibold text-white">Dashboard</h1>
+          <p className="text-base text-zinc-400">Welcome back. Here's what's happening in your research.</p>
         </div>
         {/* <div className="w-full sm:w-fit mt-2 sm:mt-0 flex flex-col sm:flex-row gap-3">
           <Link to="/journal" className="flex items-center gap-2 px-4 py-2 rounded-lg text-neutral-300 hover:bg-neutral-800 transition">
@@ -99,41 +99,41 @@ export default function Dashboard() {
         <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-3 bg-blue-500/10 rounded-xl">
-              <BookOpen className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400" />
+              <BookOpen className="w-6 h-6 text-blue-400" />
             </div>
             <h3 className="text-zinc-400 font-medium">Total Entries</h3>
           </div>
-          <p className="text-2xl sm:text-4xl font-semibold text-white">{entries.length}</p>
+          <p className="text-right sm:text-left text-4xl font-semibold text-white">{entries.length}</p>
         </div>
 
         <Link to="/projects" className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm hover:border-violet-500/30 hover:bg-zinc-900/70 transition-all group">
           <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
             <div className="p-3 bg-violet-500/10 rounded-xl group-hover:bg-violet-500/20 transition-colors">
-              <Layers className="w-4 h-4 sm:w-6 sm:h-6 text-violet-400" />
+              <Layers className="w-6 h-6 text-violet-400" />
             </div>
             <h3 className="text-zinc-400 font-medium">Projects</h3>
           </div>
-          <p className="text-2xl sm:text-4xl font-semibold text-white">{projects.length}</p>
+          <p className="text-right sm:text-left text-4xl font-semibold text-white">{projects.length}</p>
         </Link>
 
         <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm">
           <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
             <div className="p-3 bg-emerald-500/10 rounded-xl">
-              <FolderOpen className="w-4 h-4 sm:w-6 sm:h-6 text-emerald-400" />
+              <FolderOpen className="w-6 h-6 text-emerald-400" />
             </div>
             <h3 className="text-zinc-400 font-medium">Resources</h3>
           </div>
-          <p className="text-2xl sm:text-4xl font-semibold text-white">{resources.length}</p>
+          <p className="text-right sm:text-left text-4xl font-semibold text-white">{resources.length}</p>
         </div>
 
         <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm">
           <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
             <div className="p-3 bg-purple-500/10 rounded-xl">
-              <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-purple-400" />
+              <Activity className="w-6 h-6 text-purple-400" />
             </div>
             <h3 className="text-zinc-400 font-medium">Last Activity</h3>
           </div>
-          <p className="text-xl font-semibold text-white">
+          <p className="text-right sm:text-left text-lg sm:text-4xl font-semibold text-white">
             {lastActivity ? formatDistanceToNow(parseEntryDate(lastActivity), { addSuffix: true }) : 'No activity yet'}
           </p>
         </div>

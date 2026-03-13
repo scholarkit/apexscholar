@@ -23,13 +23,13 @@ export default function Learn() {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
             {/* Header */}
             <header>
                 <div className="flex items-center gap-3 mb-1">
                     <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white">Learn</h1>
                 </div>
-                <p className="text-sm sm:text-base text-zinc-400 pl-1 mt-1">
+                <p className="text-base text-zinc-400 pl-1 mt-1">
                     Structured courses to master every step of the research process.
                 </p>
             </header>

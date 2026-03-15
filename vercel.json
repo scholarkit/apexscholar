@@ -1,12 +1,11 @@
 {
-    "rewrites": [
-        {
-            "source": "/api/(.*)",
-            "destination": "/api/index.ts"
-        },
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
-        }
-    ]
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "server.ts"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.ts" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

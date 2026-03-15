@@ -14,8 +14,26 @@ const puter = window.puter;
 export const kv = {
     async get(key: string) {
         if (provider === 'supabase') {
-            throw new Error('Supabase kv.get not implemented yet');
+            const token = localStorage.getItem('supabase_token');
+            const res = await fetch(`/api/kv/${key}`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (!res.ok) throw new Error('Failed to fetch KV');
+            const data = await res.json();
+
+            if (data.value === null) return null;
+
+            // Decrypt if E2EE is enabled
+            if (data.value && typeof data.value === 'object' && data.value.version && data.value.iv && data.value.ciphertext) {
+                if (!e2eeService.isEnabled()) {
+                    console.warn(`Encrypted data found for key "${key}" but E2EE is not enabled.`);
+                    return null;
+                }
+                return await e2eeService.decrypt(data.value);
+            }
+            return data.value;
         }
+
         const rawValue = await puter.kv.get(key);
         if (rawValue === null) return null;
 
@@ -45,16 +63,30 @@ export const kv = {
     },
 
     async set(key: string, value: any) {
-        if (provider === 'supabase') {
-            throw new Error('Supabase kv.set not implemented yet');
-        }
-
-        let storedValue: string;
+        let storedValue: any = value;
         if (e2eeService.isEnabled()) {
             const encrypted = await e2eeService.encrypt(value);
-            storedValue = e2eeService.serialize(encrypted);
-        } else {
+            // Puter KV stores strings, our Supabase API can store JSON
+            storedValue = provider === 'supabase' ? encrypted : e2eeService.serialize(encrypted);
+        } else if (provider !== 'supabase') {
             storedValue = JSON.stringify(value);
+        }
+
+        if (provider === 'supabase') {
+            const token = localStorage.getItem('supabase_token');
+            const userStr = localStorage.getItem('supabase_user');
+            const user = userStr ? JSON.parse(userStr) : null;
+
+            const res = await fetch('/api/kv', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ key, value: storedValue, user_id: user?.id })
+            });
+            if (!res.ok) throw new Error('Failed to save KV');
+            return;
         }
 
         return await puter.kv.set(key, storedValue);
@@ -62,7 +94,13 @@ export const kv = {
 
     async delete(key: string) {
         if (provider === 'supabase') {
-            throw new Error('Supabase kv.delete not implemented yet');
+            const token = localStorage.getItem('supabase_token');
+            const res = await fetch(`/api/kv/${key}`, {
+                method: 'DELETE',
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (!res.ok) throw new Error('Failed to delete KV');
+            return;
         }
         return await puter.kv.del(key);
     }

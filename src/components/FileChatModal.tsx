@@ -66,15 +66,22 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
         try {
             const stat = await storage.stat(resource.path);
             const fullPath = stat.path;
+            
+            // Check provider to see if we can use Puter's direct file reading API, or if we just send text
+            const provider = import.meta.env.VITE_PROVIDER || 'puter';
+            const userContent = provider === 'supabase' 
+                ? `[Context file: ${resource.name}]\n\n${userMessage}` 
+                : [
+                    { type: 'file', puter_path: fullPath },
+                    { type: 'text', text: userMessage }
+                ];
+
             const response = await ai.chat(
                 [
                     ...newMessages.slice(0, -1).map(m => ({ role: m.role, content: m.content })),
                     {
                         role: 'user',
-                        content: [
-                            { type: 'file', puter_path: fullPath },
-                            { type: 'text', text: userMessage }
-                        ]
+                        content: userContent
                     }
                 ],
                 { model: 'claude-sonnet-4', stream: true });

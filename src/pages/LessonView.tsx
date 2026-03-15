@@ -73,7 +73,7 @@ export default function LessonView() {
 
         try {
             setIsLoadingAudio(true);
-            const puter = (window as any).puter;
+            const { ai } = await import('../lib/ai');
 
             // Basic markdown stripping for cleaner speech
             const plainText = lesson.content
@@ -81,7 +81,7 @@ export default function LessonView() {
                 .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Remove links
                 .slice(0, 4000); // 4000 char limit usually safe for TTS
 
-            const speech = await puter.ai.txt2speech(
+            const speech = await ai.txt2speech(
                 `Lesson: ${lesson.title}. ${plainText}`,
                 {
                     provider: "elevenlabs",
@@ -91,14 +91,21 @@ export default function LessonView() {
                 }
             );
 
-            setAudio(speech);
-            setIsLoadingAudio(false);
-            setIsPlaying(true);
-            speech.play();
-
-            speech.onended = () => {
+            // Our browser TTS returns true on completion, 
+            // Puter returns an Audio-like object we have to .play()
+            if (typeof speech === 'boolean') {
+                setIsLoadingAudio(false);
                 setIsPlaying(false);
-            };
+            } else {
+                setAudio(speech);
+                setIsLoadingAudio(false);
+                setIsPlaying(true);
+                (speech as any).play();
+
+                (speech as any).onended = () => {
+                    setIsPlaying(false);
+                };
+            }
         } catch (error) {
             console.error("TTS failed:", error);
             setIsLoadingAudio(false);

@@ -11,6 +11,8 @@ import html2pdf from 'html2pdf.js';
 import { Entry, Insight } from '../lib/puter';
 import { kv } from '../lib/kv';
 
+const provider = import.meta.env.VITE_PROVIDER || 'puter';
+
 export default function Insights() {
   const { activeProject } = useProject();
   const navigate = useNavigate();
@@ -65,12 +67,13 @@ ${context}
 
 SUMMARY:`;
 
-      // 2. Generate with Puter.js AI
-      const puter = window.puter;
-      const puterResponse = await puter.ai.chat(prompt);
-      const generatedSummary = typeof puterResponse === 'string'
-        ? puterResponse
-        : (puterResponse as any).message?.content || puterResponse.toString();
+      // 2. Generate with ai abstraction
+      const { ai } = await import('../lib/ai');
+      const response = await ai.chat([
+        provider === 'supabase' ? prompt : { role: 'user', content: prompt }]);
+      const generatedSummary = typeof response === 'string'
+        ? response  // OpenRouter via ai.ts returns a string by default
+        : (response as any).message?.content || response.toString(); // Fallback for Puter
 
       // 3. Save to Puter KV
       const newInsight: Insight = {

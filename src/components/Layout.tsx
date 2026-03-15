@@ -52,7 +52,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { path: '/', icon: Home, label: 'Dashboard' },
     { path: '/projects', icon: SquareChartGantt, label: 'Projects' },
     { path: '/funding', icon: Landmark, label: 'Funding & Grants' },
-    { path: '/analytics', icon: BarChart2, label: 'Analytics' },
     { path: '/learn', icon: BookMarked, label: 'Learn' },
     { path: '/settings', icon: Settings, label: 'Settings' },
     { path: '/about', icon: Info, label: 'About' },
@@ -261,7 +260,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Page content */}
-        <div className="relative p-4 sm:p-8 w-full min-h-full">
+        <div className="relative p-6 sm:p-8 w-full min-h-full">
           {children}
         </div>
 

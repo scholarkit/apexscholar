@@ -14,6 +14,8 @@ import remarkGfm from 'remark-gfm';
 import { ai } from '../lib/ai';
 import { kv } from '../lib/kv';
 
+const provider = import.meta.env.VITE_PROVIDER || 'puter';
+
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const INSIGHTS_KV_KEY = 'research_paper_insights';
 const KG_KV_KEY = 'research_knowledge_graph';
@@ -373,8 +375,9 @@ export async function extractInsight(paper: Paper): Promise<PaperInsight> {
     const input = `\nTitle: ${paper?.title || ''}\nAbstract: ${paper?.abstract || ''}\n`;
 
     const res = await ai.chat([INSIGHT_PROMPT + input], {
+        type: 'json_object',
         temperature: 0.1,
-        model: 'minimax-m2.5',
+        model: provider === 'puter' ? 'minimax-m2.5' : 'arcee-ai/trinity-large-preview:free',
     });
 
     const parsed = safeParseJSON(res?.message?.content || "{}");

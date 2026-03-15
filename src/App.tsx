@@ -12,7 +12,6 @@ import Journal from './pages/Journal';
 import Resources from './pages/Resources';
 import Insights from './pages/Insights';
 import Composr from './pages/Composr';
-import Analytics from './pages/Analytics';
 import Login from './components/Login';
 import { puterService } from './lib/puter';
 import { initE2EE, isE2EEEnabled, unlockE2EE, getE2EEConfig } from './lib/e2ee';
@@ -78,7 +77,7 @@ export default function App() {
   // Loading state while checking auth + E2EE
   if (isAuthenticated === null || (e2eeRequired && !e2eeUnlocked && !isAuthenticated)) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-[#09090b] flex items-center justify-center">
         <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
       </div>
     );
@@ -91,7 +90,7 @@ export default function App() {
   // E2EE Unlock Screen (appears over the app)
   if (e2eeRequired && !e2eeUnlocked) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4">
+      <div className="min-h-[100dvh] bg-[#09090b] flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-zinc-900 border border-indigo-500/20 rounded-xl p-8">
           <div className="flex flex-col items-center text-center mb-6">
             <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mb-4">
@@ -163,7 +162,6 @@ export default function App() {
             <Route path="/funding" element={<Funding />} />
             <Route path="/insights" element={<Insights />} />
             <Route path="/composr" element={<Composr />} />
-            <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/learn" element={<Learn />} />
             <Route path="/learn/:courseId" element={<CourseView />} />

@@ -8,11 +8,17 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import fs from 'fs/promises';
-import { randomUUID } from 'crypto';
 import crypto from 'crypto';
 import AdmZip from 'adm-zip';
 import OAuth from 'oauth-1.0a';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 const oauth = new OAuth({
   consumer: {
@@ -129,7 +135,6 @@ async function startServer() {
       }
 
       const html = await response.text();
-      console.log(html);
 
       const $ = (await import('cheerio')).load(html);
 
@@ -374,6 +379,360 @@ async function startServer() {
 
       const data = await response.json();
       res.json(data);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── Supabase Auth Endpoints ─────────────────────────────────────
+
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { email, password, display_name, options } = req.body;
+
+      // Auto-confirm email using Admin API and set display_name in metadata
+      const { data: adminData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+            ...options?.data,
+            display_name: display_name
+        }
+      });
+      if (createError) throw createError;
+
+      // Automatically sign them in to generate the JWT session
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+
+      res.json(data);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      res.json(data);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/auth/logout", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        const token = authHeader.replace('Bearer ', '');
+        const { error } = await supabaseAdmin.auth.admin.signOut(token);
+        if (error) console.error("Admin signout error:", error);
+      }
+      res.json({ message: "Logged out successfully" });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/auth/user", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return res.status(401).json({ error: "Missing authorization header" });
+
+      const token = authHeader.replace('Bearer ', '');
+      const { data, error } = await supabaseAdmin.auth.getUser(token);
+      if (error) throw error;
+      res.json({ user: data.user });
+    } catch (err: any) {
+      res.status(401).json({ error: err.message });
+    }
+  });
+
+  // ── Auth Middleware ─────────────────────────────────────────────────
+  const requireAuth = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: "Missing authorization header" });
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
+    if (userError || !userData?.user) return res.status(401).json({ error: "Unauthorized access" });
+    (req as any).user = userData.user;
+    next();
+  };
+
+  // ── Supabase KV Store Endpoints ─────────────────────────────────────
+  // Requires a table named `kv_store` with columns: id (uuid), user_id (uuid, nullable), key (text), value (jsonb)
+
+  app.get("/api/kv/:key", requireAuth, async (req, res) => {
+    try {
+      const { key } = req.params;
+      const user = (req as any).user;
+      const { data, error } = await supabaseAdmin
+        .from('kv_store')
+        .select('*')
+        .eq('key', key)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) return res.status(200).json({ value: null });
+
+      res.json({ value: data.value });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/kv", requireAuth, async (req, res) => {
+    try {
+      const { key, value } = req.body;
+      const user = (req as any).user;
+      if (!key) return res.status(400).json({ error: "Missing key" });
+
+      const { data, error } = await supabaseAdmin
+        .from('kv_store')
+        .upsert(
+          { key, value, user_id: user.id, updated_at: new Date().toISOString() },
+          { onConflict: 'user_id,key' }
+        )
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json({ success: true, data });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.delete("/api/kv/:key", requireAuth, async (req, res) => {
+    try {
+      const { key } = req.params;
+      const user = (req as any).user;
+      const { error } = await supabaseAdmin
+        .from('kv_store')
+        .delete()
+        .eq('key', key)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      res.json({ success: true, message: "Key deleted" });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── OpenRouter AI Proxy ─────────────────────────────────────────────
+
+  app.post("/api/ai/chat", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return res.status(401).json({ error: "Missing authorization header" });
+
+      const token = authHeader.replace('Bearer ', '');
+      const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
+      if (userError || !userData?.user) {
+        return res.status(401).json({ error: "Unauthorized access" });
+      }
+
+      const openrouterApiKey = process.env.OPENROUTER_API_KEY;
+      if (!openrouterApiKey) {
+        return res.status(500).json({ error: "OPENROUTER_API_KEY missing in .env" });
+      }
+
+      const { messages, options } = req.body;
+      const model = options?.model || "google/gemini-2.5-flash"; // default fallback
+
+      const formattedMessages = messages.map((m: string) => ({
+        role: "user",
+        content: m,
+      }));
+
+      const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${openrouterApiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "http://localhost:3000",
+          "X-Title": "Apex Scholar",
+        },
+        body: JSON.stringify({
+          model,
+          messages: formattedMessages,
+          response_format: {
+            type: options?.type || "text",
+          },
+          stream: options?.stream || false,
+        }),
+      });
+
+      if (!openRouterRes.ok) {
+        const errText = await openRouterRes.text();
+        console.error("OpenRouter Error:", errText);
+        return res.status(openRouterRes.status).json({ error: "OpenRouter API request failed" });
+      }
+
+      if (options?.stream) {
+        res.set({
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive'
+        });
+        openRouterRes.body?.pipeTo(new WritableStream({
+          write(chunk) {
+            res.write(chunk);
+          },
+          close() {
+            res.end();
+          }
+        }));
+      } else {
+        const data = await openRouterRes.json();
+        // Return in a unified format
+        const content = data.choices[0]?.message?.content || "";
+        res.json({ message: { content } });
+      }
+
+    } catch (err: any) {
+      console.error("AI Chat Error:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── Supabase Storage Proxy ──────────────────────────────────────────
+
+  // Middleware is now defined above for KV Store too.
+
+  app.post("/api/storage/write", requireAuth, express.raw({ type: '*/*', limit: '100mb' }), async (req, res) => {
+    try {
+      const user = (req as any).user;
+      let pathUrl = req.query.path as string;
+      if (!pathUrl) return res.status(400).json({ error: 'Missing path query parameter' });
+      pathUrl = `${user.id}/${pathUrl}`;
+
+      // Ensure user isolates their files if needed, but for now we follow the path strictly.
+      // E.g. path format should be validated.
+      const contentType = req.headers['content-type'] || 'application/octet-stream';
+      const fileBuffer = req.body;
+
+      const { data, error } = await supabaseAdmin.storage
+        .from('apexscholar-resources')
+        .upload(pathUrl, fileBuffer, {
+          contentType,
+          upsert: true
+        });
+
+      if (error) throw error;
+      res.json({ success: true, data });
+    } catch (err: any) {
+      console.error("Storage write error:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/storage/read", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      let pathUrl = req.query.path as string;
+      if (!pathUrl) return res.status(400).json({ error: 'Missing path query parameter' });
+      pathUrl = `${user.id}/${pathUrl}`;
+
+      // Just return a signed URL so the frontend can fetch the file directly
+      const { data, error } = await supabaseAdmin.storage
+        .from('apexscholar-resources')
+        .createSignedUrl(pathUrl, 3600); // 1 hour expiry
+
+      if (error) throw error;
+      res.json({ success: true, url: data.signedUrl });
+    } catch (err: any) {
+      console.error("Storage read error:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.delete("/api/storage/delete", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      let pathUrl = req.query.path as string;
+      if (!pathUrl) return res.status(400).json({ error: 'Missing path query parameter' });
+      pathUrl = `${user.id}/${pathUrl}`;
+
+      const { data, error } = await supabaseAdmin.storage
+        .from('apexscholar-resources')
+        .remove([pathUrl]);
+
+      if (error) throw error;
+      res.json({ success: true, data });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/storage/list", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const rawPathUrl = (req.query.path as string) || '';
+      const pathUrl = rawPathUrl ? `${user.id}/${rawPathUrl}` : user.id;
+      
+      const { data, error } = await supabaseAdmin.storage
+        .from('apexscholar-resources')
+        .list(pathUrl);
+
+      if (error) throw error;
+
+      // Map to puter.fs.list format
+      const mappedConfig = data.map(item => ({
+         name: item.name,
+         is_dir: !item.metadata, // folders typically don't have metadata size in Supabase list
+         size: item.metadata?.size || 0,
+         created: item.created_at,
+         modified: item.updated_at,
+         path: rawPathUrl ? `${rawPathUrl}/${item.name}` : item.name
+      }));
+
+      res.json({ success: true, data: mappedConfig });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/storage/stat", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      let pathUrl = req.query.path as string;
+      if (!pathUrl) return res.status(400).json({ error: 'Missing path query parameter' });
+      const originalPathUrl = pathUrl;
+      pathUrl = `${user.id}/${pathUrl}`;
+
+      // Supabase storage api doesn't natively expose 'stat' for a specific file outside of list or download.
+      // We can use list on the exact path prefix but usually bucket.list might list the directory.
+      // Easiest is to just check if it exists or fallback gracefully.
+      const dirIndex = pathUrl.lastIndexOf('/');
+      const dirPath = dirIndex > -1 ? pathUrl.substring(0, dirIndex) : '';
+      const filename = dirIndex > -1 ? pathUrl.substring(dirIndex + 1) : pathUrl;
+
+      const { data, error } = await supabaseAdmin.storage
+        .from('apexscholar-resources')
+        .list(dirPath, { search: filename });
+
+      if (error) throw error;
+      const file = data.find(f => f.name === filename);
+      
+      if (!file) throw new Error("File not found");
+
+      res.json({ 
+        success: true, 
+        data: {
+          name: file.name,
+          is_dir: false, // assumes stat is only files mostly
+          size: file.metadata?.size || 0,
+          created: file.created_at,
+          modified: file.updated_at,
+          path: originalPathUrl
+        }
+      });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

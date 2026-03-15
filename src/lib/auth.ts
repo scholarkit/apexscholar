@@ -20,22 +20,28 @@ export const auth = {
     },
 
     async signInWithPassword(email?: string, password?: string) {
-        if (provider === 'supabase') {
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Login failed');
-            if (data.session) {
-                localStorage.setItem('supabase_token', data.session.access_token);
-                localStorage.setItem('supabase_user', JSON.stringify(data.user));
-            }
-            return data.user;
-        }
-        throw new Error('signInWithPassword only exists for Supabase provider');
-    },
+  if (provider === 'supabase') {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : {};
+
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+
+    if (data.session) {
+      localStorage.setItem('supabase_token', data.session.access_token);
+      localStorage.setItem('supabase_user', JSON.stringify(data.user));
+    }
+
+    return data.user;
+  }
+
+  throw new Error('signInWithPassword only exists for Supabase provider');
+},
 
     async signIn() {
         if (provider === 'supabase') {

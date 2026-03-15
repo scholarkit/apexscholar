@@ -93,7 +93,7 @@ export default function CourseView() {
                 {nextLesson && (
                     <button
                         onClick={() => navigate(`/learn/${course.id}/${nextLesson.id}`)}
-                        className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-medium rounded-xl transition-colors  "
+                        className="sm:float-right mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-medium rounded-xl transition-colors  "
                     >
                         {completedCount === 0 ? 'Start Course' : 'Continue'}
                         <ChevronRight className="w-4 h-4" />

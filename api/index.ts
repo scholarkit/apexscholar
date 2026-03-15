@@ -1,4 +1,4 @@
-import app from '../server';
+import app from '../server.ts';
 
 export default async function handler(req: any, res: any) {
     try {

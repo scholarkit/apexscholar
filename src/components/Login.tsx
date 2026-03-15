@@ -67,7 +67,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                         Apex Scholar
                     </h1>
                     <p className="text-zinc-400 text-lg">
-                        Secure, decentralized research management.
+                        Secure, portable research management.
                     </p>
                 </div>
 

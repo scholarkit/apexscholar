@@ -82,7 +82,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-semibold text-white">Cloud Storage</h3>
-                                    <p className="text-xs text-zinc-500">Persistent, accessible anywhere via Puter.js</p>
+                                    <p className="text-xs text-zinc-500">Persistent, accessible anywhere</p>
                                 </div>
                             </div>
 

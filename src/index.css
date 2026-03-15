@@ -84,12 +84,12 @@
 
   /* Custom Thin Scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 6px !important;
+    height: 6px !important;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    background: transparent !important;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
@@ -98,12 +98,12 @@
 
   /* Apply custom scrollbar to the whole body */
   body::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 8px !important;
+    height: 8px !important;
   }
 
   body::-webkit-scrollbar-track {
-    background: transparent;
+    background: transparent !important;
   }
 
   body::-webkit-scrollbar-thumb {

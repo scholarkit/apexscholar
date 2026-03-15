@@ -1,3 +1,5 @@
+import { apiFetch } from './apiFetch';
+
 const provider = import.meta.env.VITE_PROVIDER || 'puter';
 
 const getToken = () => localStorage.getItem('supabase_token') || '';
@@ -5,7 +7,7 @@ const getToken = () => localStorage.getItem('supabase_token') || '';
 export const storage = {
     async stat(path: string) {
         if (provider === 'supabase') {
-            const res = await fetch(`/api/storage/stat?path=${encodeURIComponent(path)}`, {
+            const res = await apiFetch(`/api/storage/stat?path=${encodeURIComponent(path)}`, {
                 headers: { 'Authorization': `Bearer ${getToken()}` }
             });
             if (!res.ok) throw new Error('File not found or access denied');
@@ -30,7 +32,7 @@ export const storage = {
                 contentType = 'application/json';
             }
 
-            const res = await fetch(`/api/storage/write?path=${encodeURIComponent(path)}`, {
+            const res = await apiFetch(`/api/storage/write?path=${encodeURIComponent(path)}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${getToken()}`,
@@ -49,7 +51,7 @@ export const storage = {
 
     async read(path: string) {
         if (provider === 'supabase') {
-            const res = await fetch(`/api/storage/read?path=${encodeURIComponent(path)}`, {
+            const res = await apiFetch(`/api/storage/read?path=${encodeURIComponent(path)}`, {
                 headers: { 'Authorization': `Bearer ${getToken()}` }
             });
             if (!res.ok) throw new Error('Failed to get read URL');
@@ -74,7 +76,7 @@ export const storage = {
 
     async list(path: string) {
         if (provider === 'supabase') {
-            const res = await fetch(`/api/storage/list?path=${encodeURIComponent(path)}`, {
+            const res = await apiFetch(`/api/storage/list?path=${encodeURIComponent(path)}`, {
                 headers: { 'Authorization': `Bearer ${getToken()}` }
             });
             if (!res.ok) throw new Error('Failed to list directory');
@@ -86,7 +88,7 @@ export const storage = {
 
     async readdir(path: string) {
         if (provider === 'supabase') {
-            const res = await fetch(`/api/storage/list?path=${encodeURIComponent(path)}`, {
+            const res = await apiFetch(`/api/storage/list?path=${encodeURIComponent(path)}`, {
                 headers: { 'Authorization': `Bearer ${getToken()}` }
             });
             if (!res.ok) throw new Error('Failed to read directory');
@@ -98,7 +100,7 @@ export const storage = {
 
     async delete(path: string) {
         if (provider === 'supabase') {
-            const res = await fetch(`/api/storage/delete?path=${encodeURIComponent(path)}`, {
+            const res = await apiFetch(`/api/storage/delete?path=${encodeURIComponent(path)}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${getToken()}` }
             });

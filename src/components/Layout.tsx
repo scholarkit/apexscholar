@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Home, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Info,
-  Settings, Landmark, BookMarked, SquareChartGantt, Menu, X
+  Settings, Landmark, BookMarked, SquareChartGantt, Menu, X, Brain
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { puterService, PuterUser } from '../lib/puter';
+import BrainModal from './BrainModal';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -19,6 +20,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<PuterUser | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const [showBrain, setShowBrain] = useState(false);
 
   // Close drawer and scroll to top on route change
   useEffect(() => {
@@ -39,6 +41,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     puterService.getUser().then(setUser);
+  }, []);
+
+  // Ctrl+B / ⌘+B to toggle Brain modal
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        setShowBrain(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   const handleSignOut = async () => {
@@ -124,6 +138,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        {/* Brain Button */}
+        <div className={cn("px-3 mb-2", isCollapsed && "flex justify-center")}>
+          <button
+            onClick={() => setShowBrain(true)}
+            title={isCollapsed ? 'Brain (Ctrl+B)' : undefined}
+            className={cn(
+              "flex items-center rounded-xl text-sm font-medium transition-all duration-200 group",
+              "bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 text-indigo-300 hover:from-indigo-500/20 hover:to-purple-500/20 hover:text-indigo-200",
+              isCollapsed ? "justify-center w-10 h-10" : "gap-3 px-3 py-2.5 w-full"
+            )}
+          >
+            <Brain className="w-5 h-5 flex-shrink-0" />
+            {!isCollapsed && (
+              <span className="animate-in fade-in slide-in-from-left-1 duration-300">Nexus</span>
+            )}
+            {!isCollapsed && (
+              <kbd className="ml-auto text-[10px] text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded font-mono border border-white/5">⌘B</kbd>
+            )}
+          </button>
+        </div>
 
         {/* User Profile Footer */}
         <div className={cn("p-4 border-t border-white/10", isCollapsed ? "flex flex-col items-center gap-3" : "space-y-3")}>
@@ -219,6 +254,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
+        {/* Brain Button (mobile drawer) */}
+        <div className="px-3 mb-2">
+          <button
+            onClick={() => { setShowBrain(true); setDrawerOpen(false); }}
+            className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium w-full bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 text-indigo-300 hover:from-indigo-500/20 hover:to-purple-500/20 hover:text-indigo-200 transition-all duration-200"
+          >
+            <Brain className="w-5 h-5 flex-shrink-0" />
+            <span>Brain</span>
+            <kbd className="ml-auto text-[10px] text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded font-mono border border-white/5">⌘B</kbd>
+          </button>
+        </div>
+
         {/* Drawer Footer — user + sign out */}
         <div className="p-4 border-t border-white/10 space-y-3">
           <div className="flex items-center gap-3 rounded-xl">
@@ -306,6 +353,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </button>
         </nav>
       </main>
+
+      {/* Brain Modal */}
+      {showBrain && <BrainModal onClose={() => setShowBrain(false)} />}
     </div>
   );
 }

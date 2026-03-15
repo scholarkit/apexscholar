@@ -380,7 +380,10 @@ export async function extractInsight(paper: Paper): Promise<PaperInsight> {
         model: provider === 'puter' ? 'minimax-m2.5' : 'arcee-ai/trinity-large-preview:free',
     });
 
-    const parsed = safeParseJSON(res?.message?.content || "{}");
+    // ai.chat() for Supabase returns the content string directly (see ai.ts line 23)
+    // For Puter, it returns an object with message.content
+    const content = typeof res === 'string' ? res : (res?.message?.content ?? '{}');
+    const parsed = safeParseJSON(content || '{}');
     return normalizeInsight(parsed, paper.id);
 }
 

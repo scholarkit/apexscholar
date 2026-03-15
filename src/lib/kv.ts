@@ -1,4 +1,5 @@
 import { e2eeService } from './e2ee';
+import { apiFetch } from './apiFetch';
 
 const provider = import.meta.env.VITE_PROVIDER || 'puter';
 
@@ -15,7 +16,7 @@ export const kv = {
     async get(key: string) {
         if (provider === 'supabase') {
             const token = localStorage.getItem('supabase_token');
-            const res = await fetch(`/api/kv/${key}`, {
+            const res = await apiFetch(`/api/kv/${key}`, {
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
             if (!res.ok) throw new Error('Failed to fetch KV');
@@ -77,7 +78,7 @@ export const kv = {
             const userStr = localStorage.getItem('supabase_user');
             const user = userStr ? JSON.parse(userStr) : null;
 
-            const res = await fetch('/api/kv', {
+            const res = await apiFetch('/api/kv', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -95,7 +96,7 @@ export const kv = {
     async delete(key: string) {
         if (provider === 'supabase') {
             const token = localStorage.getItem('supabase_token');
-            const res = await fetch(`/api/kv/${key}`, {
+            const res = await apiFetch(`/api/kv/${key}`, {
                 method: 'DELETE',
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });

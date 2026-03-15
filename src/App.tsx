@@ -35,6 +35,7 @@ export default function App() {
   const [e2eeError, setE2EEError] = useState<string | null>(null);
   const [unlocking, setUnlocking] = useState(false);
   const [showPassphrase, setShowPassphrase] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   // Initialize E2EE system
   useEffect(() => {
@@ -57,6 +58,16 @@ export default function App() {
       setIsAuthenticated(signedIn);
     };
     checkAuth();
+  }, []);
+
+  // Handle expired Supabase sessions from any API call
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setIsAuthenticated(false);
+      setSessionExpired(true);
+    };
+    window.addEventListener('session-expired', handleSessionExpired);
+    return () => window.removeEventListener('session-expired', handleSessionExpired);
   }, []);
 
   const handleUnlock = async () => {
@@ -84,7 +95,18 @@ export default function App() {
   }
 
   if (!isAuthenticated) {
-    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+    return (
+      <>
+        {sessionExpired && (
+          <div className="fixed top-0 inset-x-0 z-50 flex items-center justify-center gap-3 bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 text-sm text-amber-300">
+            <span>⚠️</span>
+            <span>Your session has expired. Please sign in again to continue.</span>
+            <button onClick={() => setSessionExpired(false)} className="ml-auto text-amber-400 hover:text-amber-200 transition-colors">✕</button>
+          </div>
+        )}
+        <Login onLoginSuccess={() => { setIsAuthenticated(true); setSessionExpired(false); }} />
+      </>
+    );
   }
 
   // E2EE Unlock Screen (appears over the app)

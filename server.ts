@@ -523,6 +523,90 @@ app.delete("/api/kv/:key", requireAuth, async (req, res) => {
   }
 });
 
+// ── Documents API ───────────────────────────────────────────────────
+
+app.get("/api/documents", requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user;
+    const { project_id } = req.query;
+    if (!project_id) return res.status(400).json({ error: "Missing project_id" });
+
+    const { data, error } = await supabaseAdmin
+      .from('documents')
+      .select('*')
+      .eq('project_id', project_id)
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false });
+
+    if (error) throw error;
+    res.json({ data });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/documents", requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user;
+    const { project_id, title, type } = req.body;
+    if (!project_id || !title) return res.status(400).json({ error: "Missing project_id or title" });
+
+    const { data, error } = await supabaseAdmin
+      .from('documents')
+      .insert({ project_id, user_id: user.id, title, type: type || 'thesis' })
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json({ data });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/documents/:id", requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user;
+    const { id } = req.params;
+    const { title, type } = req.body;
+
+    const updates: any = { updated_at: new Date().toISOString() };
+    if (title !== undefined) updates.title = title;
+    if (type !== undefined) updates.type = type;
+
+    const { data, error } = await supabaseAdmin
+      .from('documents')
+      .update(updates)
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json({ data });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/documents/:id", requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user;
+    const { id } = req.params;
+
+    const { error } = await supabaseAdmin
+      .from('documents')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+    res.json({ success: true, message: "Document deleted" });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── OpenRouter AI Proxy ─────────────────────────────────────────────
 
 app.post("/api/ai/chat", async (req, res) => {
@@ -733,6 +817,120 @@ app.get("/api/storage/stat", requireAuth, async (req, res) => {
       }
     });
   } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Supermemory Proxy ───────────────────────────────────────────────
+
+const SUPERMEMORY_BASE = 'https://api.supermemory.ai';
+
+app.post("/api/memory/add", requireAuth, async (req, res) => {
+  try {
+    const smKey = process.env.SUPERMEMORY_API_KEY;
+    if (!smKey) return res.status(500).json({ error: "SUPERMEMORY_API_KEY missing in .env" });
+
+    const user = (req as any).user;
+    const { content, metadata } = req.body;
+    if (!content) return res.status(400).json({ error: "Missing content" });
+
+    const response = await fetch(`${SUPERMEMORY_BASE}/v3/documents`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${smKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        content,
+        containerTags: [user.id],
+        metadata: metadata || {},
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Supermemory add error:', errText);
+      return res.status(response.status).json({ error: "Supermemory add failed" });
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (err: any) {
+    console.error("Memory add error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/memory/search", requireAuth, async (req, res) => {
+  try {
+    const smKey = process.env.SUPERMEMORY_API_KEY;
+    if (!smKey) return res.status(500).json({ error: "SUPERMEMORY_API_KEY missing in .env" });
+
+    const user = (req as any).user;
+    const { q, limit, chunkThreshold, includeSummary } = req.body;
+    if (!q) return res.status(400).json({ error: "Missing query (q)" });
+
+    const response = await fetch(`${SUPERMEMORY_BASE}/v3/search`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${smKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        q,
+        containerTags: [user.id],
+        limit: limit || 10,
+        chunkThreshold: chunkThreshold ?? 0.5,
+        includeSummary: includeSummary ?? true,
+        includeFullDocs: false,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Supermemory search error:', errText);
+      return res.status(response.status).json({ error: "Supermemory search failed" });
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (err: any) {
+    console.error("Memory search error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/memory/profile", requireAuth, async (req, res) => {
+  try {
+    const smKey = process.env.SUPERMEMORY_API_KEY;
+    if (!smKey) return res.status(500).json({ error: "SUPERMEMORY_API_KEY missing in .env" });
+
+    const user = (req as any).user;
+    const { q, threshold } = req.body;
+
+    const response = await fetch(`${SUPERMEMORY_BASE}/v4/profile`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${smKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        containerTag: user.id,
+        ...(q ? { q } : {}),
+        ...(threshold !== undefined ? { threshold } : {}),
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Supermemory profile error:', errText);
+      return res.status(response.status).json({ error: "Supermemory profile failed" });
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (err: any) {
+    console.error("Memory profile error:", err);
     res.status(500).json({ error: err.message });
   }
 });

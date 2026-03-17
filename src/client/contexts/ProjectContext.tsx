@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Project, projectService } from '../lib/projects';
+import { Project, CreateProjectInput, UpdateProjectPatch, projectService } from '../lib/projects';
 
 interface ProjectContextType {
     activeProject: Project | null;
@@ -7,8 +7,8 @@ interface ProjectContextType {
     loading: boolean;
     setActiveProject: (project: Project) => void;
     refreshProjects: () => Promise<void>;
-    createProject: (name: string, description: string) => Promise<Project>;
-    updateProject: (id: string, patch: Partial<Pick<Project, 'name' | 'description'>>) => Promise<void>;
+    createProject: (input: CreateProjectInput) => Promise<Project>;
+    updateProject: (id: string, patch: UpdateProjectPatch) => Promise<void>;
     deleteProject: (id: string) => Promise<void>;
 }
 
@@ -54,14 +54,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         setProjects(updated);
     };
 
-    const createProject = async (name: string, description: string) => {
-        const proj = await projectService.createProject(name, description);
+    const createProject = async (input: CreateProjectInput) => {
+        const proj = await projectService.createProject(input);
         await fetchProjects();
         await setActiveProject(proj);
         return proj;
     };
 
-    const updateProject = async (id: string, patch: Partial<Pick<Project, 'name' | 'description'>>) => {
+    const updateProject = async (id: string, patch: UpdateProjectPatch) => {
         const updated = await projectService.updateProject(id, patch);
         if (activeProject?.id === id) {
             setActiveProjectState(updated);

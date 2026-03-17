@@ -5,8 +5,10 @@ import { zoteroService, ZoteroCredentials } from '../lib/zotero';
 import { useProject } from '../contexts/ProjectContext';
 import { kv } from '../lib/kv';
 import { useNavigate } from 'react-router-dom';
+import { resourcesService } from '../lib/resources';
 
 const UPLOADS_DIR = 'research-dashboard/uploads';
+const provider = import.meta.env.VITE_PROVIDER || 'puter';
 
 interface ZoteroImportModalProps {
   onClose: () => void;
@@ -35,7 +37,6 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
     setError(null);
     try {
       const creds = await kv.get('zotero_credentials');
-      // creds.userId = '475425'; // For testing
       if (!creds || !creds.apiKey || !creds.userId) {
         setError('Please connect your Zotero account in Settings > Integrations.');
         setIsLoading(false);
@@ -65,11 +66,9 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
       const limit = 100;
       let hasMore = true;
 
-      // Fetch last synced version for this collection
       const syncVersions = await kv.get('zotero_sync_versions') || {};
       const lastVersion = syncVersions[selectedCollection] || null;
 
-      // Fetch paginated data
       while (hasMore) {
         setImportProgress(`Fetching items (${allItems.length} loaded)...`);
         const batch = await zoteroService.getItems(credentials, selectedCollection, start, limit, lastVersion);
@@ -93,74 +92,60 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
       }
 
       setImportProgress(`Mapping ${allItems.length} new items to Apex Scholar resources...`);
-
-      // Find the highest version number from the fetched items to store for next time
       let maxVersion = lastVersion || 0;
 
-      // Title Resolution
       const resolveTitle = (data) =>
-        data.name ||
-        data.title ||
-        data.shortTitle ||
-        data.subject ||
-        data.filename ||
-        `${data.itemType} — ${data.dateAdded?.substring(0, 10)}`;
+        data.name || data.title || data.shortTitle || data.subject || data.filename || `${data.itemType} — ${data.dateAdded?.substring(0, 10)}`;
 
       const SKIP_TYPES = ['attachment', 'note', 'annotation'];
 
       const mapZoteroItem: (item: any) => Resource | null = (item) => {
         const d = item.data;
-
         if (SKIP_TYPES.includes(d.itemType)) return null;
+        if (item.version > maxVersion) maxVersion = item.version;
+
         const filename = `${Date.now()}-${resolveTitle(d)}`;
         const path = `${UPLOADS_DIR}/${filename}`;
 
         return {
           id: `zotero_${item.key}`,
-          projectId: activeProject.id,
-          // What Resource Library displays
+          project_id: activeProject.id,
           name: resolveTitle(d),
           source: 'zotero',
           path,
           source_id: item.key,
           date_added: new Date().toISOString(),
-
           abstract: d.abstractNote || null,
           doi: d.DOI || null,
           url: d.url || null,
           year: d.date ? new Date(d.date).getFullYear() : null,
           journal: d.publicationTitle || d.bookTitle || null,
-          authors: (d.creators || [])
-            .filter(c => c.creatorType === 'author')
-            .map(c => `${c.firstName || ''} ${c.lastName || ''}`.trim()),
-          type: d.itemType,    // journalArticle, book, conferencePaper etc.
+          authors: (d.creators || []).filter(c => c.creatorType === 'author').map(c => `${c.firstName || ''} ${c.lastName || ''}`.trim()),
+          type: d.itemType,
           zotero_version: item.version,
           zotero_meta: d,
         };
       };
 
       const mappedResources: Resource[] = allItems.map(mapZoteroItem).filter(Boolean);
-
-      // Write content to files in Puter FS & update KV
       setImportProgress('Saving resources to storage...');
 
-      const existingData = await kv.get('research_resources') || [];
-
-      // Save files
       for (const res of mappedResources) {
         const content = (res as any)._rawContent;
-        delete (res as any)._rawContent; // remove temp field
+        delete (res as any)._rawContent;
         await puterService.fsWrite(res.path, content);
+        if (provider === 'supabase') {
+          await resourcesService.create(res);
+        }
       }
 
-      // We filter out any existing items that have the same ID to prevent duplicates
-      const newDict = new Map(mappedResources.map(r => [r.id, r]));
-      const filteredOld = existingData.filter((r: Resource) => !newDict.has(r.id));
+      if (provider !== 'supabase') {
+        const existingData = await kv.get('research_resources') || [];
+        const newDict = new Map(mappedResources.map(r => [r.id, r]));
+        const filteredOld = existingData.filter((r: Resource) => !newDict.has(r.id));
+        await kv.set('research_resources', [...mappedResources, ...filteredOld]);
+      }
 
-      const finalData = [...mappedResources, ...filteredOld];
-      await kv.set('research_resources', finalData);
-
-      // Save the new max version
       syncVersions[selectedCollection] = maxVersion;
       await kv.set('zotero_sync_versions', syncVersions);
 

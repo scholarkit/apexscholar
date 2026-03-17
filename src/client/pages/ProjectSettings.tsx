@@ -11,9 +11,12 @@ import {
     CheckCircle2,
     Clock,
     FolderGit,
+    X,
+    Calendar,
 } from 'lucide-react';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
+import type { Project } from '../lib/projects';
 
 function ComingSoonBadge() {
     return (
@@ -42,20 +45,20 @@ function SectionCard({
     return (
         <div
             className={`rounded-xl border p-6 ${danger
-                    ? 'border-red-500/20 bg-red-500/5'
-                    : comingSoon
-                        ? 'border-neutral-800 bg-neutral-900/50 opacity-60'
-                        : 'border-neutral-800 bg-neutral-900'
+                ? 'border-red-500/20 bg-red-500/5'
+                : comingSoon
+                    ? 'border-neutral-800 bg-neutral-900/50 opacity-60'
+                    : 'border-neutral-800 bg-neutral-900'
                 }`}
         >
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                     <div
                         className={`p-2 rounded-xl ${danger
-                                ? 'bg-red-500/10 text-red-400'
-                                : comingSoon
-                                    ? 'bg-zinc-800 text-zinc-500'
-                                    : 'bg-indigo-500/10 text-indigo-400'
+                            ? 'bg-red-500/10 text-red-400'
+                            : comingSoon
+                                ? 'bg-zinc-800 text-zinc-500'
+                                : 'bg-indigo-500/10 text-indigo-400'
                             }`}
                     >
                         {icon}
@@ -84,22 +87,43 @@ function SectionCard({
     );
 }
 
+const STATUS_OPTIONS: { value: Project['status']; label: string; dot: string }[] = [
+    { value: 'draft', label: 'Draft', dot: 'bg-zinc-500' },
+    { value: 'active', label: 'Active', dot: 'bg-emerald-500' },
+    { value: 'paused', label: 'Paused', dot: 'bg-amber-500' },
+    { value: 'completed', label: 'Completed', dot: 'bg-blue-500' },
+    { value: 'archived', label: 'Archived', dot: 'bg-zinc-500' },
+];
+
 export default function ProjectSettings() {
     const { activeProject, updateProject, deleteProject } = useProject();
     const navigate = useNavigate();
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [status, setStatus] = useState<Project['status']>('active');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteInput, setDeleteInput] = useState('');
 
+    // Tags state
+    const [tags, setTags] = useState<string[]>([]);
+    const [tagInput, setTagInput] = useState('');
+    const [savingTags, setSavingTags] = useState(false);
+    const [savedTags, setSavedTags] = useState(false);
+
     useEffect(() => {
         if (activeProject) {
             setName(activeProject.name);
             setDescription(activeProject.description || '');
+            setStatus(activeProject.status || 'active');
+            setStartDate(activeProject.start_date || '');
+            setEndDate(activeProject.end_date || '');
+            setTags(activeProject.tags || []);
         }
     }, [activeProject]);
 
@@ -130,12 +154,43 @@ export default function ProjectSettings() {
             await updateProject(activeProject.id, {
                 name: name.trim(),
                 description: description.trim(),
+                status,
+                start_date: startDate || null,
+                end_date: endDate || null,
             });
             setSaved(true);
             setTimeout(() => setSaved(false), 2500);
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleSaveTags = async () => {
+        setSavingTags(true);
+        try {
+            await updateProject(activeProject.id, { tags });
+            setSavedTags(true);
+            setTimeout(() => setSavedTags(false), 2500);
+        } finally {
+            setSavingTags(false);
+        }
+    };
+
+    const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+            e.preventDefault();
+            const tag = tagInput.trim().toLowerCase();
+            if (!tags.includes(tag)) {
+                setTags([...tags, tag]);
+            }
+            setTagInput('');
+        } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
+            setTags(tags.slice(0, -1));
+        }
+    };
+
+    const removeTag = (tag: string) => {
+        setTags(tags.filter(t => t !== tag));
     };
 
     const handleDelete = async () => {
@@ -175,7 +230,7 @@ export default function ProjectSettings() {
             {/* General */}
             <SectionCard
                 title="General"
-                description="Update your project name and description."
+                description="Update your project name, description, status, and dates."
                 icon={<FolderGit className="w-4 h-4" />}
             >
                 <form onSubmit={handleSave} className="space-y-4">
@@ -186,7 +241,7 @@ export default function ProjectSettings() {
                         <input
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-black border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow"
+                            className="w-full bg-zinc-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow"
                             placeholder="Project name"
                             required
                         />
@@ -198,10 +253,58 @@ export default function ProjectSettings() {
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="w-full bg-black border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-24 resize-none transition-shadow"
+                            className="w-full bg-zinc-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-24 resize-none transition-shadow"
                             placeholder="Briefly describe the research scope..."
                         />
                     </div>
+
+                    {/* Status */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-zinc-400">Status</label>
+                            <div className="relative w-full sm:w-64">
+                                <select
+                                    value={status}
+                                    onChange={(e) => setStatus(e.target.value as Project['status'])}
+                                    className="w-full appearance-none bg-zinc-800/50 border border-white/10 rounded-xl pl-4 pr-10 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-zinc-900 transition-colors [color-scheme:dark]"
+                                >
+                                    {STATUS_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-2">
+                                    <span className={`w-2 h-2 rounded-full ${STATUS_OPTIONS.find(o => o.value === status)?.dot}`} />
+                                </div>
+                            </div>
+                        </div>
+                        {/* Dates */}
+                        <div>
+                            <label className="block text-sm font-medium text-zinc-400">Start Date</label>
+                            <div className="relative">
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="w-full bg-zinc-800/50 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-zinc-400">End Date</label>
+                            <div className="relative">
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="w-full bg-zinc-800/50 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+
                     <div className="flex items-center justify-end gap-3 pt-1">
                         <button
                             type="submit"
@@ -221,19 +324,62 @@ export default function ProjectSettings() {
                 </form>
             </SectionCard>
 
+            {/* Tags */}
+            <SectionCard
+                title="Tags"
+                description="Organize your project with custom tags for quick filtering."
+                icon={<Tag className="w-4 h-4" />}
+            >
+                <div className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-2 w-full bg-zinc-800/50 border border-white/10 rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-indigo-500/50 min-h-[44px]">
+                        {tags.map(tag => (
+                            <span
+                                key={tag}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-xs font-medium border border-indigo-500/20"
+                            >
+                                {tag}
+                                <button
+                                    type="button"
+                                    onClick={() => removeTag(tag)}
+                                    className="hover:text-white transition-colors"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </span>
+                        ))}
+                        <input
+                            value={tagInput}
+                            onChange={e => setTagInput(e.target.value)}
+                            onKeyDown={handleTagKeyDown}
+                            className="flex-1 min-w-[120px] bg-transparent text-white text-sm focus:outline-none placeholder:text-zinc-600"
+                            placeholder={tags.length === 0 ? "Type and press Enter…" : "Add another…"}
+                        />
+                    </div>
+                    <div className="flex items-center justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={handleSaveTags}
+                            disabled={savingTags}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl font-semibold text-sm transition-colors"
+                        >
+                            <Save className="w-4 h-4" />
+                            {savingTags ? 'Saving…' : 'Save Tags'}
+                        </button>
+                        {savedTags && (
+                            <span className="inline-flex items-center gap-1.5 text-sm text-emerald-400 animate-in fade-in duration-300">
+                                <CheckCircle2 className="w-4 h-4" />
+                                Saved
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </SectionCard>
+
             {/* Coming Soon: Collaboration */}
             <SectionCard
                 title="Collaboration"
                 description="Invite team members and manage permissions."
                 icon={<Users className="w-4 h-4" />}
-                comingSoon
-            />
-
-            {/* Coming Soon: Keywords & Tags */}
-            <SectionCard
-                title="Keywords & Tags"
-                description="Organize your project with semantic keywords and custom tags."
-                icon={<Tag className="w-4 h-4" />}
                 comingSoon
             />
 
@@ -282,7 +428,7 @@ export default function ProjectSettings() {
                             autoFocus
                             value={deleteInput}
                             onChange={(e) => setDeleteInput(e.target.value)}
-                            className="w-full bg-black border border-red-500/30 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm"
+                            className="w-full bg-zinc-800/50 border border-red-500/30 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm"
                             placeholder={activeProject.name}
                         />
                         <div className="flex items-center gap-3">

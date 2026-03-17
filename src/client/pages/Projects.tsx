@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, FolderPlus, FolderGit, LayoutDashboard, BookOpen, FolderSearch, SquareKanban, Sparkles, Lightbulb, ChevronRight, AlertCircle, Settings, FolderOpen, PenTool, ChevronDown } from 'lucide-react';
+import { Plus, FolderGit, LayoutDashboard, BookOpen, FolderSearch, SquareKanban, Lightbulb, ChevronRight, Settings, FolderOpen, PenTool, ChevronDown, X, Calendar } from 'lucide-react';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -54,18 +54,175 @@ const MODULES = [
     }
 ];
 
+interface CreateProjectModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onCreate: (data: { name: string; description: string; tags: string[]; startDate: string }) => Promise<void>;
+}
+
+function CreateProjectModal({ isOpen, onClose, onCreate }: CreateProjectModalProps) {
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [tags, setTags] = useState<string[]>([]);
+    const [startDate, setStartDate] = useState('');
+    const [tagInput, setTagInput] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    if (!isOpen) return null;
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!name.trim()) return;
+        setIsSubmitting(true);
+        try {
+            await onCreate({ name: name.trim(), description: description.trim(), tags, startDate });
+            // Reset form
+            setName('');
+            setDescription('');
+            setTags([]);
+            setStartDate('');
+            setTagInput('');
+            onClose();
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+            e.preventDefault();
+            const tag = tagInput.trim().toLowerCase();
+            if (!tags.includes(tag)) {
+                setTags([...tags, tag]);
+            }
+            setTagInput('');
+        } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
+            setTags(tags.slice(0, -1));
+        }
+    };
+
+    const removeTag = (tag: string) => {
+        setTags(tags.filter(t => t !== tag));
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+            <div
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                onClick={onClose}
+            />
+            <div className="relative w-full max-w-lg bg-zinc-900 border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-white">Create New Project</h3>
+                    <button
+                        onClick={onClose}
+                        className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div>
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">
+                            Project Name <span className="text-indigo-400">*</span>
+                        </label>
+                        <input
+                            autoFocus
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            className="w-full bg-zinc-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            placeholder="e.g., Quantum Computing Foundations"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">Description</label>
+                        <textarea
+                            value={description}
+                            onChange={e => setDescription(e.target.value)}
+                            maxLength={200}
+                            className="w-full bg-zinc-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-20 resize-none"
+                            placeholder="A brief one-liner on the research scope..."
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">Tags</label>
+                        <div className="flex flex-wrap items-center gap-2 w-full bg-zinc-800/50 border border-white/10 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-500/50 min-h-[44px]">
+                            {tags.map(tag => (
+                                <span
+                                    key={tag}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-xs font-medium border border-indigo-500/20"
+                                >
+                                    {tag}
+                                    <button
+                                        type="button"
+                                        onClick={() => removeTag(tag)}
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </span>
+                            ))}
+                            <input
+                                value={tagInput}
+                                onChange={e => setTagInput(e.target.value)}
+                                onKeyDown={handleTagKeyDown}
+                                className="flex-1 min-w-[120px] bg-transparent text-white text-sm focus:outline-none placeholder:text-zinc-600"
+                                placeholder={tags.length === 0 ? "Type and press Enter…" : ""}
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">Start Date</label>
+                        <div className="relative w-full">
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={e => setStartDate(e.target.value)}
+                                className="w-full bg-zinc-800/50 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 pt-4">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-6 py-2.5 text-zinc-400 hover:text-white font-medium transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={!name.trim() || isSubmitting}
+                            className="px-8 py-2.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20"
+                        >
+                            {isSubmitting ? 'Creating...' : 'Create Workspace'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 export default function Projects() {
     const { projects, activeProject, setActiveProject, createProject, loading } = useProject();
     const navigate = useNavigate();
     const [isCreating, setIsCreating] = useState(false);
-    const [newProject, setNewProject] = useState({ name: '', description: '' });
 
-    const handleCreateProject = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newProject.name.trim()) return;
-        await createProject(newProject.name, newProject.description);
-        setNewProject({ name: '', description: '' });
-        setIsCreating(false);
+    const handleCreateProject = async (data: { name: string; description: string; tags: string[]; startDate: string }) => {
+        await createProject({
+            name: data.name,
+            description: data.description || undefined,
+            tags: data.tags.length > 0 ? data.tags : undefined,
+            startDate: data.startDate || null,
+        });
     };
 
     if (loading) {
@@ -82,10 +239,10 @@ export default function Projects() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
             {/* Header */}
-            <header className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div>
-                    <h1 className="text-2xl font-semibold text-white">Research Projects</h1>
+                    <h1 className="text-2xl font-semibold text-white mb-2">Research Projects</h1>
                     <p className="text-base text-zinc-400">Organize and manage your research workspaces.</p>
                 </div>
                 <button
@@ -96,49 +253,6 @@ export default function Projects() {
                     New Project
                 </button>
             </header>
-
-            {/* Inline Creation Form */}
-            {isCreating && (
-                <div className="p-6 rounded-xl bg-zinc-900/50 border border-neutral-800 backdrop-blur-sm animate-in zoom-in-95 duration-200">
-                    <h3 className="text-lg font-semibold text-white mb-4">Create New Project</h3>
-                    <form onSubmit={handleCreateProject} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-400 mb-2">Project Name</label>
-                            <input
-                                autoFocus
-                                value={newProject.name}
-                                onChange={e => setNewProject({ ...newProject, name: e.target.value })}
-                                className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                placeholder="e.g., Quantum Computing Foundations"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-400 mb-2">Description</label>
-                            <textarea
-                                value={newProject.description}
-                                onChange={e => setNewProject({ ...newProject, description: e.target.value })}
-                                className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-24 resize-none"
-                                placeholder="Briefly describe the research scope..."
-                            />
-                        </div>
-                        <div className="flex items-center justify-end gap-3 pt-2">
-                            <button
-                                type="button"
-                                onClick={() => setIsCreating(false)}
-                                className="px-4 py-2 text-zinc-400 hover:text-white transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-colors  "
-                            >
-                                Create Workspace
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
 
             {/* Main Content Area */}
             {projects.length > 0 ? (
@@ -155,16 +269,36 @@ export default function Projects() {
                                     </div>
                                     <div>
                                         <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{activeProject?.name}</h2>
-                                        <p className="text-sm text-indigo-200/70 mt-1 flex items-center gap-2 font-medium">
-                                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                            Active Workspace
-                                        </p>
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
+                                            <p className="text-sm text-indigo-200/70 flex items-center gap-2 font-medium">
+                                                <span className={`w-2 h-2 rounded-full ${activeProject?.status === 'draft' ? 'bg-zinc-400' : 'bg-emerald-500'} animate-pulse`}></span>
+                                                {activeProject?.status === 'draft' ? 'Draft Workspace' : 'Active Workspace'}
+                                            </p>
+                                            {activeProject?.start_date && (
+                                                <p className="text-xs text-zinc-500 flex items-center gap-1.5">
+                                                    <Calendar className="w-3 h-3" />
+                                                    Started: {new Date(activeProject.start_date).toLocaleDateString()}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 {activeProject?.description && (
                                     <p className="text-zinc-400 text-base leading-relaxed max-w-2xl border-l-2 border-indigo-500/30 pl-4 py-1">
                                         {activeProject.description}
                                     </p>
+                                )}
+                                {activeProject?.tags && activeProject.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {activeProject.tags.map(tag => (
+                                            <span
+                                                key={tag}
+                                                className="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300/80 text-xs font-medium border border-indigo-500/15"
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
 
@@ -246,8 +380,8 @@ export default function Projects() {
                     <div className="w-20 h-20 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-8">
                         <FolderGit className="w-10 h-10 text-indigo-500" />
                     </div>
-                    <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">Begin Your Research Journey</h2>
-                    <p className="text-zinc-500 mb-10 max-w-md leading-relaxed text-base">Create your first research project area to start documenting discoveries, managing resources, and generating AI-powered insights.</p>
+                    <h2 className="text-lg sm:text-3xl font-bold text-white mb-3 tracking-tight">Begin Your Research Journey</h2>
+                    <p className="text-zinc-500 mb-10 max-w-md leading-relaxed text-sm sm:text-base">Create your first research project area to start documenting discoveries, managing resources, and generating AI-powered insights.</p>
                     <button
                         onClick={() => setIsCreating(true)}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-colors"
@@ -257,6 +391,13 @@ export default function Projects() {
                     </button>
                 </div>
             )}
+
+            {/* Modal */}
+            <CreateProjectModal
+                isOpen={isCreating}
+                onClose={() => setIsCreating(false)}
+                onCreate={handleCreateProject}
+            />
         </div>
     );
 }

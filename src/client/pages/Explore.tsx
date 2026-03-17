@@ -85,7 +85,7 @@ interface SourceStatus {
 // ─── arXiv API ─────────────────────────────────────────────────────────────────
 
 async function searchArxiv(query: string): Promise<Paper[]> {
-    const res = await fetch("/api/arxiv?q=" + query);
+    const res = await fetch("/api/sources/arxiv?q=" + query);
     const text = await res.text();
     const xml = new DOMParser().parseFromString(text, 'text/xml');
     const entries = Array.from(xml.querySelectorAll('entry'));
@@ -170,7 +170,7 @@ async function searchSemanticScholar(query: string): Promise<Paper[]> {
 
 async function searchGoogleScholar(query: string): Promise<Paper[]> {
     try {
-        const res = await fetch("/api/scholar?q=" + encodeURIComponent(query));
+        const res = await fetch("/api/sources/scholar?q=" + encodeURIComponent(query));
         if (!res.ok) return [];
         const data = await res.json();
         return (data.organic_results || []).map((w: any) => {
@@ -214,7 +214,7 @@ async function searchGoogleScholar(query: string): Promise<Paper[]> {
 
 async function searchPubmed(query: string): Promise<Paper[]> {
     try {
-        const res = await fetch("/api/pubmed?q=" + encodeURIComponent(query));
+        const res = await fetch("/api/sources/pubmed?q=" + encodeURIComponent(query));
         if (!res.ok) return [];
         const text = await res.text();
         const xml = new DOMParser().parseFromString(text, 'text/xml');
@@ -729,7 +729,7 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
         const checkPdf = async () => {
             setIsCheckingPdf(true);
             try {
-                const res = await fetch(`/api/resolve-pdf?url=${encodeURIComponent(paper.url!)}`);
+                const res = await fetch(`/api/sources/resolve-pdf?url=${encodeURIComponent(paper.url!)}`);
                 if (res.ok) {
                     const contentType = res.headers.get("content-type");
                     if (contentType && contentType.includes("application/json")) {

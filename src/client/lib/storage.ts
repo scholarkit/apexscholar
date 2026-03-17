@@ -51,11 +51,7 @@ export const storage = {
 
     async read(path: string) {
         if (provider === 'supabase') {
-            const res = await apiFetch(`/api/storage/read?path=${encodeURIComponent(path)}`, {
-                headers: { 'Authorization': `Bearer ${getToken()}` }
-            });
-            if (!res.ok) throw new Error('Failed to get read URL');
-            const { url } = await res.json();
+            const url = await this.getReadURL(path);
             
             // Fetch the actual content from the signed URL
             const contentRes = await fetch(url);
@@ -108,5 +104,17 @@ export const storage = {
             return true;
         }
         return await window.puter.fs.delete(path);
+    },
+
+    async getReadURL(path: string) {
+        if (provider === 'supabase') {
+            const res = await apiFetch(`/api/storage/read?path=${encodeURIComponent(path)}`, {
+                headers: { 'Authorization': `Bearer ${getToken()}` }
+            });
+            if (!res.ok) throw new Error('Failed to get read URL');
+            const { url } = await res.json();
+            return url;
+        }
+        return await window.puter.fs.getReadURL(path);
     }
 };

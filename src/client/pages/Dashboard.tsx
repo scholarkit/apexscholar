@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import { BookOpen, FolderOpen, Activity, Plus, Clock, Layers, Calendar, GitCommit } from 'lucide-react';
 import { formatDistanceToNow, format, subDays, eachDayOfInterval } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { Entry, Resource } from '../lib/puter';
+import { Resource } from '../lib/puter';
 import { parseEntryDate } from '../utils/dateUtils';
+import { projectService } from '../lib/projects';
+import { JournalEntry, journalService } from '../lib/journal';
 import { kv } from '../lib/kv';
 
 export default function Dashboard() {
-  const [entries, setEntries] = useState<Entry[]>([]);
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [projects, setProjects] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,9 +18,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadData = async () => {
-      const entriesData = await kv.get('research_entries') || [];
+      const entriesData = await journalService.getEntries();
       const resourcesData = await kv.get('research_resources') || [];
-      const projectsData = await kv.get('research_projects') || [];
+      const projectsData = await projectService.getProjects();
       setEntries(entriesData);
       setResources(resourcesData);
       setProjects(projectsData);
@@ -97,7 +99,7 @@ export default function Dashboard() {
 
   const activityData = intervalDays.map(date => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const count = entries.filter(e => e.date.split(' to ')[0] === dateStr).length;
+    const count = entries.filter(e => e.start_date === dateStr).length;
     return {
       date: format(date, timeRange === '7d' ? 'EEE' : 'MMM d'),
       count,
@@ -106,7 +108,7 @@ export default function Dashboard() {
   });
 
   const typeData = entries.reduce((acc, entry) => {
-    acc[entry.entry_type] = (acc[entry.entry_type] || 0) + 1;
+    acc[entry.type] = (acc[entry.type] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
@@ -124,7 +126,7 @@ export default function Dashboard() {
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
-          <h1 className="text-2xl font-semibold text-white">Dashboard</h1>
+          <h1 className="text-2xl font-semibold text-white mb-2">Dashboard</h1>
           <p className="text-base text-zinc-400">Welcome back. Here's what's happening in your research.</p>
         </div>
       </header>
@@ -259,7 +261,7 @@ export default function Dashboard() {
                 </div>
                 <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-neutral-800 bg-zinc-900/50 shadow">
                   <div className="flex items-center justify-between space-x-2 mb-1">
-                    <div className="font-bold text-white text-xs sm:text-sm">{entry.entry_type}</div>
+                    <div className="font-bold text-white text-xs sm:text-sm">{entry.type}</div>
                     <time className="font-mono text-xs text-zinc-500">{format(parseEntryDate(entry.date), 'MMM d')}</time>
                   </div>
                   <div className="text-zinc-400 text-sm line-clamp-2">{entry.content}</div>
@@ -286,7 +288,7 @@ export default function Dashboard() {
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-3">
                   <span className="px-1 sm:px-2.5 py-1 rounded-xl bg-zinc-800 text-xs font-medium text-zinc-300 border border-neutral-800">
-                    {entry.entry_type}
+                    {entry.type}
                   </span>
                   <span className="text-xs sm:text-sm text-zinc-500">
                     {formatDistanceToNow(parseEntryDate(entry.date), { addSuffix: true })}

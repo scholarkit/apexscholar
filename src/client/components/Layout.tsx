@@ -8,6 +8,9 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { puterService, PuterUser } from '../lib/puter';
 import BrainModal from './BrainModal';
+import { auth as authService } from '../lib/auth';
+
+const provider = import.meta.env.VITE_PROVIDER || 'puter';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -40,7 +43,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    puterService.getUser().then(setUser);
+    getUser();
   }, []);
 
   // Ctrl+B / ⌘+B to toggle Brain modal
@@ -54,6 +57,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
+
+  async function getUser() {
+    if (provider == 'supabase') {
+      authService.getUser().then(setUser);
+    } else {
+      puterService.getUser().then(setUser);
+    }
+  }
 
   const handleSignOut = async () => {
     if (!confirm('Are you sure you want to sign out?')) return;
@@ -180,7 +191,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-white truncate">{user?.username || 'Loading...'}</p>
-                  <p className="text-xs text-zinc-500 truncate">Puter Account</p>
+                  <p className="text-xs text-zinc-500 truncate">{provider == 'puter' ? 'Puter Account' : 'Account'}</p>
                 </div>
               </div>
               <button onClick={handleSignOut} disabled={signingOut}
@@ -274,7 +285,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white truncate">{user?.username || 'Loading...'}</p>
-              <p className="text-xs text-zinc-500 truncate">Puter Account</p>
+              <p className="text-xs text-zinc-500 truncate">{provider == 'puter' ? 'Puter Account' : 'Account'}</p>
             </div>
           </div>
           <button onClick={handleSignOut} disabled={signingOut}

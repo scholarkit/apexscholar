@@ -8,6 +8,8 @@ import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { journalService } from '../lib/journal';
+
 import { kv } from '../lib/kv';
 
 export default function Journal() {
@@ -72,28 +74,27 @@ export default function Journal() {
       setLoading(false);
       return;
     }
-    const data = await kv.get('research_entries') || [];
-    const projectEntries = data.filter((e: Entry) => e.projectId === activeProject.id);
-    setEntries(projectEntries.sort((a: Entry, b: Entry) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    const data: any = await journalService.getEntries(activeProject.id);
+    setEntries(data.sort((a: Entry, b: Entry) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
     setLoading(false);
   };
 
   const handleSave = async () => {
-    if (!currentEntry.content || !currentEntry.entry_type) return;
+    if (!currentEntry.content || !currentEntry.type) return;
 
     const isNew = !currentEntry.id;
-    let finalDate = currentEntry.date || new Date().toISOString();
+    let finalDate = currentEntry.end_date || new Date().toISOString();
 
-    if (currentEntry.entry_type === 'Weekly Diary' && currentEntry.startDate && currentEntry.endDate) {
-      finalDate = `${currentEntry.startDate} to ${currentEntry.endDate}`;
+    if (currentEntry.type === 'Weekly Diary' && currentEntry.start_date && currentEntry.end_date) {
+      finalDate = `${currentEntry.start_date} to ${currentEntry.end_date}`;
     }
 
     const newEntry: Entry = {
       id: currentEntry.id || Math.random().toString(36).substring(7),
-      projectId: activeProject?.id,
-      date: finalDate,
+      project_id: activeProject?.id,
+      created_at: finalDate,
       content: currentEntry.content,
-      entry_type: currentEntry.entry_type
+      type: currentEntry.type
     };
 
     const allEntries = await kv.get('research_entries') || [];
@@ -121,26 +122,26 @@ export default function Journal() {
 
   const openEditor = (entry?: Entry) => {
     if (entry) {
-      const isWeekly = entry.entry_type === 'Weekly Diary';
+      const isWeekly = entry.type === 'Weekly Diary';
       let startDate = '';
       let endDate = '';
 
-      if (isWeekly && entry.date.includes(' to ')) {
-        [startDate, endDate] = entry.date.split(' to ');
+      if (isWeekly) {
+        startDate = entry.created_at;
+        endDate = entry.updated_at;
       }
 
       setCurrentEntry({
         ...entry,
-        startDate: startDate || (isWeekly ? entry.date : ''),
-        endDate: endDate || ''
+        start_date: startDate || (isWeekly ? entry.created_at : ''),
+        end_date: endDate || ''
       });
     } else {
       const today = new Date().toISOString().split('T')[0];
       setCurrentEntry({
-        entry_type: 'Progress Notes',
-        date: today,
-        startDate: today,
-        endDate: today
+        type: 'Progress Notes',
+        created_at: today,
+        updated_at: today
       });
     }
     // Stop any active recording when switching entries
@@ -259,22 +260,22 @@ export default function Journal() {
               <div>
                 <label className="block text-sm font-medium text-zinc-400 mb-2">Category</label>
                 <select
-                  value={currentEntry.entry_type}
-                  onChange={(e) => setCurrentEntry({ ...currentEntry, entry_type: e.target.value })}
+                  value={currentEntry.type}
+                  onChange={(e) => setCurrentEntry({ ...currentEntry, type: e.target.value })}
                   className="w-full bg-black border border-white/10 rounded-xl px-2 sm:px-4 py-1 sm:py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
                 >
                   {entryTypes.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
 
-              {currentEntry.entry_type === 'Weekly Diary' ? (
+              {currentEntry.type === 'Weekly Diary' ? (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-zinc-400 mb-2">Start Date</label>
                     <input
                       type="date"
-                      value={currentEntry.startDate || ''}
-                      onChange={(e) => setCurrentEntry({ ...currentEntry, startDate: e.target.value })}
+                      value={currentEntry.start_date || ''}
+                      onChange={(e) => setCurrentEntry({ ...currentEntry, start_date: e.target.value })}
                       className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     />
                   </div>
@@ -282,8 +283,8 @@ export default function Journal() {
                     <label className="block text-sm font-medium text-zinc-400 mb-2">End Date</label>
                     <input
                       type="date"
-                      value={currentEntry.endDate || ''}
-                      onChange={(e) => setCurrentEntry({ ...currentEntry, endDate: e.target.value })}
+                      value={currentEntry.end_date || ''}
+                      onChange={(e) => setCurrentEntry({ ...currentEntry, end_date: e.target.value })}
                       className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     />
                   </div>
@@ -293,8 +294,8 @@ export default function Journal() {
                   <label className="block text-sm font-medium text-zinc-400 mb-2">Date</label>
                   <input
                     type="date"
-                    value={currentEntry.date || ''}
-                    onChange={(e) => setCurrentEntry({ ...currentEntry, date: e.target.value })}
+                    value={currentEntry.created_at || ''}
+                    onChange={(e) => setCurrentEntry({ ...currentEntry, created_at: e.target.value })}
                     className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />
                 </div>
@@ -389,10 +390,10 @@ export default function Journal() {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-500 text-xs font-semibold tracking-wide uppercase border border-indigo-500/20">
-                      {entry.entry_type}
+                      {entry.type}
                     </span>
                     <span className="text-sm text-zinc-500 font-medium">
-                      {entry.entry_type === 'Weekly Diary' ? entry.date : format(parseEntryDate(entry.date), 'MMMM d, yyyy')}
+                      {entry.type === 'Weekly Diary' ? entry.start_date : format(parseEntryDate(entry.start_date), 'MMMM d, yyyy')}
                     </span>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

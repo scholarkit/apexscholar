@@ -5,6 +5,9 @@ import { puterService } from '../lib/puter';
 import { changeE2EEPassphrase, disableE2EE, enableE2EE, getE2EEConfig, isE2EEEnabled, migrateDataToE2EE, initE2EE, unlockE2EE } from '../lib/e2ee';
 import { zoteroService } from '../lib/zotero';
 import { kv } from '../lib/kv';
+import { storage } from '../lib/storage';
+
+const provider = import.meta.env.VITE_PROVIDER || 'puter';
 
 interface FolderStat { name: string; size: number; }
 
@@ -18,8 +21,7 @@ function formatBytes(bytes: number): string {
 
 async function sumDir(path: string): Promise<number> {
     try {
-        const puter = (window as any).puter;
-        const items: any[] = await puter.fs.readdir(path);
+        const items = await storage.readdir(path);
         let total = 0;
         await Promise.all(
             items.map(async (item: any) => {
@@ -27,7 +29,7 @@ async function sumDir(path: string): Promise<number> {
                     total += await sumDir(`${path}/${item.name}`);
                 } else {
                     try {
-                        const stat = await puter.fs.stat(`${path}/${item.name}`);
+                        const stat = await storage.stat(`${path}/${item.name}`);
                         total += stat?.size ?? item.size ?? 0;
                     } catch {
                         total += item.size ?? 0;
@@ -66,7 +68,7 @@ const MODULES = [
     {
         id: 'storage',
         name: 'Storage Usage',
-        description: 'Monitor your Puter cloud storage quota',
+        description: `Monitor your ${provider === 'puter' ? 'Puter' : 'Supabase'} cloud storage quota`,
         icon: <HardDrive className="w-6 h-6" />,
         color: 'teal',
     },
@@ -185,8 +187,8 @@ export default function Settings() {
     useEffect(() => {
         (async () => {
             try {
-                const puter = (window as any).puter;
-                const rootItems: any[] = await puter.fs.readdir('research-dashboard/uploads');
+                const uploadPath = provider === 'supabase' ? 'uploads' : 'research-dashboard/uploads';
+                const rootItems = await storage.readdir(uploadPath);
                 const topFiles = rootItems.filter((i: any) => !i.is_dir);
                 let rootFilesSize = 0;
                 for (const f of topFiles) {
@@ -195,7 +197,7 @@ export default function Settings() {
                 setStorageTotal(rootFilesSize);
             } catch (err: any) {
                 console.error('Storage scan failed', err);
-                setStorageError('Could not read storage. Check Puter FS permissions.');
+                setStorageError(`Could not read storage. Check ${provider === 'puter' ? 'Puter FS' : 'Supabase'} permissions.`);
             } finally {
                 setLoadingStorage(false);
             }
@@ -571,7 +573,7 @@ export default function Settings() {
             {loadingStorage ? (
                 <div className="flex items-center gap-2 text-zinc-400 py-4">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">Scanning your Puter storage…</span>
+                    <span className="text-sm">Scanning your {provider === 'puter' ? 'Puter' : 'Supabase'} storage…</span>
                 </div>
             ) : storageError ? (
                 <p className="text-sm text-red-400 py-2">{storageError}</p>
@@ -713,13 +715,11 @@ export default function Settings() {
                         <ChevronLeft className="w-5 h-5" />
                     </button>
                 )}
-                <div>
-                    <div className="flex items-center gap-3 mb-1">
-                        <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white">
-                            {activeModuleInfo ? activeModuleInfo.name : 'Settings'}
-                        </h1>
-                    </div>
-                    <p className="text-base text-zinc-400 pl-1 mt-1">
+                <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+                    <h1 className="text-2xl font-semibold text-white mb-2">
+                        {activeModuleInfo ? activeModuleInfo.name : 'Settings'}
+                    </h1>
+                    <p className="text-base text-zinc-400">
                         {activeModuleInfo ? activeModuleInfo.description : 'Manage your Apex Scholar data and preferences.'}
                     </p>
                 </div>

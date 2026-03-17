@@ -1,0 +1,125 @@
+import { kv } from './kv';
+import { apiFetch } from './apiFetch';
+
+const provider = import.meta.env.VITE_PROVIDER || 'puter';
+
+export interface JournalEntry {
+    id: string;
+    project_id?: string;
+    author_id?: string;
+    date: string;
+    content: string;
+    type: string;
+    start_date?: string;
+    end_date?: string;
+}
+
+export interface JournalInsight {
+    id: string;
+    projectId?: string;
+    content: string;
+    created_at: string;
+}
+
+const ENTRIES_KEY = 'research_entries';
+const INSIGHTS_KEY = 'research_insights';
+const baseUrl = '/api/journal';
+
+export const journalService = {
+    /**
+     * Journal Entries
+     */
+    async getEntries(projectId?: string): Promise<JournalEntry[]> {
+        if (provider === 'supabase') {
+            const res = await apiFetch(`${baseUrl}/${projectId || ''}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('supabase_token')}`,
+                },
+            });
+            if (!res.ok) return [];
+            return res.json() || [];
+        }
+        const entries = await kv.get(ENTRIES_KEY);
+        return entries || [];
+    },
+
+    async createEntry(entry: Omit<JournalEntry, 'id'>): Promise<JournalEntry> {
+        const newEntry: JournalEntry = {
+            ...entry,
+            id: Math.random().toString(36).substring(7),
+        };
+
+        if (provider === 'supabase') {
+            const res = await apiFetch(baseUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newEntry),
+            });
+            if (!res.ok) throw new Error('Failed to create journal entry');
+            return res.json() || newEntry;
+        }
+
+        const entries = await this.getEntries();
+        await kv.set(ENTRIES_KEY, [newEntry, ...entries]);
+        return newEntry;
+    },
+
+    async updateEntry(id: string, patch: Partial<JournalEntry>): Promise<JournalEntry> {
+        if (provider === 'supabase') {
+            const res = await apiFetch(`${baseUrl}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(patch),
+            });
+            if (!res.ok) throw new Error('Failed to update journal entry');
+            return res.json() || patch;
+        }
+
+        const entries = await this.getEntries();
+        const updated = entries.map(e => e.id === id ? { ...e, ...patch } : e);
+        await kv.set(ENTRIES_KEY, updated);
+        return updated.find(e => e.id === id)!;
+    },
+
+    async deleteEntry(id: string): Promise<void> {
+        if (provider === 'supabase') {
+            const res = await apiFetch(`${baseUrl}/${id}`, {
+                method: 'DELETE',
+            });
+            if (!res.ok) throw new Error('Failed to delete journal entry');
+            return;
+        }
+
+        const entries = await this.getEntries();
+        const updated = entries.filter(e => e.id !== id);
+        await kv.set(ENTRIES_KEY, updated);
+    },
+
+    /**
+     * Journal Insights
+     */
+    async getInsights(): Promise<JournalInsight[]> {
+        // Insights are currently stored in KV even for Supabase provider in existing code
+        // but we can support both patterns if needed. For now, following Insights.tsx pattern.
+        const insights = await kv.get(INSIGHTS_KEY);
+        return insights || [];
+    },
+
+    async createInsight(insight: Omit<JournalInsight, 'id'>): Promise<JournalInsight> {
+        const newInsight: JournalInsight = {
+            ...insight,
+            id: Math.random().toString(36).substring(2, 11),
+        };
+
+        const insights = await this.getInsights();
+        await kv.set(INSIGHTS_KEY, [newInsight, ...insights]);
+        return newInsight;
+    },
+
+    async deleteInsight(id: string): Promise<void> {
+        const insights = await this.getInsights();
+        const updated = insights.filter(i => i.id !== id);
+        await kv.set(INSIGHTS_KEY, updated);
+    }
+};

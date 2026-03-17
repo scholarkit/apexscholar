@@ -8,6 +8,7 @@ import { useProject } from '../contexts/ProjectContext';
 import Breadcrumbs from '../components/Breadcrumbs';
 import ZoteroImportModal from '../components/ZoteroImportModal';
 import { kv } from '../lib/kv';
+import { resourcesService } from '../lib/resources';
 
 export default function Resources() {
   const { activeProject } = useProject();
@@ -21,6 +22,7 @@ export default function Resources() {
   const [showZoteroModal, setShowZoteroModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const provider = import.meta.env.VITE_PROVIDER || 'puter';
   const UPLOADS_DIR = 'research-dashboard/uploads';
 
   useEffect(() => {
@@ -32,17 +34,33 @@ export default function Resources() {
       setLoading(false);
       return;
     }
-    const data = await kv.get('research_resources') || [];
-    const projectResources = data.filter((r: Resource) => r.projectId === activeProject.id);
-    setResources(projectResources.sort((a: Resource, b: Resource) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime()));
+
+    let projectResources: Resource[] = [];
+    if (provider === 'supabase') {
+      try {
+        projectResources = await resourcesService.listForProject(activeProject.id);
+      } catch (err) {
+        console.error('Failed to fetch resources from Supabase', err);
+      }
+    } else {
+      const data = await kv.get('research_resources') || [];
+      projectResources = data.filter((r: Resource) => (r as any).projectId === activeProject.id || r.project_id === activeProject.id);
+    }
+
+    setResources(projectResources.sort((a: Resource, b: Resource) => 
+      new Date(b.date_added || b.created_at || 0).getTime() - 
+      new Date(a.date_added || a.created_at || 0).getTime()
+    ));
 
     // Get download URLs for only project resources
     const urls: Record<string, string> = {};
     for (const res of projectResources) {
-      try {
-        urls[res.id] = await puterService.fsGetURL(res.path);
-      } catch (err) {
-        console.error(`Failed to get URL for ${res.name}`, err);
+      if (res.path) {
+        try {
+          urls[res.id] = await puterService.fsGetURL(res.path);
+        } catch (err) {
+          console.error(`Failed to get URL for ${res.name}`, err);
+        }
       }
     }
     setDownloadUrls(urls);
@@ -59,13 +77,13 @@ export default function Resources() {
       const filename = `${Date.now()}-${file.name}`;
       const path = `${UPLOADS_DIR}/${filename}`;
 
-      // Upload to Puter FS
+      // Upload to Storage (handles both Supabase and Puter)
       await puterService.fsWrite(path, file);
 
-      // Save metadata to KV
-      const resource: Resource = {
+      // Save metadata
+      const resource: Partial<Resource> = {
         id,
-        projectId: activeProject?.id,
+        project_id: activeProject?.id,
         name: file.name,
         source: 'apexscholar',
         source_id: id,
@@ -74,14 +92,18 @@ export default function Resources() {
         date_added: new Date().toISOString()
       };
 
-      const allResources = await kv.get('research_resources') || [];
-      const updatedResources = [resource, ...allResources];
-      await kv.set('research_resources', updatedResources);
+      if (provider === 'supabase') {
+        await resourcesService.create(resource);
+      } else {
+        const allResources = await kv.get('research_resources') || [];
+        const updatedResources = [resource as Resource, ...allResources];
+        await kv.set('research_resources', updatedResources);
+      }
 
       fetchResources();
     } catch (error) {
       console.error('Upload failed', error);
-      alert('Failed to upload file to Puter Cloud Storage');
+      alert(`Failed to upload file to ${provider === 'supabase' ? 'Supabase' : 'Puter'} Storage`);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -91,13 +113,19 @@ export default function Resources() {
   const handleDelete = async (id: string, path: string) => {
     if (!confirm('Are you sure you want to delete this resource?')) return;
     try {
-      // Delete from Puter FS
-      await puterService.fsDelete(path);
+      // Delete from Storage
+      if (path) {
+        await puterService.fsDelete(path);
+      }
 
-      // Update KV metadata
-      const allResources = await kv.get('research_resources') || [];
-      const updatedResources = allResources.filter((r: Resource) => r.id !== id);
-      await kv.set('research_resources', updatedResources);
+      // Update metadata
+      if (provider === 'supabase') {
+        await resourcesService.delete(id);
+      } else {
+        const allResources = await kv.get('research_resources') || [];
+        const updatedResources = allResources.filter((r: Resource) => r.id !== id);
+        await kv.set('research_resources', updatedResources);
+      }
 
       fetchResources();
     } catch (err) {
@@ -223,7 +251,7 @@ export default function Resources() {
 
                   {/* Date Added */}
                   <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
-                    {formatDistanceToNow(new Date(resource.date_added), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(resource.date_added || resource.created_at || new Date()), { addSuffix: true })}
                   </td>
 
                   {/* Actions */}

@@ -75,27 +75,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                     <div className="relative space-y-6">
-                        <div className="flex flex-col sm:flex-row sm:gap-4 space-y-4 sm:space-y-0">
-                            <div className="flex items-center gap-4 p-4 rounded-xl bg-zinc-800/30 border border-neutral-800 transition-all hover:bg-zinc-800/50 hover:border-white/10">
-                                <div className="p-2 bg-blue-500/10 rounded-xl">
-                                    <Globe className="w-5 h-5 text-blue-400" />
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-semibold text-white">Cloud Storage</h3>
-                                    <p className="text-xs text-zinc-500">Persistent, accessible anywhere</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-4 p-4 rounded-xl bg-zinc-800/30 border border-neutral-800 transition-all hover:bg-zinc-800/50 hover:border-white/10">
-                                <div className="p-2 bg-emerald-500/10 rounded-xl">
-                                    <Rocket className="w-5 h-5 text-emerald-400" />
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-semibold text-white">Lightning Fast</h3>
-                                    <p className="text-xs text-zinc-500">Real-time sync and decentralized performance</p>
-                                </div>
-                            </div>
-                        </div>
 
                         {error && (
                             <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
@@ -134,7 +113,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full relative group overflow-hidden px-6 py-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold text-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 shadow-xl shadow-indigo-600/20"
+                                    className="w-full relative group overflow-hidden px-6 py-4 bg-indigo-500 hover:bg-indigo-600 hover:cursor-pointer text-white rounded-xl font-bold text-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 shadow-xl shadow-indigo-600/20"
                                 >
                                     <div className="flex items-center justify-center gap-3">
                                         {loading ? (
@@ -142,7 +121,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                                         ) : (
                                             <>
                                                 <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
-                                                <Shield className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                                <Shield className="w-5 h-5" />
                                             </>
                                         )}
                                     </div>
@@ -151,7 +130,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                                     <button
                                         type="button"
                                         onClick={() => setIsSignUp(!isSignUp)}
-                                        className="text-indigo-400 hover:text-indigo-300 text-sm transition-colors"
+                                        className="text-indigo-400 hover:text-indigo-300 hover:cursor-pointer text-sm transition-colors"
                                     >
                                         {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                                     </button>
@@ -174,7 +153,30 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                                     )}
                                 </div>
                             </button>
+
                         )}
+
+                        <div className="flex flex-col sm:flex-row sm:gap-4 space-y-4 sm:space-y-0">
+                            <div className="sm:w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800/30 border border-neutral-800 transition-all hover:bg-zinc-800/50 hover:border-white/10">
+                                <div className="p-2 bg-blue-500/10 rounded-xl">
+                                    <Globe className="w-5 h-5 text-blue-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-semibold text-white">Cloud Storage</h3>
+                                    <p className="text-xs text-zinc-500">Persistent, accessible anywhere</p>
+                                </div>
+                            </div>
+
+                            <div className="sm:w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800/30 border border-neutral-800 transition-all hover:bg-zinc-800/50 hover:border-white/10">
+                                <div className="p-2 bg-emerald-500/10 rounded-xl">
+                                    <Rocket className="w-5 h-5 text-emerald-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-semibold text-white">Lightning Fast</h3>
+                                    <p className="text-xs text-zinc-500">Real-time sync and decentralized performance</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

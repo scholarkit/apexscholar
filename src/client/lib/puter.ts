@@ -23,19 +23,22 @@ export interface PuterUser {
 
 export interface Entry {
   id: string;
-  projectId?: string;
-  date: string;
+  project_id?: string;
+  author_id?: string;
+  created_at?: string;
+  updated_at?: string;
   content: string;
-  entry_type: string;
-  startDate?: string;
-  endDate?: string;
+  type: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 export interface Resource {
   id: string;
-  projectId?: string;
+  project_id?: string;
+  user_id?: string;
   name: string;
-  source: 'apexscholar' | 'zotero';
+  source: string;
   source_id: string;
   type: string;
   abstract?: string;
@@ -49,6 +52,8 @@ export interface Resource {
   metadata?: any;
   zotero_version?: any;
   zotero_meta?: any;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Insight {
@@ -123,6 +128,6 @@ export const puterService = {
   },
 
   async fsGetURL(path: string): Promise<string> {
-    return await puter.fs.getReadURL(path);
+    return await storage.getReadURL(path);
   }
 };

@@ -25,8 +25,10 @@
 
 ## ✨ Key Features
 
-- **Unified Papers Explorer:** Seamlessly search and import papers across **ArXiv**, **Semantic Scholar**, **OpenAlex**, **Google Scholar**, and **PubMed** simultaneously.
+- **Unified Papers Explorer:** Seamlessly search and import papers across **ArXiv**, **Semantic Scholar**, **OpenAlex**, **Google Scholar**, **CrossRef** and **PubMed** simultaneously.
+- **Reference Management:** Connect & import collections from **Zotero** and many more coming soon.
 - **Knowledge Base & Gap Identification:** Auto-extract insights from abstracts using AI, and build an interactive 2D Force Graph to visualize relationships and identify novel research gaps.
+- **Research Journal & Docs:** Manage research journal and write thesis, papers using LaTex or Rich Editor.
 - **Grant & Funding Tracker:** Stay on top of proposal deadlines, checklist requirements, document links, and budget spending.
 - **Citation Engine:** Quickly auto-generate citations for your saved literature.
 - **Kanban Task Board:** A drag-and-drop integrated board to map out your literature review, analysis, and data collection phases.
@@ -44,8 +46,8 @@ To run Apex Scholar locally on your machine, follow these steps:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/sathwik-14/apex-scholar.git
-   cd apex-scholar
+   git clone https://github.com/scholarkit/apexscholar.git
+   cd apexscholar
    ```
 
 2. **Install dependencies:**
@@ -56,8 +58,12 @@ To run Apex Scholar locally on your machine, follow these steps:
 3. **Environment Setup:**
    Create a `.env` file in the root directory and add any required API keys (e.g., NCBI, SerpAPI, etc.):
    ```env
+   VITE_PROVIDER=puter
    SERPAPI_API_KEY=your_key_here
    NCBI_API_KEY=your_key_here
+   SUPERMEMORY_API_KEY=your_key_here
+   GITHUB_TOKEN=your_token_here
+   VITE_ZOTERO_CLIENT_KEY=your_key_here
    ```
 
 4. **Start the development server:**
@@ -72,7 +78,7 @@ To run Apex Scholar locally on your machine, follow these steps:
 We are constantly growing to meet the needs of the academic community. Here’s what’s on the horizon:
 
 ### Literature & Citation Management
-- **Reference Syncing:** Native integrations with Zotero, Mendeley, and EndNote APIs.
+- **Reference Syncing:** Native integrations with Mendeley, and EndNote APIs etc.
 - **PDF Workspace:** Upload papers, highlight text, and link annotations directly to your unified knowledge graph.
 - **Scopus Integration:** Adding Scopus to the unified paper explorer.
 

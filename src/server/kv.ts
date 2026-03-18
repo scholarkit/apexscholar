@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { requireAuth } from './middleware';
-import { supabaseAdmin } from './supabase';
+import { requireAuth } from './middleware.ts';
+import { supabaseAdmin } from './supabase.ts';
 
 export const kvRouter = Router();
 

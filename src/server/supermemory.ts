@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 import { Router } from 'express';
-import { requireAuth } from './middleware';
+import { requireAuth } from './middleware.ts';
 
 export const supermemoryRouter = Router();
 

@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { supabaseAdmin } from './supabase';
-import { requireAuth } from './middleware';
+import { supabaseAdmin } from './supabase.ts';
+import { requireAuth } from './middleware.ts';
 import express from 'express';
 
 export const storageRouter = Router();

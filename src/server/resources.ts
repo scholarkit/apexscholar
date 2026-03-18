@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { supabase } from './supabase';
-import { requireAuth } from './middleware';
+import { supabase } from './supabase.ts';
+import { requireAuth } from './middleware.ts';
 
 export const resourcesRouter = Router();
 

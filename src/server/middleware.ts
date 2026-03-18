@@ -1,5 +1,5 @@
 import express from 'express';
-import { supabaseAdmin } from './supabase';
+import { supabaseAdmin } from './supabase.ts';
 
 export const requireAuth = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const authHeader = req.headers.authorization;

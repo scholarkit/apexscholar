@@ -8,11 +8,11 @@ export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Pr
 
     if (res.status === 401) {
         // Clear stored credentials
-        localStorage.removeItem('supabase_token');
-        localStorage.removeItem('supabase_user');
+        // localStorage.removeItem('supabase_token');
+        // localStorage.removeItem('supabase_user');
 
         // Notify the rest of the app
-        window.dispatchEvent(new CustomEvent('session-expired'));
+        // window.dispatchEvent(new CustomEvent('session-expired'));
     }
 
     return res;

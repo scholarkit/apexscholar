@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { puterService } from '../lib/puter';
 import {
     Landmark, Plus, Search, Calendar as CalendarIcon, DollarSign,
     FileText, CheckSquare, Clock, AlertCircle, TrendingUp, X,
@@ -7,7 +6,8 @@ import {
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { kv } from '../lib/kv';
+import { fundingService, Grant } from '../lib/funding';
+
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -18,36 +18,6 @@ function startOfDay(date: Date | string) {
     normalizedDate.setHours(0, 0, 0, 0);
     return normalizedDate;
 }
-
-// ─── Types ─────────────────────────────────────────────────────────────────────
-
-interface Requirement {
-    id: string;
-    description: string;
-    completed: boolean;
-}
-
-interface Budget {
-    requested: number;
-    awarded: number;
-    spent: number;
-    currency: string;
-}
-
-export interface Grant {
-    id: string;
-    title: string;
-    funder: string;
-    deadline: string; // ISO string
-    status: 'planned' | 'drafting' | 'submitted' | 'awarded' | 'rejected';
-    requirements: Requirement[];
-    budget: Budget;
-    documentUrl?: string; // Link to Putnam Drive / Google Docs
-    notes?: string;
-    createdAt: string;
-}
-
-const KV_KEY = 'research_funding';
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
@@ -65,17 +35,15 @@ export default function Funding() {
 
     // Initial load
     useEffect(() => {
-        kv.get(KV_KEY).then((data: Grant[] | null) => {
-            setGrants(data || []);
+        fetchGrants().then(() => {
             setLoading(false);
         });
     }, []);
 
-    // Auto-save wrapper
-    const saveGrants = async (newGrants: Grant[]) => {
-        setGrants(newGrants);
-        await kv.set(KV_KEY, newGrants);
-    };
+    const fetchGrants = async () => {
+        const updated = await fundingService.listAllGrants();
+        setGrants(updated || []);
+    }
 
     // Derived Metrics
     const metrics = useMemo(() => {
@@ -123,34 +91,54 @@ export default function Funding() {
             if (a.deadline && b.deadline) return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
             if (a.deadline) return -1;
             if (b.deadline) return 1;
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
     }, [grants, searchQuery, statusFilter]);
 
     // Handlers
-    const handleSaveGrant = (grant: Grant) => {
-        if (editingGrant) {
-            saveGrants(grants.map(g => g.id === grant.id ? grant : g));
-        } else {
-            saveGrants([grant, ...grants]);
+    const handleSaveGrant = async (grant: Grant) => {
+        try {
+            if (editingGrant) {
+                await fundingService.updateGrant(grant.id, grant);
+            } else {
+                await fundingService.createGrant(grant);
+            }
+            const updated = await fundingService.listAllGrants();
+            setGrants(updated || []);
+            setIsModalOpen(false);
+            setEditingGrant(null);
+        } catch (error) {
+            console.error('Failed to save grant:', error);
         }
-        setIsModalOpen(false);
-        setEditingGrant(null);
     };
 
-    const handleDeleteGrant = (id: string) => {
+    const handleDeleteGrant = async (id: string) => {
         if (!confirm('Are you sure you want to delete this grant?')) return;
-        saveGrants(grants.filter(g => g.id !== id));
+        try {
+            await fundingService.deleteEntry(id);
+            const updated = await fundingService.listAllGrants();
+            setGrants(updated || []);
+        } catch (error) {
+            console.error('Failed to delete grant:', error);
+        }
     };
 
-    const toggleRequirement = (grantId: string, reqId: string) => {
-        saveGrants(grants.map(g => {
-            if (g.id !== grantId) return g;
-            return {
-                ...g,
-                requirements: g.requirements.map(r => r.id === reqId ? { ...r, completed: !r.completed } : r)
+    const toggleRequirement = async (grantId: string, reqId: string) => {
+        try {
+            const grant = grants.find(g => g.id === grantId);
+            if (!grant) return;
+            
+            const updatedGrant = {
+                ...grant,
+                requirements: grant.requirements.map(r => r.id === reqId ? { ...r, completed: !r.completed } : r)
             };
-        }));
+            
+            await fundingService.updateGrant(grantId, updatedGrant);
+            const updated = await fundingService.listAllGrants();
+            setGrants(updated || []);
+        } catch (error) {
+            console.error('Failed to toggle requirement:', error);
+        }
     };
 
     if (loading) {
@@ -430,8 +418,8 @@ function GrantCard({
                             <div className="text-sm text-zinc-500 italic">No deadline set</div>
                         )}
 
-                        {grant.documentUrl && (
-                            <a href={grant.documentUrl} target="_blank" rel="noopener noreferrer"
+                        {grant.document_url && (
+                            <a href={grant.document_url} target="_blank" rel="noopener noreferrer"
                                 className="flex items-center gap-2 text-sm text-indigo-500 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-600/20 px-3 py-2 rounded-xl transition-colors w-fit">
                                 <FileUp className="w-4 h-4" /> Open Proposal Doc
                             </a>
@@ -526,7 +514,7 @@ function GrantFormModal({ grant, onSave, onClose }: { grant: Grant | null, onSav
     const [formData, setFormData] = useState<Partial<Grant>>(
         grant || {
             title: '', funder: '', deadline: '', status: 'planned',
-            documentUrl: '', notes: '',
+            document_url: '', notes: '',
             budget: { requested: 0, awarded: 0, spent: 0, currency: 'USD' },
             requirements: []
         }
@@ -541,7 +529,7 @@ function GrantFormModal({ grant, onSave, onClose }: { grant: Grant | null, onSav
         onSave({
             ...formData,
             id: grant?.id || crypto.randomUUID(),
-            createdAt: grant?.createdAt || new Date().toISOString(),
+            created_at: grant?.created_at || new Date().toISOString(),
         } as Grant);
     };
 
@@ -609,7 +597,7 @@ function GrantFormModal({ grant, onSave, onClose }: { grant: Grant | null, onSav
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-zinc-400 mb-1">Document Link (e.g. Google Docs)</label>
-                                <input type="url" value={formData.documentUrl || ''} onChange={e => setFormData({ ...formData, documentUrl: e.target.value })}
+                                <input type="url" value={formData.document_url || ''} onChange={e => setFormData({ ...formData, document_url: e.target.value })}
                                     className="w-full bg-zinc-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500/50 placeholder:text-zinc-600" placeholder="https://..." />
                             </div>
                         </div>

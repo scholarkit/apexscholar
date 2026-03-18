@@ -15,6 +15,8 @@ import { kvRouter } from './kv.ts';
 import { projectsRouter } from './projects.ts';
 import { journalRouter } from './journal.ts';
 import { resourcesRouter } from './resources.ts';
+import { grantRouter } from './grants.ts';
+import { exploreRouter } from './explore.ts';
 
 const PORT = 3000;
 
@@ -37,6 +39,8 @@ app.use('/api/kv', kvRouter);
 app.use('/api/projects', projectsRouter);
 app.use('/api/journal', journalRouter);
 app.use('/api/resources', resourcesRouter);
+app.use('/api/funding', grantRouter);
+app.use('/api/explore', exploreRouter);
 
 // Global error handler
 app.use(errorHandler);

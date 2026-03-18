@@ -4,7 +4,7 @@ import { apiFetch } from './apiFetch';
 const provider = import.meta.env.VITE_PROVIDER || 'puter';
 
 export interface JournalEntry {
-    id: string;
+    id?: string;
     project_id?: string;
     author_id?: string;
     date: string;
@@ -12,6 +12,8 @@ export interface JournalEntry {
     type: string;
     start_date?: string;
     end_date?: string;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface JournalInsight {
@@ -45,21 +47,19 @@ export const journalService = {
     },
 
     async createEntry(entry: Omit<JournalEntry, 'id'>): Promise<JournalEntry> {
-        const newEntry: JournalEntry = {
-            ...entry,
-            id: Math.random().toString(36).substring(7),
-        };
-
         if (provider === 'supabase') {
             const res = await apiFetch(baseUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newEntry),
+                body: JSON.stringify(entry),
             });
             if (!res.ok) throw new Error('Failed to create journal entry');
-            return res.json() || newEntry;
+            return res.json() || entry;
         }
-
+        const newEntry: JournalEntry = {
+            ...entry,
+            id: Math.random().toString(36).substring(7),
+        };
         const entries = await this.getEntries();
         await kv.set(ENTRIES_KEY, [newEntry, ...entries]);
         return newEntry;

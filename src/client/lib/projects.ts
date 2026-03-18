@@ -32,7 +32,12 @@ const baseUrl = '/api/projects'
 export const projectService = {
     async getProjects(): Promise<Project[]> {
         if (provider === 'supabase') {
-            const res = await fetch(baseUrl);
+            const token = localStorage.getItem('supabase_token');
+            const res = await fetch(baseUrl, {
+                headers: {
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+            });
             return res.json() || [];
         }
         const projects = await kv.get(PROJECTS_KEY);
@@ -41,7 +46,12 @@ export const projectService = {
 
     async getProject(id: string): Promise<Project | null> {
         if (provider === 'supabase') {
-            const res = await fetch(`${baseUrl}/${id}`);
+            const token = localStorage.getItem('supabase_token');
+            const res = await fetch(`${baseUrl}/${id}`, {
+                headers: {
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+            });
             return res.json() || null;
         }
         const projects = await this.getProjects();
@@ -50,6 +60,7 @@ export const projectService = {
 
     async createProject(input: CreateProjectInput): Promise<Project> {
         const user = JSON.parse(localStorage.getItem('supabase_user') || '{}');
+        const token = localStorage.getItem('supabase_token');
         const newProject: any = {
             owner_id: user.id,
             name: input.name,
@@ -65,14 +76,25 @@ export const projectService = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token && { Authorization: `Bearer ${token}` }),
                 },
                 body: JSON.stringify(newProject),
             });
-            return res.json() || newProject;
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || 'Failed to create project');
+            }
+            const result = await res.json();
+            return result;
         }
+        // Fallback for non-supabase provider
         const projects = await this.getProjects();
-        await kv.set(PROJECTS_KEY, [newProject, ...projects]);
-        return newProject;
+        const withId = {
+            ...newProject,
+            id: Math.random().toString(36).substring(2, 11),
+        };
+        await kv.set(PROJECTS_KEY, [withId, ...projects]);
+        return withId;
     },
 
     async updateProjectAccess(id: string): Promise<void> {
@@ -87,14 +109,17 @@ export const projectService = {
 
     async updateProject(id: string, patch: UpdateProjectPatch): Promise<Project> {
         if (provider === 'supabase') {
+            const token = localStorage.getItem('supabase_token');
             const res = await fetch(`${baseUrl}/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token && { Authorization: `Bearer ${token}` }),
                 },
                 body: JSON.stringify(patch),
             });
-            return res.json() || patch;
+            const result = await res.json();
+            return (result && Array.isArray(result)) ? result[0] : result || patch;
         }
         const projects = await this.getProjects();
         const updated = projects.map(p =>
@@ -106,8 +131,12 @@ export const projectService = {
 
     async deleteProject(id: string): Promise<void> {
         if (provider === 'supabase') {
+            const token = localStorage.getItem('supabase_token');
             const res = await fetch(`${baseUrl}/${id}`, {
                 method: 'DELETE',
+                headers: {
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
             });
             return res.json() || null;
         }

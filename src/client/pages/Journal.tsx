@@ -2,22 +2,21 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, Save, Trash2, Edit2, X, FileText, Mic, Radio } from 'lucide-react';
 import { format } from 'date-fns';
 import Markdown from 'react-markdown';
-import { Entry } from '../lib/puter';
 import { parseEntryDate } from '../utils/dateUtils';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import Breadcrumbs from '../components/Breadcrumbs';
-import { journalService } from '../lib/journal';
+import { journalService, JournalEntry } from '../lib/journal';
 
 import { kv } from '../lib/kv';
 
 export default function Journal() {
   const { activeProject } = useProject();
   const navigate = useNavigate();
-  const [entries, setEntries] = useState<Entry[]>([]);
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentEntry, setCurrentEntry] = useState<Partial<Entry>>({});
+  const [currentEntry, setCurrentEntry] = useState<Partial<JournalEntry>>({});
   const [loading, setLoading] = useState(true);
   const [isListening, setIsListening] = useState(false);
   const [voiceSupported, setVoiceSupported] = useState(false);
@@ -75,7 +74,7 @@ export default function Journal() {
       return;
     }
     const data: any = await journalService.getEntries(activeProject.id);
-    setEntries(data.sort((a: Entry, b: Entry) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+    setEntries(data.sort((a: JournalEntry, b: JournalEntry) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
     setLoading(false);
   };
 
@@ -89,23 +88,23 @@ export default function Journal() {
       finalDate = `${currentEntry.start_date} to ${currentEntry.end_date}`;
     }
 
-    const newEntry: Entry = {
+    const newEntry: JournalEntry = {
       id: currentEntry.id || Math.random().toString(36).substring(7),
       project_id: activeProject?.id,
-      created_at: finalDate,
+      date: finalDate,
       content: currentEntry.content,
       type: currentEntry.type
     };
-
-    const allEntries = await kv.get('research_entries') || [];
+    const allEntries = await journalService.getEntries();
     let updatedEntries;
     if (isNew) {
       updatedEntries = [newEntry, ...allEntries];
+      await journalService.createEntry(newEntry);
     } else {
-      updatedEntries = allEntries.map((e: Entry) => e.id === newEntry.id ? newEntry : e);
+      updatedEntries = allEntries.map((e: JournalEntry) => e.id === newEntry.id ? newEntry : e);
+      await journalService.updateEntry(activeProject.id, newEntry);
     }
 
-    await kv.set('research_entries', updatedEntries);
 
     setIsEditing(false);
     setCurrentEntry({});
@@ -113,35 +112,34 @@ export default function Journal() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this entry?')) return;
+    if (!confirm('Are you sure you want to delete this JournalEntry?')) return;
     const allEntries = await kv.get('research_entries') || [];
-    const updatedEntries = allEntries.filter((e: Entry) => e.id !== id);
-    await kv.set('research_entries', updatedEntries);
+    await journalService.deleteEntry(id);
     fetchEntries();
   };
 
-  const openEditor = (entry?: Entry) => {
-    if (entry) {
-      const isWeekly = entry.type === 'Weekly Diary';
+  const openEditor = (JournalEntry?: JournalEntry) => {
+    if (JournalEntry) {
+      const isWeekly = JournalEntry.type === 'Weekly Diary';
       let startDate = '';
       let endDate = '';
 
       if (isWeekly) {
-        startDate = entry.created_at;
-        endDate = entry.updated_at;
+        startDate = JournalEntry.start_date;
+        endDate = JournalEntry.end_date;
       }
 
       setCurrentEntry({
-        ...entry,
-        start_date: startDate || (isWeekly ? entry.created_at : ''),
+        ...JournalEntry,
+        start_date: startDate || (isWeekly ? JournalEntry.start_date : ''),
         end_date: endDate || ''
       });
     } else {
       const today = new Date().toISOString().split('T')[0];
       setCurrentEntry({
         type: 'Progress Notes',
-        created_at: today,
-        updated_at: today
+        start_date: today,
+        end_date: today
       });
     }
     // Stop any active recording when switching entries
@@ -239,7 +237,7 @@ export default function Journal() {
             className="w-full sm:w-fit mt-2 sm:mt-0 flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-colors  "
           >
             <Plus className="w-4 h-4" />
-            New Entry
+            New JournalEntry
           </button>
         )}
       </header>
@@ -248,7 +246,7 @@ export default function Journal() {
         <div className="bg-zinc-900/50 border border-white/10 rounded-xl p-6 backdrop-blur-sm shadow-2xl">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-white">
-              {currentEntry.id ? 'Edit Entry' : 'New Entry'}
+              {currentEntry.id ? 'Edit JournalEntry' : 'New JournalEntry'}
             </h2>
             <button onClick={() => setIsEditing(false)} className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
               <X className="w-5 h-5" />
@@ -294,8 +292,8 @@ export default function Journal() {
                   <label className="block text-sm font-medium text-zinc-400 mb-2">Date</label>
                   <input
                     type="date"
-                    value={currentEntry.created_at || ''}
-                    onChange={(e) => setCurrentEntry({ ...currentEntry, created_at: e.target.value })}
+                    value={currentEntry.date || ''}
+                    onChange={(e) => setCurrentEntry({ ...currentEntry, date: e.target.value })}
                     className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />
                 </div>
@@ -364,7 +362,7 @@ export default function Journal() {
                 className="flex items-center gap-2 px-6 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors  "
               >
                 <Save className="w-4 h-4" />
-                Save Entry
+                Save JournalEntry
               </button>
             </div>
           </div>
@@ -375,38 +373,38 @@ export default function Journal() {
             <div className="text-center py-20 border border-dashed border-white/10 rounded-xl bg-zinc-900/20">
               <FileText className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-white mb-2">No entries yet</h3>
-              <p className="text-zinc-500 mb-6 max-w-sm mx-auto">Start documenting your research journey by creating your first journal entry.</p>
+              <p className="text-zinc-500 mb-6 max-w-sm mx-auto">Start documenting your research journey by creating your first journal JournalEntry.</p>
               <button
                 onClick={() => openEditor()}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Create Entry
+                Create JournalEntry
               </button>
             </div>
           ) : (
-            entries.map((entry) => (
-              <div key={entry.id} className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-3 sm:p-6 hover:bg-zinc-900/60 transition-colors group">
+            entries.map((JournalEntry) => (
+              <div key={JournalEntry.id} className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-3 sm:p-6 hover:bg-zinc-900/60 transition-colors group">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-500 text-xs font-semibold tracking-wide uppercase border border-indigo-500/20">
-                      {entry.type}
+                      {JournalEntry.type}
                     </span>
                     <span className="text-sm text-zinc-500 font-medium">
-                      {entry.type === 'Weekly Diary' ? entry.start_date : format(parseEntryDate(entry.start_date), 'MMMM d, yyyy')}
+                      {JournalEntry.type === 'Weekly Diary' ? JournalEntry.start_date : format(parseEntryDate(JournalEntry.start_date), 'MMMM d, yyyy')}
                     </span>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEditor(entry)} className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+                    <button onClick={() => openEditor(JournalEntry)} className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(entry.id)} className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors">
+                    <button onClick={() => handleDelete(JournalEntry.id)} className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
                 <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-pre:bg-black prose-pre:border prose-pre:border-white/10">
-                  <Markdown>{entry.content}</Markdown>
+                  <Markdown>{JournalEntry.content}</Markdown>
                 </div>
               </div>
             ))

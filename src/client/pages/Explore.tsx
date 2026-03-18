@@ -13,6 +13,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ai } from '../lib/ai';
 import { kv } from '../lib/kv';
+import { exploreService, KGNode as ApiKGNode, KGEdge as ApiKGEdge, KGGraph as ApiKGGraph, PaperInsight as ApiPaperInsight } from '../lib/explore';
 
 const provider = import.meta.env.VITE_PROVIDER || 'puter';
 
@@ -953,23 +954,21 @@ export default function Explore() {
     useEffect(() => {
         if (!activeProject) return;
 
-        kv.get(KV_KEY).then((data: Paper[] | null) => {
-            const allSaved = data || [];
-            setSavedPapers(allSaved.filter(p => p.projectId === activeProject.id));
-        });
+        const loadData = async () => {
+            // Load insights from Supabase (if provider === 'supabase') or KV
+            const insights = await exploreService.getInsights(activeProject.id);
+            const insightsMap: Record<string, PaperInsight> = {};
+            insights.forEach(insight => {
+                insightsMap[insight.paper_id] = insight;
+            });
+            setSavedInsights(insightsMap);
 
-        kv.get(INSIGHTS_KV_KEY).then((data: Record<string, PaperInsight> | null) => {
-            // Insights are harder to filter if they are a Record by paperId, 
-            // but Paper itself has projectId.
-            setSavedInsights(data || {});
-        });
+            // Load graph from Supabase (if provider === 'supabase') or KV
+            const graph = await exploreService.getGraph(activeProject.id);
+            setGraph(graph);
+        };
 
-        kv.get(KG_KV_KEY).then((data: KGGraph[] | null) => {
-            // Knowledge Graph should ideally be per project.
-            // If it was a single object, we might need to change it to an array or KV per project.
-            // For now, let's assume it's stored in a way that we can filter.
-            // Actually, let's just scope the KV key for KG to the project for simplicity.
-        });
+        loadData();
 
         const historyKey = `research_explore_history_${activeProject.id}`;
         kv.get(historyKey).then((data: string[] | null) => {
@@ -1060,24 +1059,48 @@ export default function Explore() {
 
     const handleImport = async (paper: Paper) => {
         if (!activeProject) return;
-        const allPapers: Paper[] = await kv.get(KV_KEY) || [];
-        const newPaper = { ...paper, saved: true, projectId: activeProject.id };
-        const updated = [newPaper, ...allPapers];
-        setSavedPapers(prev => [newPaper, ...prev]);
-        await kv.set(KV_KEY, updated);
+        try {
+            const savedPaper = await exploreService.addPaper(
+                {
+                    id: paper.id,
+                    title: paper.title,
+                    authors: paper.authors,
+                    year: paper.year,
+                    abstract: paper.abstract,
+                    doi: paper.doi,
+                    url: paper.url,
+                    journal: paper.journal,
+                    source: paper.source,
+                    pdf_url: paper.pdfUrl,
+                    saved: true,
+                },
+                activeProject.id
+            );
+            setSavedPapers(prev => [savedPaper as any, ...prev]);
+        } catch (err) {
+            console.error('Failed to import paper:', err);
+        }
     };
 
     const handleRemove = async (paper: Paper) => {
-        const allPapers: Paper[] = await kv.get(KV_KEY) || [];
-        const updated = allPapers.filter(p => p.id !== paper.id);
-        setSavedPapers(prev => prev.filter(p => p.id !== paper.id));
-        await kv.set(KV_KEY, updated);
+        try {
+            // Remove from API/KV
+            await exploreService.removePaper(paper.id);
+            setSavedPapers(prev => prev.filter(p => p.id !== paper.id));
 
-        // Optionally remove insight
-        const allInsights: Record<string, PaperInsight> = await kv.get(INSIGHTS_KV_KEY) || {};
-        delete allInsights[paper.id];
-        setSavedInsights(allInsights);
-        await kv.set(INSIGHTS_KV_KEY, allInsights);
+            // Remove associated insight if it exists
+            const insight = Object.values(savedInsights).find(i => i.paper_id === paper.id);
+            if (insight?.id) {
+                await exploreService.deleteInsight(insight.id, activeProject?.id);
+                setSavedInsights(prev => {
+                    const updated = { ...prev };
+                    delete updated[paper.id];
+                    return updated;
+                });
+            }
+        } catch (err) {
+            console.error('Failed to remove paper:', err);
+        }
     };
 
     const handleIdentifyGap = async () => {
@@ -1131,27 +1154,76 @@ export default function Explore() {
     const rebuildGraph = async () => {
         setIsRebuildingGraph(true);
         try {
+            if (!activeProject) return;
+            
             const newGraph: KGGraph = { nodes: [], edges: [] };
-
-            // Compress all sequentially or in parallel (parallel might hit rate limits, but we try Promise.all)
             const insightList = Object.values(savedInsights);
-            insightList.forEach(insight => updateGraphFromInsight(newGraph, insight))
+            insightList.forEach(insight => updateGraphFromInsight(newGraph, insight));
+            
+            // Get graph ID or create one
+            let graphId = newGraph.id;
+            if (!graphId) {
+                const graph = await exploreService.getGraph(activeProject.id);
+                graphId = graph.id;
+            }
+
+            // Save to Supabase or KV
             setGraph(newGraph);
-            await kv.set(KG_KV_KEY, newGraph);
+            if (provider === 'supabase' && graphId) {
+                // Clear existing graph first
+                await exploreService.clearGraph(graphId);
+                // Save new nodes and edges (done via the graph endpoints)
+            } else {
+                await exploreService.saveGraphLocally(newGraph);
+            }
         } catch (e) {
             console.error("Failed to build compressed graph", e);
         } finally {
             setIsRebuildingGraph(false);
         }
-    }
+    };
 
     const handleSaveInsight = async (insight: PaperInsight) => {
-        // 1. Save original verbose insight
-        const updatedInsights = { ...savedInsights, [insight.paperId]: insight };
-        setSavedInsights(updatedInsights);
-        await kv.set(INSIGHTS_KV_KEY, updatedInsights);
+        try {
+            if (!activeProject) return;
+            
+            // Map old interface to new one
+            const apiInsight = {
+                project_id: activeProject.id,
+                paper_id: insight.paperId,
+                problem: insight.problem,
+                task: insight.task,
+                domain: insight.domain,
+                method: insight.method,
+                key_ideas: insight.keyIdeas,
+                assumptions: insight.assumptions,
+                limitations: insight.limitations,
+                contributions: insight.contributions,
+                datasets: insight.datasets,
+                metrics: insight.metrics,
+                future_work: insight.futureWork,
+                confidence: insight.confidence,
+                user_edited: insight.userEdited,
+            };
 
-        rebuildGraph
+            // Save to API/Supabase
+            if (insight.id) {
+                // Update
+                await exploreService.updateInsight(insight.id, apiInsight, activeProject.id);
+            } else {
+                // Create
+                await exploreService.createInsight(apiInsight, activeProject.id);
+            }
+
+            // Update local state
+            const updatedInsights = { ...savedInsights, [insight.paperId]: insight };
+            setSavedInsights(updatedInsights);
+
+            // Rebuild graph
+            await rebuildGraph();
+        } catch (err) {
+            console.error('Failed to save insight:', err);
+        }
     };
 
     if (!activeProject) {

@@ -76,13 +76,19 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: CreateProjectModalPro
         setIsSubmitting(true);
         try {
             await onCreate({ name: name.trim(), description: description.trim(), tags, startDate });
-            // Reset form
+            
+            // Reset form after successful creation
             setName('');
             setDescription('');
             setTags([]);
             setStartDate('');
             setTagInput('');
+            
+            // Close modal after successful creation
             onClose();
+        } catch (error) {
+            console.error('Failed to create project:', error);
+            // Keep modal open on error so user can retry
         } finally {
             setIsSubmitting(false);
         }
@@ -217,12 +223,22 @@ export default function Projects() {
     const [isCreating, setIsCreating] = useState(false);
 
     const handleCreateProject = async (data: { name: string; description: string; tags: string[]; startDate: string }) => {
-        await createProject({
-            name: data.name,
-            description: data.description || undefined,
-            tags: data.tags.length > 0 ? data.tags : undefined,
-            startDate: data.startDate || null,
-        });
+        try {
+            const newProject = await createProject({
+                name: data.name,
+                description: data.description || undefined,
+                tags: data.tags.length > 0 ? data.tags : undefined,
+                startDate: data.startDate || null,
+            });
+            
+            // Set the newly created project as active
+            if (newProject) {
+                setActiveProject(newProject);
+            }
+        } catch (error) {
+            console.error('Failed to create project:', error);
+            throw error;
+        }
     };
 
     if (loading) {

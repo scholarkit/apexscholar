@@ -1,16 +1,16 @@
 import { Router } from 'express';
-import { supabaseAdmin } from './supabase.ts';
+import { supabaseAdmin } from './supabase.ts'
 import { requireAuth } from './middleware.ts';
 
-export const journalRouter = Router();
+export const grantRouter = Router();
 
-journalRouter.get("/", requireAuth, async (req, res) => {
+grantRouter.get("/", requireAuth, async (req, res) => {
     try {
         const user = (req as any).user;
         const { data, error } = await supabaseAdmin
-            .from("journal_entries")
+            .from("grants")
             .select("*")
-            .eq("author_id", user.id);
+            .eq("created_by", user.id);
         if (error) throw error;
         res.json(data);
     } catch (err: any) {
@@ -19,15 +19,15 @@ journalRouter.get("/", requireAuth, async (req, res) => {
     }
 });
 
-journalRouter.get("/:id", requireAuth, async (req, res) => {
+grantRouter.get("/:id", requireAuth, async (req, res) => {
     try {
         const user = (req as any).user;
-        const projectId = req.params.id;
+        const grantId = req.params.id;
         const { data, error } = await supabaseAdmin
-            .from("journal_entries")
+            .from("grants")
             .select("*")
-            .eq("author_id", user.id)
-            .eq("project_id", projectId)
+            .eq("id", grantId)
+            .eq("created_by", user.id)
             .single();
         if (error) throw error;
         res.json(data);
@@ -37,14 +37,13 @@ journalRouter.get("/:id", requireAuth, async (req, res) => {
     }
 });
 
-journalRouter.post("/", requireAuth, async (req, res) => {
+grantRouter.post("/", requireAuth, async (req, res) => {
     try {
         const user = (req as any).user;
-        console.log(req.body)
         const { data, error } = await supabaseAdmin
-            .from("journal_entries")
+            .from("grants")
             .insert({
-                author_id: user.id,
+                created_by: user.id,
                 ...req.body,
             })
             .select()
@@ -57,14 +56,14 @@ journalRouter.post("/", requireAuth, async (req, res) => {
     }
 });
 
-journalRouter.put("/:id", requireAuth, async (req, res) => {
+grantRouter.put("/:id", requireAuth, async (req, res) => {
     try {
         const user = (req as any).user;
         const { data, error } = await supabaseAdmin
-            .from("journal_entries")
+            .from("grants")
             .update(req.body)
             .eq("id", req.params.id)
-            .eq("author_id", user.id)
+            .eq("created_by", user.id)
             .select("*")
             .single();
         if (error) throw error;
@@ -75,14 +74,14 @@ journalRouter.put("/:id", requireAuth, async (req, res) => {
     }
 });
 
-journalRouter.delete("/:id", requireAuth, async (req, res) => {
+grantRouter.delete("/:id", requireAuth, async (req, res) => {
     try {
         const user = (req as any).user;
         const { data, error } = await supabaseAdmin
-            .from("journal_entries")
+            .from("grants")
             .delete()
             .eq("id", req.params.id)
-            .eq("author_id", user.id)
+            .eq("created_by", user.id)
             .select("*")
             .single();
         if (error) throw error;
@@ -92,5 +91,3 @@ journalRouter.delete("/:id", requireAuth, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
-

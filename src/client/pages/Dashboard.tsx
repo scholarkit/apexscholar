@@ -3,11 +3,10 @@ import { Link } from 'react-router-dom';
 import { BookOpen, FolderOpen, Activity, Plus, Clock, Layers, Calendar, GitCommit } from 'lucide-react';
 import { formatDistanceToNow, format, subDays, eachDayOfInterval } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { Resource } from '../lib/puter';
+import { Resource, resourcesService } from '../lib/resources';
 import { parseEntryDate } from '../utils/dateUtils';
 import { projectService } from '../lib/projects';
 import { JournalEntry, journalService } from '../lib/journal';
-import { kv } from '../lib/kv';
 
 export default function Dashboard() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -19,7 +18,7 @@ export default function Dashboard() {
   useEffect(() => {
     const loadData = async () => {
       const entriesData = await journalService.getEntries();
-      const resourcesData = await kv.get('research_resources') || [];
+      const resourcesData = await resourcesService.listAll();
       const projectsData = await projectService.getProjects();
       setEntries(entriesData);
       setResources(resourcesData);
@@ -73,7 +72,7 @@ export default function Dashboard() {
     );
   }
 
-  const lastActivity = entries.length > 0 ? entries[0].date : (resources.length > 0 ? resources[0].date_added : null);
+  const lastActivity = entries.length > 0 ? entries[0].date : (resources.length > 0 ? resources[0].created_at : null);
 
   // Analytics logic
   const today = new Date();

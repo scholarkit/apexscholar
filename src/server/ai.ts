@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { supabaseAdmin } from './supabase';
+import { supabaseAdmin } from './supabase.ts';
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 

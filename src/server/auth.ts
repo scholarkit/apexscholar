@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { supabase, supabaseAdmin } from './supabase';
+import { supabase, supabaseAdmin } from './supabase.ts';
 
 export const authRouter = Router();
 

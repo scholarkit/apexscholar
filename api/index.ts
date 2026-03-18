@@ -1,4 +1,4 @@
-import app from './_server/index.js';
+import app from './_built/index.js';
 
 export default async function handler(req: any, res: any) {
     try {

@@ -125,7 +125,7 @@ export default function Dashboard() {
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
-          <h1 className="text-2xl font-semibold text-white mb-2">Dashboard</h1>
+          <h1 className="text-2xl font-semibold mb-2">Dashboard</h1>
           <p className="text-base text-zinc-400">Welcome back. Here's what's happening in your research.</p>
         </div>
       </header>

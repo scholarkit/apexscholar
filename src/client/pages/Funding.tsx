@@ -127,12 +127,12 @@ export default function Funding() {
         try {
             const grant = grants.find(g => g.id === grantId);
             if (!grant) return;
-            
+
             const updatedGrant = {
                 ...grant,
                 requirements: grant.requirements.map(r => r.id === reqId ? { ...r, completed: !r.completed } : r)
             };
-            
+
             await fundingService.updateGrant(grantId, updatedGrant);
             const updated = await fundingService.listAllGrants();
             setGrants(updated || []);
@@ -158,7 +158,7 @@ export default function Funding() {
             <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div>
-                    <h1 className="text-2xl font-semibold tracking-tight text-white mb-2 flex items-center gap-3">
+                    <h1 className="text-2xl font-semibold tracking-tight mb-2 flex items-center gap-3">
                         Funding & Grants
                         <span className="px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
                             Tracker

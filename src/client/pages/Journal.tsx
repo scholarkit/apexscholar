@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Save, Trash2, Edit2, X, FileText, Mic, Radio } from 'lucide-react';
+import { Plus, Save, Trash2, Edit2, X, FileText, Mic, Radio, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import Markdown from 'react-markdown';
 import { parseEntryDate } from '../utils/dateUtils';
@@ -21,10 +21,17 @@ export default function Journal() {
   const [isListening, setIsListening] = useState(false);
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const recognitionRef = useRef<any>(null);
   const contentRef = useRef<string>('');
 
-  const entryTypes = ['Weekly Diary', 'Progress Notes', 'Meeting Notes', 'Other'];
+  const entryTypes = [
+    { label: 'Daily Diary', value: 'daily' },
+    { label: 'Weekly Diary', value: 'weekly' },
+    { label: 'Progress Notes', value: 'progress_note' },
+    { label: 'Meeting Notes', value: 'meeting_note' },
+    { label: 'Other', value: 'other' }
+  ];
 
   // Set up SpeechRecognition once
   useEffect(() => {
@@ -80,35 +87,37 @@ export default function Journal() {
 
   const handleSave = async () => {
     if (!currentEntry.content || !currentEntry.type) return;
+    setIsSaving(true);
 
-    const isNew = !currentEntry.id;
-    let finalDate = currentEntry.end_date || new Date().toISOString();
+    try {
+      const isNew = !currentEntry.id;
+      let finalDate = currentEntry.end_date || new Date().toISOString();
 
-    if (currentEntry.type === 'Weekly Diary' && currentEntry.start_date && currentEntry.end_date) {
-      finalDate = `${currentEntry.start_date} to ${currentEntry.end_date}`;
+      if (currentEntry.type === 'weekly' && currentEntry.start_date && currentEntry.end_date) {
+        finalDate = `${currentEntry.start_date} to ${currentEntry.end_date}`;
+      }
+
+      const newEntry: JournalEntry = {
+        project_id: activeProject?.id,
+        date: finalDate,
+        content: currentEntry.content,
+        type: currentEntry.type
+      };
+      
+      if (isNew) {
+        await journalService.createEntry(newEntry);
+      } else {
+        await journalService.updateEntry(activeProject.id, { ...newEntry, id: currentEntry.id });
+      }
+
+      setIsEditing(false);
+      setCurrentEntry({});
+      fetchEntries();
+    } catch (err) {
+      console.error('Failed to save journal entry:', err);
+    } finally {
+      setIsSaving(false);
     }
-
-    const newEntry: JournalEntry = {
-      id: currentEntry.id || Math.random().toString(36).substring(7),
-      project_id: activeProject?.id,
-      date: finalDate,
-      content: currentEntry.content,
-      type: currentEntry.type
-    };
-    const allEntries = await journalService.getEntries();
-    let updatedEntries;
-    if (isNew) {
-      updatedEntries = [newEntry, ...allEntries];
-      await journalService.createEntry(newEntry);
-    } else {
-      updatedEntries = allEntries.map((e: JournalEntry) => e.id === newEntry.id ? newEntry : e);
-      await journalService.updateEntry(activeProject.id, newEntry);
-    }
-
-
-    setIsEditing(false);
-    setCurrentEntry({});
-    fetchEntries();
   };
 
   const handleDelete = async (id: string) => {
@@ -120,7 +129,7 @@ export default function Journal() {
 
   const openEditor = (JournalEntry?: JournalEntry) => {
     if (JournalEntry) {
-      const isWeekly = JournalEntry.type === 'Weekly Diary';
+      const isWeekly = JournalEntry.type === 'weekly';
       let startDate = '';
       let endDate = '';
 
@@ -137,7 +146,7 @@ export default function Journal() {
     } else {
       const today = new Date().toISOString().split('T')[0];
       setCurrentEntry({
-        type: 'Progress Notes',
+        type: 'daily',
         start_date: today,
         end_date: today
       });
@@ -262,11 +271,11 @@ export default function Journal() {
                   onChange={(e) => setCurrentEntry({ ...currentEntry, type: e.target.value })}
                   className="w-full bg-black border border-white/10 rounded-xl px-2 sm:px-4 py-1 sm:py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
                 >
-                  {entryTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                  {entryTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
 
-              {currentEntry.type === 'Weekly Diary' ? (
+              {currentEntry.type === 'weekly' ? (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-zinc-400 mb-2">Start Date</label>
@@ -358,11 +367,11 @@ export default function Journal() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={!currentEntry.content}
+                disabled={!currentEntry.content || isSaving}
                 className="flex items-center gap-2 px-6 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors  "
               >
-                <Save className="w-4 h-4" />
-                Save JournalEntry
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {isSaving ? 'Saving...' : 'Save JournalEntry'}
               </button>
             </div>
           </div>
@@ -391,7 +400,7 @@ export default function Journal() {
                       {JournalEntry.type}
                     </span>
                     <span className="text-sm text-zinc-500 font-medium">
-                      {JournalEntry.type === 'Weekly Diary' ? JournalEntry.start_date : format(parseEntryDate(JournalEntry.start_date), 'MMMM d, yyyy')}
+                      {JournalEntry.type === 'weekly' ? JournalEntry.date : format(parseEntryDate(JournalEntry.date), 'MMMM d, yyyy')}
                     </span>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

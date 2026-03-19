@@ -13,66 +13,8 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ai } from '../lib/ai';
 import { kv } from '../lib/kv';
-import { exploreService, KGNode as ApiKGNode, KGEdge as ApiKGEdge, KGGraph as ApiKGGraph, PaperInsight as ApiPaperInsight } from '../lib/explore';
+import { exploreService, KGNode, KGEdge, KGGraph, PaperInsight, Paper } from '../lib/explore';
 
-const provider = import.meta.env.VITE_PROVIDER || 'puter';
-
-// ─── Constants ─────────────────────────────────────────────────────────────────
-const INSIGHTS_KV_KEY = 'research_paper_insights';
-const KG_KV_KEY = 'research_knowledge_graph';
-
-// ─── Types ─────────────────────────────────────────────────────────────────────
-
-interface Paper {
-    id: string;
-    projectId?: string;
-    title: string;
-    authors: string[];
-    year: string;
-    abstract: string;
-    doi?: string;
-    url?: string;
-    journal?: string;
-    source: 'arxiv' | 'openalex' | 'semanticscholar' | 'googlescholar' | 'pubmed' | 'crossref';
-    pdfUrl?: string;
-    saved?: boolean;
-}
-
-export interface PaperInsight {
-    paperId: string;
-    problem: string;
-    task: string;
-    domain: string;
-    method: string;
-    keyIdeas: string[];
-    assumptions: string[];
-    limitations: string[];
-    contributions: string[];
-    datasets: string[];
-    metrics: string[];
-    futureWork: string[];
-    confidence: number;
-    userEdited?: boolean;
-}
-
-export interface KGNode {
-    id: string;
-    type: 'problem' | 'method' | 'dataset' | 'metric' | 'domain' | 'idea';
-    label: string;
-    paperIds: string[];
-}
-
-export interface KGEdge {
-    id: string;
-    source: string;
-    target: string;
-    relation: 'uses' | 'improves' | 'evaluates' | 'applies_to';
-}
-
-export interface KGGraph {
-    nodes: KGNode[];
-    edges: KGEdge[];
-}
 
 type SourceFilter = 'all' | 'arxiv' | 'openalex' | 'semanticscholar' | 'googlescholar' | 'pubmed' | 'crossref';
 
@@ -152,7 +94,7 @@ async function searchSemanticScholar(query: string): Promise<Paper[]> {
         return (data.data || []).map((w: any) => {
             const doi = w.externalIds?.DOI;
             return {
-                id: `s2:${w.paperId}`,
+                id: `s2:${w.paper_id}`,
                 title: w.title || 'Untitled',
                 authors: (w.authors || []).map((a: any) => a.name).filter(Boolean),
                 year: w.year?.toString() || '',
@@ -328,7 +270,7 @@ Return STRICT JSON.
   "task": "",
   "domain": "",
   "method": "",
-  "keyIdeas": [],
+  "key_ideas": [],
   "assumptions": [],
   "limitations": [],
   "contributions": [],
@@ -354,20 +296,20 @@ export function safeParseJSON(text: string) {
     }
 }
 
-export function normalizeInsight(data: any, paperId: string): PaperInsight {
+export function normalizeInsight(data: any, paper_id: string): PaperInsight {
     return {
-        paperId,
+        paper_id: paper_id,
         problem: data.problem ?? "",
         task: data.task ?? "",
         domain: data.domain ?? "",
         method: data.method ?? "",
-        keyIdeas: data.keyIdeas ?? [],
+        key_ideas: data.key_ideas ?? [],
         assumptions: data.assumptions ?? [],
         limitations: data.limitations ?? [],
         contributions: data.contributions ?? [],
         datasets: data.datasets ?? [],
         metrics: data.metrics ?? [],
-        futureWork: data.futureWork ?? [],
+        future_work: data.futureWork ?? [],
         confidence: Number(data.confidence ?? 0),
     };
 }
@@ -378,7 +320,7 @@ export async function extractInsight(paper: Paper): Promise<PaperInsight> {
     const res = await ai.chat([INSIGHT_PROMPT + input], {
         type: 'json_object',
         temperature: 0.1,
-        model: provider === 'puter' ? 'minimax-m2.5' : 'arcee-ai/trinity-large-preview:free',
+        model: 'arcee-ai/trinity-large-preview:free',
     });
 
     // ai.chat() for Supabase returns the content string directly (see ai.ts line 23)
@@ -397,7 +339,7 @@ export function extractEntities(insight: PaperInsight) {
         datasets: insight.datasets || [],
         metrics: insight.metrics || [],
         domains: insight.domain ? [insight.domain] : [],
-        ideas: insight.keyIdeas || [],
+        ideas: insight.key_ideas || [],
     };
 }
 
@@ -408,28 +350,28 @@ export function normalize(text: string) {
 
 export function upsertNode(
     graph: KGGraph,
-    type: KGNode['type'],
+    type: KGNode['node_type'],
     label: string,
-    paperId: string
+    paper_id: string
 ): KGNode {
     const key = normalize(label);
     if (!key) return null as any;
 
-    let node = graph.nodes.find(
-        (n) => n.type === type && normalize(n.label) === key
+    let node: any = graph.nodes.find(
+        (n) => n.node_type === type && normalize(n.label) === key
     );
 
     if (!node) {
         node = {
             id: crypto.randomUUID(),
-            type,
+            node_type: type,
             label,
-            paperIds: [paperId],
+            paper_ids: [paper_id],
         };
         graph.nodes.push(node);
     } else {
-        if (!node.paperIds.includes(paperId)) {
-            node.paperIds.push(paperId);
+        if (!node.paper_ids.includes(paper_id)) {
+            node.paper_ids.push(paper_id);
         }
     }
 
@@ -445,16 +387,16 @@ export function connect(
     if (!source || !target) return;
     const exists = graph.edges.find(
         (e) =>
-            e.source === source.id &&
-            e.target === target.id &&
+            e.source_id === source.id &&
+            e.target_id === target.id &&
             e.relation === relation
     );
 
     if (!exists) {
         graph.edges.push({
-            id: crypto.randomUUID(),
-            source: source.id,
-            target: target.id,
+            edge_id: crypto.randomUUID(),
+            source_id: source.id,
+            target_id: target.id,
             relation,
         });
     }
@@ -467,11 +409,11 @@ export function updateGraphFromInsight(
     const entities = extractEntities(insight);
 
     const problemNode = entities.problems.length > 0
-        ? upsertNode(graph, 'problem', entities.problems[0], insight.paperId)
+        ? upsertNode(graph, 'problem', entities.problems[0], insight.paper_id)
         : null;
 
     const methodNode = entities.methods.length > 0
-        ? upsertNode(graph, 'method', entities.methods[0], insight.paperId)
+        ? upsertNode(graph, 'method', entities.methods[0], insight.paper_id)
         : null;
 
     if (methodNode && problemNode) {
@@ -481,13 +423,13 @@ export function updateGraphFromInsight(
     if (methodNode) {
         entities.datasets.forEach((d) => {
             if (!d) return;
-            const datasetNode = upsertNode(graph, 'dataset', d, insight.paperId);
+            const datasetNode = upsertNode(graph, 'dataset', d, insight.paper_id);
             connect(graph, methodNode, datasetNode, 'uses');
         });
 
         entities.metrics.forEach((m) => {
             if (!m) return;
-            const metricNode = upsertNode(graph, 'metric', m, insight.paperId);
+            const metricNode = upsertNode(graph, 'metric', m, insight.paper_id);
             connect(graph, methodNode, metricNode, 'evaluates');
         });
     }
@@ -503,15 +445,15 @@ export interface ResearchGap {
 export function detectGaps(graph: KGGraph): ResearchGap[] {
     const gaps: ResearchGap[] = [];
 
-    const methods = graph.nodes.filter((n) => n.type === "method");
-    const domains = graph.nodes.filter((n) => n.type === "domain");
+    const methods = graph.nodes.filter((n) => n.node_type === "method");
+    const domains = graph.nodes.filter((n) => n.node_type === "domain");
 
     methods.forEach((m) => {
         domains.forEach((d) => {
             const exists = graph.edges.find(
                 (e) =>
-                    e.source === m.id &&
-                    e.target === d.id &&
+                    e.source_id === m.id &&
+                    e.target_id === d.id &&
                     e.relation === "applies_to"
             );
 
@@ -555,7 +497,7 @@ function InsightPanel({
         if (Array.isArray(localInsight[field]) && typeof value === 'string') {
             finalValue = value.split('\n').map(s => s.trim()).filter(Boolean);
         }
-        setLocalInsight({ ...localInsight, [field]: finalValue, userEdited: true });
+        setLocalInsight({ ...localInsight, [field]: finalValue, user_edited: true });
     };
 
     const handleSaveEdits = () => {
@@ -609,7 +551,7 @@ function InsightPanel({
                 ))}
 
                 {/* Array Fields */}
-                {(['keyIdeas', 'contributions', 'limitations', 'datasets'] as const).map(field => {
+                {(['key_ideas', 'contributions', 'limitations', 'datasets'] as const).map(field => {
                     const arr = localInsight[field] as string[];
                     if (!isEditing && (!arr || arr.length === 0)) return null;
                     return (
@@ -709,8 +651,8 @@ interface PaperCardProps {
     paper: Paper;
     isSaved: boolean;
     insight?: PaperInsight;
-    onImport: (p: Paper) => void;
-    onRemove: (p: Paper) => void;
+    onImport: (p: Paper) => Promise<void> | void;
+    onRemove: (p: Paper) => Promise<void> | void;
     onCite: (p: Paper) => void;
     onSaveInsight?: (i: PaperInsight) => void;
 }
@@ -721,8 +663,9 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
     const [isExtracting, setIsExtracting] = useState(false);
     const [extractError, setExtractError] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [discoveredPdfUrl, setDiscoveredPdfUrl] = useState<string | null>(paper.pdfUrl || null);
+    const [discoveredPdfUrl, setDiscoveredPdfUrl] = useState<string | null>(paper.pdf_url || null);
     const [isCheckingPdf, setIsCheckingPdf] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
 
     useEffect(() => {
         if (!paper.url || discoveredPdfUrl) return;
@@ -766,6 +709,15 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
             setExtractError(e.message || "Extraction failed");
         } finally {
             setIsExtracting(false);
+        }
+    };
+
+    const handleImportClick = async () => {
+        setIsImporting(true);
+        try {
+            await onImport(paper);
+        } finally {
+            setIsImporting(false);
         }
     };
 
@@ -879,11 +831,11 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
                         Saved
                     </button>
                 ) : (
-                    <button onClick={() => onImport(paper)}
-                        className="flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl transition-colors ml-auto"
+                    <button onClick={handleImportClick} disabled={isImporting}
+                        className="flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl transition-colors ml-auto disabled:opacity-50"
                     >
-                        <Download className="w-3.5 h-3.5" />
-                        Import
+                        {isImporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                        {isImporting ? "Importing..." : "Import"}
                     </button>
                 )}
             </div>
@@ -955,7 +907,11 @@ export default function Explore() {
         if (!activeProject) return;
 
         const loadData = async () => {
-            // Load insights from Supabase (if provider === 'supabase') or KV
+            // Load saved papers
+            const papers = await exploreService.getPapers(activeProject.id);
+            setSavedPapers(papers as any[]);
+
+            // Load insights
             const insights = await exploreService.getInsights(activeProject.id);
             const insightsMap: Record<string, PaperInsight> = {};
             insights.forEach(insight => {
@@ -994,7 +950,7 @@ export default function Explore() {
         });
     }, [activeProject]);
 
-    const savedIds = new Set(savedPapers.map(p => p.id));
+    const savedIds = new Set(savedPapers.map(p => (p as any).paper_id || p.id));
 
     const handleSearch = useCallback(async (e?: React.FormEvent) => {
         e?.preventDefault();
@@ -1062,7 +1018,7 @@ export default function Explore() {
         try {
             const savedPaper = await exploreService.addPaper(
                 {
-                    id: paper.id,
+                    paper_id: paper.id,
                     title: paper.title,
                     authors: paper.authors,
                     year: paper.year,
@@ -1071,7 +1027,7 @@ export default function Explore() {
                     url: paper.url,
                     journal: paper.journal,
                     source: paper.source,
-                    pdf_url: paper.pdfUrl,
+                    pdf_url: paper.pdf_url,
                     saved: true,
                 },
                 activeProject.id
@@ -1084,17 +1040,21 @@ export default function Explore() {
 
     const handleRemove = async (paper: Paper) => {
         try {
+            const semanticId = (paper as any).paper_id || paper.id;
+            const savedPaper = savedPapers.find(p => ((p as any).paper_id || p.id) === semanticId);
+            if (!savedPaper) return;
+
             // Remove from API/KV
-            await exploreService.removePaper(paper.id);
-            setSavedPapers(prev => prev.filter(p => p.id !== paper.id));
+            await exploreService.removePaper(savedPaper.id);
+            setSavedPapers(prev => prev.filter(p => p.id !== savedPaper.id));
 
             // Remove associated insight if it exists
-            const insight = Object.values(savedInsights).find(i => i.paper_id === paper.id);
+            const insight = Object.values(savedInsights).find(i => i.paper_id === semanticId);
             if (insight?.id) {
                 await exploreService.deleteInsight(insight.id, activeProject?.id);
                 setSavedInsights(prev => {
                     const updated = { ...prev };
-                    delete updated[paper.id];
+                    delete updated[semanticId];
                     return updated;
                 });
             }
@@ -1112,10 +1072,10 @@ export default function Explore() {
 
         try {
             const graphContext = JSON.stringify({
-                nodes: graph.nodes.map(n => ({ type: n.type, label: n.label })),
+                nodes: graph.nodes.map(n => ({ type: n.node_type, label: n.label })),
                 edges: graph.edges.map(e => {
-                    const src = graph.nodes.find(n => n.id === e.source)?.label;
-                    const tgt = graph.nodes.find(n => n.id === e.target)?.label;
+                    const src = graph.nodes.find(n => n.id === e.source_id)?.label;
+                    const tgt = graph.nodes.find(n => n.id === e.target_id)?.label;
                     return `${src} ${e.relation} ${tgt}`;
                 })
             });
@@ -1155,11 +1115,11 @@ export default function Explore() {
         setIsRebuildingGraph(true);
         try {
             if (!activeProject) return;
-            
+
             const newGraph: KGGraph = { nodes: [], edges: [] };
             const insightList = Object.values(savedInsights);
             insightList.forEach(insight => updateGraphFromInsight(newGraph, insight));
-            
+
             // Get graph ID or create one
             let graphId = newGraph.id;
             if (!graphId) {
@@ -1169,12 +1129,12 @@ export default function Explore() {
 
             // Save to Supabase or KV
             setGraph(newGraph);
-            if (provider === 'supabase' && graphId) {
+            // Save to Supabase
+            setGraph(newGraph);
+            if (graphId) {
                 // Clear existing graph first
                 await exploreService.clearGraph(graphId);
                 // Save new nodes and edges (done via the graph endpoints)
-            } else {
-                await exploreService.saveGraphLocally(newGraph);
             }
         } catch (e) {
             console.error("Failed to build compressed graph", e);
@@ -1186,24 +1146,24 @@ export default function Explore() {
     const handleSaveInsight = async (insight: PaperInsight) => {
         try {
             if (!activeProject) return;
-            
+
             // Map old interface to new one
             const apiInsight = {
                 project_id: activeProject.id,
-                paper_id: insight.paperId,
+                paper_id: insight.paper_id,
                 problem: insight.problem,
                 task: insight.task,
                 domain: insight.domain,
                 method: insight.method,
-                key_ideas: insight.keyIdeas,
+                key_ideas: insight.key_ideas,
                 assumptions: insight.assumptions,
                 limitations: insight.limitations,
                 contributions: insight.contributions,
                 datasets: insight.datasets,
                 metrics: insight.metrics,
-                future_work: insight.futureWork,
+                future_work: insight.future_work,
                 confidence: insight.confidence,
-                user_edited: insight.userEdited,
+                user_edited: insight.user_edited,
             };
 
             // Save to API/Supabase
@@ -1216,7 +1176,7 @@ export default function Explore() {
             }
 
             // Update local state
-            const updatedInsights = { ...savedInsights, [insight.paperId]: insight };
+            const updatedInsights = { ...savedInsights, [insight.paper_id]: insight };
             setSavedInsights(updatedInsights);
 
             // Rebuild graph
@@ -1559,14 +1519,14 @@ export default function Explore() {
                                 {selectedNode ? (
                                     <div className="space-y-6">
                                         <div>
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500">{selectedNode.type}</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500">{selectedNode.node_type}</span>
                                             <h3 className="text-xl font-bold text-white mt-1 leading-snug">{selectedNode.label}</h3>
                                         </div>
 
                                         <div>
-                                            <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">Papers in Knowledge Base ({selectedNode.paperIds.length})</h4>
+                                            <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">Papers in Knowledge Base ({selectedNode.paper_ids.length})</h4>
                                             <div className="space-y-3">
-                                                {selectedNode.paperIds.map(pid => {
+                                                {selectedNode.paper_ids.map(pid => {
                                                     const p = savedPapers.find(sp => sp.id === pid);
                                                     if (!p) return null;
                                                     return (

@@ -1,16 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Home, BarChart2, ChevronLeft, ChevronRight, LogOut, User, Info,
+  Home, ChevronLeft, ChevronRight, LogOut, User, Info,
   Settings, Landmark, BookMarked, SquareChartGantt, Menu, X, Brain
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { puterService, PuterUser } from '../lib/puter';
 import BrainModal from './BrainModal';
-import { auth as authService } from '../lib/auth';
-
-const provider = import.meta.env.VITE_PROVIDER || 'puter';
+import { auth, type User as AuthUser } from '../lib/auth';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -20,7 +17,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 1024);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [user, setUser] = useState<PuterUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const [showBrain, setShowBrain] = useState(false);
@@ -59,18 +56,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function getUser() {
-    if (provider == 'supabase') {
-      authService.getUser().then(setUser);
-    } else {
-      puterService.getUser().then(setUser);
-    }
+    const userData = await auth.getUser();
+    setUser(userData);
   }
 
   const handleSignOut = async () => {
     if (!confirm('Are you sure you want to sign out?')) return;
     setSigningOut(true);
-    await puterService.signOut();
-    window.location.reload();
+    try {
+      await auth.signOut();
+      window.location.reload();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const navItems: { path: string; icon: any; label: string; beta?: boolean }[] = [
@@ -90,21 +88,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     : '?';
 
   return (
-    <div className="flex h-[100dvh] font-sans selection:bg-indigo-500/30 overflow-hidden">
+    <div className="flex h-[100dvh] font-sans selection:bg-indigo-500/30 overflow-hidden" style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}>
 
       {/* ──────────────────────────────────────────────
           DESKTOP SIDEBAR  (hidden on mobile)
       ────────────────────────────────────────────── */}
       <aside
         className={cn(
-          "hidden md:flex relative z-20 flex-shrink-0 border-r border-neutral-900 flex-col transition-all duration-300 ease-in-out",
+          "hidden md:flex relative z-20 flex-shrink-0 flex-col transition-all duration-300 ease-in-out",
           isCollapsed ? "w-16" : "w-64"
         )}
+        style={{ background: 'var(--color-bg)', borderRight: '1px solid var(--color-border)' }}
       >
         {/* Collapse Toggle */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute bg-neutral-950 -right-3 top-12 w-6 h-6 rounded-full flex items-center justify-center text-white border border-neutral-800 z-50"
+          className="absolute -right-3 top-12 w-6 h-6 rounded-full flex items-center justify-center z-50"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
@@ -128,8 +128,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex items-center rounded-xl text-sm font-medium transition-all duration-200 group",
                   isCollapsed ? "justify-center w-10 h-10 mx-auto" : "gap-3 px-3 py-2.5",
-                  isActive ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                  isActive
+                    ? "bg-[--bg-surface] text-[--color-accent]"
+                    : "hover:bg-white/5"
                 )}
+                style={!isActive ? { color: 'var(--color-text-muted)' } : undefined}
               >
                 <Icon className={cn(
                   "w-5 h-5 flex-shrink-0",
@@ -172,7 +175,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* User Profile Footer */}
-        <div className={cn("p-4 border-t border-white/10", isCollapsed ? "flex flex-col items-center gap-3" : "space-y-3")}>
+        <div className={cn("p-4", isCollapsed ? "flex flex-col items-center gap-3" : "space-y-3")}
+          style={{ borderTop: '1px solid var(--color-border)' }}>
           {isCollapsed ? (
             <>
               <div title={user?.username || 'User'} className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
@@ -190,8 +194,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   {user ? initials : <User className="w-4 h-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate">{user?.username || 'Loading...'}</p>
-                  <p className="text-xs text-zinc-500 truncate">{provider == 'puter' ? 'Puter Account' : 'Account'}</p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text)' }}>{user?.username || 'Loading...'}</p>
+                  <p className="text-xs capitalize whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: 'var(--color-text-muted)' }}>
+                    Account
+                  </p>
                 </div>
               </div>
               <button onClick={handleSignOut} disabled={signingOut}
@@ -218,12 +224,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Slide-in Drawer */}
-      <div className={cn(
-        "md:hidden fixed top-0 left-0 h-full w-72 z-50 flex flex-col border-r border-neutral-800 bg-neutral-950 transition-transform duration-300 ease-in-out",
-        drawerOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
+      <div
+        className={cn(
+          "md:hidden fixed top-0 left-0 h-full w-72 z-50 flex flex-col transition-transform duration-300 ease-in-out",
+          drawerOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+        style={{ background: 'var(--color-bg)', borderRight: '1px solid var(--color-border)' }}
+      >
         {/* Drawer Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-neutral-800">
+        <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
           <div className="flex items-center gap-2">
             <img src="/logo-transparent.png" alt="logo" className="w-9 h-9" />
             <h1 className="logo-title">Apex Scholar</h1>
@@ -278,14 +287,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Drawer Footer — user + sign out */}
-        <div className="p-4 border-t border-white/10 space-y-3">
+        <div className="p-4 space-y-3" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="flex items-center gap-3 rounded-xl">
             <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
               {user ? initials : <User className="w-4 h-4" />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white truncate">{user?.username || 'Loading...'}</p>
-              <p className="text-xs text-zinc-500 truncate">{provider == 'puter' ? 'Puter Account' : 'Account'}</p>
+              <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text)' }}>{user?.username || 'Loading...'}</p>
+              <p className="text-xs truncate" style={{ color: 'var(--color-text-muted)' }}>Account</p>
             </div>
           </div>
           <button onClick={handleSignOut} disabled={signingOut}
@@ -303,7 +312,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="absolute inset-0 pointer-events-none" />
 
         {/* Mobile top bar with hamburger */}
-        <div className="md:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 border-b border-neutral-900 bg-neutral-950/90 backdrop-blur-md">
+        <div className="md:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 backdrop-blur-md"
+          style={{ borderBottom: '1px solid var(--color-border)', background: 'color-mix(in srgb, var(--color-bg) 90%, transparent)' }}>
           <button
             onClick={() => setDrawerOpen(true)}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
@@ -325,7 +335,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* ──────────────────────────────────────────────
             MOBILE BOTTOM TAB BAR
         ────────────────────────────────────────────── */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around px-2 py-2 border-t border-neutral-800 bg-neutral-950/95 backdrop-blur-md safe-area-bottom">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around px-2 py-2 backdrop-blur-md safe-area-bottom"
+          style={{ borderTop: '1px solid var(--color-border)', background: 'color-mix(in srgb, var(--color-bg) 95%, transparent)' }}>
           {bottomTabItems.map((item) => {
             const isActive = item.path === '/'
               ? location.pathname === '/'

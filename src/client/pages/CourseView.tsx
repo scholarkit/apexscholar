@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Circle, Lock, Clock, ChevronRight, Microscope, Search, BookCopy, Book } from 'lucide-react';
 import { COURSES_2, PROGRESS_KV_KEY, CourseProgress } from '../lib/courseData';
-import { puterService } from '../lib/puter';
+
 import { kv } from '../lib/kv';
 
 export default function CourseView() {

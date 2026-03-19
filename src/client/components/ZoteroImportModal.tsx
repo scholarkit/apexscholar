@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Library, Folder, CheckCircle2, Download, Loader2, AlertTriangle } from 'lucide-react';
-import { puterService, Resource } from '../lib/puter';
+import { storage } from '../lib/storage';
+import { type Resource } from '../lib/resources';
 import { zoteroService, ZoteroCredentials } from '../lib/zotero';
 import { useProject } from '../contexts/ProjectContext';
 import { kv } from '../lib/kv';
@@ -8,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { resourcesService } from '../lib/resources';
 
 const UPLOADS_DIR = 'research-dashboard/uploads';
-const provider = import.meta.env.VITE_PROVIDER || 'puter';
+
 
 interface ZoteroImportModalProps {
   onClose: () => void;
@@ -99,7 +100,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
 
       const SKIP_TYPES = ['attachment', 'note', 'annotation'];
 
-      const mapZoteroItem: (item: any) => Resource | null = (item) => {
+      const mapZoteroItem = (item: any): Partial<Resource> | null => {
         const d = item.data;
         if (SKIP_TYPES.includes(d.itemType)) return null;
         if (item.version > maxVersion) maxVersion = item.version;
@@ -114,7 +115,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
           source: 'zotero',
           path,
           source_id: item.key,
-          date_added: new Date().toISOString(),
+          created_at: new Date().toISOString(),
           abstract: d.abstractNote || null,
           doi: d.DOI || null,
           url: d.url || null,
@@ -133,17 +134,8 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
       for (const res of mappedResources) {
         const content = (res as any)._rawContent;
         delete (res as any)._rawContent;
-        await puterService.fsWrite(res.path, content);
-        if (provider === 'supabase') {
-          await resourcesService.create(res);
-        }
-      }
-
-      if (provider !== 'supabase') {
-        const existingData = await kv.get('research_resources') || [];
-        const newDict = new Map(mappedResources.map(r => [r.id, r]));
-        const filteredOld = existingData.filter((r: Resource) => !newDict.has(r.id));
-        await kv.set('research_resources', [...mappedResources, ...filteredOld]);
+        await storage.write(res.path, content);
+        await resourcesService.create(res);
       }
 
       syncVersions[selectedCollection] = maxVersion;

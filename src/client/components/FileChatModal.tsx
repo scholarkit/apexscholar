@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Send, Loader2, User, Bot, Trash2 } from 'lucide-react';
-import { Resource, puterService } from '../lib/puter';
+import { type Resource } from '../lib/resources';
 import { ai } from '../lib/ai';
 import { storage } from '../lib/storage';
 import { kv } from '../lib/kv';
@@ -67,14 +67,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
             const stat = await storage.stat(resource.path);
             const fullPath = stat.path;
             
-            // Check provider to see if we can use Puter's direct file reading API, or if we just send text
-            const provider = import.meta.env.VITE_PROVIDER || 'puter';
-            const userContent = provider === 'supabase' 
-                ? `[Context file: ${resource.name}]\n\n${userMessage}` 
-                : [
-                    { type: 'file', puter_path: fullPath },
-                    { type: 'text', text: userMessage }
-                ];
+            const userContent = `[Context file: ${resource.name}]\n\n${userMessage}`;
 
             const response = await ai.chat(
                 [

@@ -1,13 +1,11 @@
 import { useRef, useState, useEffect, JSX } from 'react';
-import { Download, Upload, Activity, Loader2, HardDrive, FolderOpen, Trash2, AlertTriangle, Lock, Shield, Key, Eye, EyeOff, Unlock, LockOpen, Link2, CheckCircle2, ChevronLeft, ChevronRight, Database } from 'lucide-react';
+import { Download, Upload, Loader2, HardDrive, FolderOpen, Trash2, AlertTriangle, Lock, Shield, Key, Eye, EyeOff, Unlock, LockOpen, Link2, CheckCircle2, ChevronLeft, ChevronRight, Database, Palette, Sun, Moon, Monitor } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { puterService } from '../lib/puter';
 import { changeE2EEPassphrase, disableE2EE, enableE2EE, getE2EEConfig, isE2EEEnabled, migrateDataToE2EE, initE2EE, unlockE2EE } from '../lib/e2ee';
 import { zoteroService } from '../lib/zotero';
 import { kv } from '../lib/kv';
 import { storage } from '../lib/storage';
-
-const provider = import.meta.env.VITE_PROVIDER || 'puter';
+import { useTheme, type Theme } from '../contexts/ThemeContext';
 
 interface FolderStat { name: string; size: number; }
 
@@ -19,31 +17,14 @@ function formatBytes(bytes: number): string {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
-async function sumDir(path: string): Promise<number> {
-    try {
-        const items = await storage.readdir(path);
-        let total = 0;
-        await Promise.all(
-            items.map(async (item: any) => {
-                if (item.is_dir) {
-                    total += await sumDir(`${path}/${item.name}`);
-                } else {
-                    try {
-                        const stat = await storage.stat(`${path}/${item.name}`);
-                        total += stat?.size ?? item.size ?? 0;
-                    } catch {
-                        total += item.size ?? 0;
-                    }
-                }
-            })
-        );
-        return total;
-    } catch {
-        return 0;
-    }
-}
-
 const MODULES = [
+    {
+        id: 'appearance',
+        name: 'Appearance',
+        description: 'Choose light, dark, or system theme',
+        icon: <Palette className="w-6 h-6" />,
+        color: 'violet',
+    },
     {
         id: 'encryption',
         name: 'End-to-End Encryption',
@@ -68,17 +49,11 @@ const MODULES = [
     {
         id: 'storage',
         name: 'Storage Usage',
-        description: `Monitor your ${provider === 'puter' ? 'Puter' : 'Supabase'} cloud storage quota`,
+        description: 'Monitor your Supabase cloud storage quota',
         icon: <HardDrive className="w-6 h-6" />,
         color: 'teal',
     },
-    {
-        id: 'usage',
-        name: 'Monthly Usage',
-        description: 'View AI and resource credits consumed',
-        icon: <Activity className="w-6 h-6" />,
-        color: 'purple',
-    },
+
     {
         id: 'danger',
         name: 'Danger Zone',
@@ -93,10 +68,8 @@ export default function Settings() {
     const [activeModule, setActiveModule] = useState<string | null>(null);
     const [resetConfirm, setResetConfirm] = useState(false);
     const [resetting, setResetting] = useState(false);
-    const [usage, setUsage] = useState<any>(null);
-    const [detailedUsage, setDetailedUsage] = useState<any>(null);
-    const [loadingUsage, setLoadingUsage] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
+    const { theme: currentTheme, setTheme } = useTheme();
 
     // Storage usage
     const [storageTotal, setStorageTotal] = useState<number | null>(null);
@@ -163,31 +136,12 @@ export default function Settings() {
 
     const STORAGE_LIMIT_BYTES = 1 * 1024 * 1024 * 1024;
 
-    useEffect(() => {
-        puterService.getMonthlyUsage().then(async data => {
-            setUsage(data);
-            if (data?.appTotals) {
-                const appId = Object.keys(data.appTotals).find(k => k !== 'others');
-                if (appId) {
-                    try {
-                        const detailed = await puterService.getDetailedAppUsage(appId);
-                        setDetailedUsage(detailed);
-                    } catch (e) {
-                        console.error('Failed to fetch detailed usage', e);
-                    }
-                }
-            }
-            setLoadingUsage(false);
-        }).catch(err => {
-            console.error('Failed to fetch usage', err);
-            setLoadingUsage(false);
-        });
-    }, []);
+
 
     useEffect(() => {
         (async () => {
             try {
-                const uploadPath = provider === 'supabase' ? 'uploads' : 'research-dashboard/uploads';
+                const uploadPath = 'uploads';
                 const rootItems = await storage.readdir(uploadPath);
                 const topFiles = rootItems.filter((i: any) => !i.is_dir);
                 let rootFilesSize = 0;
@@ -197,7 +151,7 @@ export default function Settings() {
                 setStorageTotal(rootFilesSize);
             } catch (err: any) {
                 console.error('Storage scan failed', err);
-                setStorageError(`Could not read storage. Check ${provider === 'puter' ? 'Puter FS' : 'Supabase'} permissions.`);
+                setStorageError('Could not read storage. Check Supabase permissions.');
             } finally {
                 setLoadingStorage(false);
             }
@@ -400,6 +354,83 @@ export default function Settings() {
     };
 
     // ── Module Content Renderers ───────────────────────────
+    const renderAppearance = () => {
+        const options: { value: Theme; label: string; icon: JSX.Element; description: string; preview: { bg: string; sidebar: string; text: string; muted: string } }[] = [
+            {
+                value: 'dark',
+                label: 'Dark',
+                icon: <Moon className="w-4 h-4" />,
+                description: 'A sleek dark interface, easy on the eyes.',
+                preview: { bg: '#09090b', sidebar: '#0f0f12', text: '#f4f4f5', muted: '#52525b' },
+            },
+            {
+                value: 'light',
+                label: 'Light',
+                icon: <Sun className="w-4 h-4" />,
+                description: 'Clean, bright interface for well-lit environments.',
+                preview: { bg: '#f8f8f9', sidebar: '#ffffff', text: '#18181b', muted: '#71717a' },
+            },
+            {
+                value: 'system',
+                label: 'System',
+                icon: <Monitor className="w-4 h-4" />,
+                description: 'Automatically matches your OS setting.',
+                preview: { bg: '#18181b', sidebar: '#27272a', text: '#f4f4f5', muted: '#71717a' },
+            },
+        ];
+
+        return (
+            <div className="space-y-4">
+                <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Choose your preferred color theme. Changes apply instantly and persist across sessions.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {options.map(opt => {
+                        const isActive = currentTheme === opt.value;
+                        return (
+                            <button
+                                key={opt.value}
+                                onClick={() => setTheme(opt.value)}
+                                className={`relative rounded-xl border-2 p-4 text-left transition-all duration-200 ${isActive
+                                    ? 'border-indigo-500 ring-2 ring-indigo-500/20'
+                                    : 'border-[--color-border] hover:border-indigo-500/50'
+                                    }`}
+                                style={{ background: 'var(--color-surface-2)' }}
+                            >
+                                {/* Mini theme preview */}
+                                <div className="mb-3 rounded-lg overflow-hidden h-20 flex" style={{ background: opt.preview.bg, border: '1px solid rgba(128,128,128,0.15)' }}>
+                                    {/* Mini sidebar */}
+                                    <div className="w-8 h-full flex flex-col gap-1 p-1" style={{ background: opt.preview.sidebar }}>
+                                        {[1, 2, 3].map(i => (
+                                            <div key={i} className="rounded w-full h-1.5" style={{ background: i === 1 ? '#6366f1' : opt.preview.muted, opacity: i === 1 ? 1 : 0.4 }} />
+                                        ))}
+                                    </div>
+                                    {/* Mini content */}
+                                    <div className="flex-1 p-2 flex flex-col gap-1.5">
+                                        <div className="rounded h-2 w-2/3" style={{ background: opt.preview.text, opacity: 0.8 }} />
+                                        <div className="rounded h-1.5 w-full" style={{ background: opt.preview.muted, opacity: 0.3 }} />
+                                        <div className="rounded h-1.5 w-4/5" style={{ background: opt.preview.muted, opacity: 0.3 }} />
+                                        <div className="mt-auto rounded h-5 w-16" style={{ background: '#6366f1', opacity: 0.7 }} />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
+                                        {opt.icon}
+                                        <span className="text-sm font-semibold">{opt.label}</span>
+                                    </div>
+                                    {isActive && (
+                                        <CheckCircle2 className="w-4 h-4 text-indigo-400" />
+                                    )}
+                                </div>
+                                <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{opt.description}</p>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    // ── Module Content Renderers ───────────────────────────
     const renderEncryption = () => (
         <div className="space-y-4">
             <p className="text-sm text-zinc-400">Protect your research data with client-side encryption. Only you can access it.</p>
@@ -569,11 +600,11 @@ export default function Settings() {
 
     const renderStorage = () => (
         <div className="space-y-4">
-            <p className="text-sm text-zinc-400">Monitor your Puter cloud storage consumption across your uploads.</p>
+            <p className="text-sm text-zinc-400">Monitor your cloud storage consumption across your uploads.</p>
             {loadingStorage ? (
                 <div className="flex items-center gap-2 text-zinc-400 py-4">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">Scanning your {provider === 'puter' ? 'Puter' : 'Supabase'} storage…</span>
+                    <span className="text-sm">Scanning your Supabase storage…</span>
                 </div>
             ) : storageError ? (
                 <p className="text-sm text-red-400 py-2">{storageError}</p>
@@ -617,53 +648,6 @@ export default function Settings() {
         </div>
     );
 
-    const renderUsage = () => (
-        <div className="space-y-4">
-            <p className="text-sm text-zinc-400">View your monthly AI credit usage and resource allowance on Puter.</p>
-            {loadingUsage ? (
-                <div className="flex items-center gap-2 text-zinc-400 py-4">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">Loading usage data...</span>
-                </div>
-            ) : usage ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {usage.appTotals && Object.entries(usage.appTotals).map(([id, data]: [string, any]) => {
-                        if (id === 'others') return null;
-                        return (
-                            <div key={id} className="p-4 rounded-xl border bg-indigo-500/10 border-indigo-500/20 flex flex-col gap-1">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">Apex Scholar Usage</span>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-2xl font-bold text-white">{data?.total?.toLocaleString() || 0}</span>
-                                    <span className="text-xs text-zinc-400">Total Credits</span>
-                                </div>
-                                <span className="text-xs text-zinc-500">{data?.count?.toLocaleString() || 0} total requests</span>
-                            </div>
-                        );
-                    })}
-                    {usage.allowanceInfo && (
-                        <div className="p-4 rounded-xl border border-neutral-800 bg-zinc-900/20 flex flex-col gap-3">
-                            <div className="flex justify-between items-end">
-                                <h3 className="text-sm font-medium text-white">Monthly Resource Allowance</h3>
-                                <span className="text-xs text-zinc-400">
-                                    {Math.round(((usage.allowanceInfo.monthUsageAllowance - usage.allowanceInfo.remaining) / usage.allowanceInfo.monthUsageAllowance) * 100)}% Consumed
-                                </span>
-                            </div>
-                            <div className="w-full bg-zinc-800 rounded-full h-2">
-                                <div className="bg-indigo-500 h-2 rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.max(0, ((usage.allowanceInfo.monthUsageAllowance - usage.allowanceInfo.remaining) / usage.allowanceInfo.monthUsageAllowance) * 100))}%` }} />
-                            </div>
-                            <div className="flex justify-between text-xs text-zinc-500">
-                                <span>Used: {(usage.allowanceInfo.monthUsageAllowance - usage.allowanceInfo.remaining).toLocaleString()}</span>
-                                <span>Limit: {usage.allowanceInfo.monthUsageAllowance.toLocaleString()}</span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            ) : (
-                <p className="text-sm text-zinc-500 py-4">Usage data not available.</p>
-            )}
-        </div>
-    );
-
     const renderDanger = () => (
         <div className="space-y-4">
             <p className="text-sm text-zinc-400">These actions are irreversible. Please be absolutely certain before proceeding.</p>
@@ -693,11 +677,11 @@ export default function Settings() {
     );
 
     const moduleContent: Record<string, () => JSX.Element> = {
+        appearance: renderAppearance,
         encryption: renderEncryption,
         integrations: renderIntegrations,
         data: renderData,
         storage: renderStorage,
-        usage: renderUsage,
         danger: renderDanger,
     };
 
@@ -715,8 +699,8 @@ export default function Settings() {
                         <ChevronLeft className="w-5 h-5" />
                     </button>
                 )}
-                <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-                    <h1 className="text-2xl font-semibold text-white mb-2">
+                <div>
+                    <h1 className="text-2xl font-semibold mb-2">
                         {activeModuleInfo ? activeModuleInfo.name : 'Settings'}
                     </h1>
                     <p className="text-base text-zinc-400">

@@ -1,112 +1,191 @@
-const provider = import.meta.env.VITE_PROVIDER || 'puter';
+export interface User {
+    username: string;
+    uuid: string;
+}
+
+// Keys used for localStorage
+const TOKEN_KEY = 'supabase_token';
+const REFRESH_KEY = 'supabase_refresh_token';
+const USER_KEY = 'supabase_user';
 
 export const auth = {
-    async signUp(email?: string, password?: string, username?: string) {
-        if (provider === 'supabase') {
-            const res = await fetch('/api/auth/signup', {
+    /** Persist full session (access + refresh tokens) to localStorage */
+    _saveSession(session: { access_token: string; refresh_token: string }, user?: unknown) {
+        localStorage.setItem(TOKEN_KEY, session.access_token);
+        localStorage.setItem(REFRESH_KEY, session.refresh_token);
+        if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+    },
+
+    /** Wipe all stored auth data */
+    _clearSession() {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(REFRESH_KEY);
+        localStorage.removeItem(USER_KEY);
+    },
+
+    /**
+     * Silently exchange the stored refresh_token for a new access_token +
+     * refresh_token pair. Returns true on success, false if the refresh fails
+     * (meaning the user must log in again).
+     */
+    async refreshToken(): Promise<boolean> {
+        const refreshToken = localStorage.getItem(REFRESH_KEY);
+        if (!refreshToken) return false;
+
+        try {
+            const res = await fetch('/api/auth/refresh', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, display_name: username })
+                body: JSON.stringify({ refresh_token: refreshToken }),
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Signup failed');
-            if (data.session) {
-                localStorage.setItem('supabase_token', data.session.access_token);
-                localStorage.setItem('supabase_user', JSON.stringify(data.user));
+
+            if (!res.ok) {
+                this._clearSession();
+                return false;
             }
-            return data.user;
+
+            const data = await res.json();
+            if (data.session?.access_token && data.session?.refresh_token) {
+                this._saveSession(data.session);
+                return true;
+            }
+
+            this._clearSession();
+            return false;
+        } catch (err) {
+            console.error('Token refresh failed:', err);
+            return false;
         }
-        throw new Error('signUp only exists for Supabase provider');
     },
 
-    async signInWithPassword(email?: string, password?: string) {
-  if (provider === 'supabase') {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+    /**
+     * fetch() wrapper that automatically retries once with a refreshed token
+     * when the server responds with 401. Use this for all authenticated API
+     * calls instead of raw fetch().
+     */
+    async authedFetch(url: string, options: RequestInit = {}): Promise<Response> {
+        const token = localStorage.getItem(TOKEN_KEY);
+        const headers = new Headers(options.headers);
+        if (token) headers.set('Authorization', `Bearer ${token}`);
 
-    const text = await res.text();
-    const data = text ? JSON.parse(text) : {};
+        const res = await fetch(url, { ...options, headers });
 
-    if (!res.ok) throw new Error(data.error || 'Login failed');
-
-    if (data.session) {
-      localStorage.setItem('supabase_token', data.session.access_token);
-      localStorage.setItem('supabase_user', JSON.stringify(data.user));
-    }
-
-    return data.user;
-  }
-
-  throw new Error('signInWithPassword only exists for Supabase provider');
-},
-
-    async signIn() {
-        if (provider === 'supabase') {
-            // Unused directly; Login.tsx uses signInWithPassword now.
-            throw new Error('Use signInWithPassword for Supabase');
+        if (res.status === 401) {
+            // Try to refresh and retry once
+            const refreshed = await this.refreshToken();
+            if (refreshed) {
+                const newToken = localStorage.getItem(TOKEN_KEY);
+                if (newToken) headers.set('Authorization', `Bearer ${newToken}`);
+                return fetch(url, { ...options, headers });
+            }
         }
-        return await window.puter.auth.signIn();
+
+        return res;
     },
 
-    async isSignedIn() {
-        if (provider === 'supabase') {
-            const token = localStorage.getItem('supabase_token');
-            if (!token) return false;
-            
-            try {
-                // Verify the token is actually still valid with the backend
-                const res = await fetch('/api/auth/user', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) {
-                    // Token is invalid or expired, clean up
-                    localStorage.removeItem('supabase_token');
-                    localStorage.removeItem('supabase_user');
-                    return false;
-                }
+    async signUp(email?: string, password?: string, username?: string): Promise<User> {
+        const res = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, display_name: username }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Signup failed');
+        if (data.session) {
+            this._saveSession(data.session, data.user);
+        }
+        return data.user;
+    },
+
+    async signInWithPassword(email?: string, password?: string): Promise<User> {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : {};
+
+        if (!res.ok) throw new Error(data.error || 'Login failed');
+
+        if (data.session) {
+            this._saveSession(data.session, data.user);
+        }
+
+        return data.user;
+    },
+
+    /**
+     * Checks whether the user is currently signed in.
+     * First validates the stored access token; if that returns 401, attempts a
+     * silent refresh before giving up.
+     */
+    async isSignedIn(): Promise<boolean> {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) return false;
+
+        try {
+            const res = await fetch('/api/auth/user', {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+
+            if (res.ok) {
                 const data = await res.json();
                 if (data.user) {
-                    localStorage.setItem('supabase_user', JSON.stringify(data.user));
+                    localStorage.setItem(USER_KEY, JSON.stringify(data.user));
                     return true;
                 }
                 return false;
-            } catch (err) {
-                console.error("Error verifying supabase session:", err);
-                return false;
             }
-        }
-        return await window.puter.auth.isSignedIn();
-    },
 
-    async signOut() {
-        if (provider === 'supabase') {
-            const token = localStorage.getItem('supabase_token');
-            if (token) {
-                await fetch('/api/auth/logout', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+            if (res.status === 401) {
+                // Access token expired – try to refresh silently
+                const refreshed = await this.refreshToken();
+                if (!refreshed) return false;
+
+                // Validate the new token
+                const newToken = localStorage.getItem(TOKEN_KEY);
+                const retryRes = await fetch('/api/auth/user', {
+                    headers: { 'Authorization': `Bearer ${newToken}` },
                 });
+                if (!retryRes.ok) {
+                    this._clearSession();
+                    return false;
+                }
+                const retryData = await retryRes.json();
+                if (retryData.user) {
+                    localStorage.setItem(USER_KEY, JSON.stringify(retryData.user));
+                    return true;
+                }
             }
-            localStorage.removeItem('supabase_token');
-            localStorage.removeItem('supabase_user');
-            return;
+
+            this._clearSession();
+            return false;
+        } catch (err) {
+            console.error('Error verifying supabase session:', err);
+            return false;
         }
-        return await window.puter.auth.signOut();
     },
 
-    async getUser() {
-        if (provider === 'supabase') {
-            const userStr = localStorage.getItem('supabase_user');
-            if (!userStr) return null;
-            const parsed = JSON.parse(userStr);
-            return {
-                username: parsed.user_metadata?.display_name || parsed.email?.split('@')[0] || 'User',
-                uuid: parsed.id
-            };
+    async signOut(): Promise<void> {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (token) {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
         }
-        return await window.puter.auth.getUser();
-    }
+        this._clearSession();
+    },
+
+    async getUser(): Promise<User | null> {
+        const userStr = localStorage.getItem(USER_KEY);
+        if (!userStr) return null;
+        const parsed = JSON.parse(userStr);
+        return {
+            username: parsed.user_metadata?.display_name || parsed.email?.split('@')[0] || 'User',
+            uuid: parsed.id,
+        };
+    },
 };

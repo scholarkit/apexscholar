@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Copy, Check, Quote, Loader2, Sparkles, Search, Globe, FileText, AlertCircle } from 'lucide-react';
-import { Resource } from '../lib/puter';
+import { type Resource } from '../lib/resources';
 import {
     extractCitationMetadata,
     formatCitation,

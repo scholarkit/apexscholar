@@ -40,6 +40,19 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
+authRouter.post("/refresh", async (req, res) => {
+  try {
+    const { refresh_token } = req.body;
+    if (!refresh_token) return res.status(400).json({ error: "Missing refresh_token" });
+
+    const { data, error } = await supabase.auth.refreshSession({ refresh_token });
+    if (error) throw error;
+    res.json({ session: data.session });
+  } catch (err: any) {
+    res.status(401).json({ error: err.message });
+  }
+});
+
 authRouter.post("/logout", async (req, res) => {
   try {
     const authHeader = req.headers.authorization;

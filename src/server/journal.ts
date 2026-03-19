@@ -27,8 +27,8 @@ journalRouter.get("/:id", requireAuth, async (req, res) => {
             .from("journal_entries")
             .select("*")
             .eq("author_id", user.id)
-            .eq("project_id", projectId)
-            .single();
+            .eq("project_id", projectId);
+            
         if (error) throw error;
         res.json(data);
     } catch (err: any) {

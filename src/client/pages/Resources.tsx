@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { Upload, FileText, Image as ImageIcon, File, Trash2, Search, FolderOpen, Quote, MessagesSquare, ExternalLink, Database, BookMarked, Library, Folder, CheckCircle2, Download, Book, Globe } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { Resource, puterService } from '../lib/puter';
+import { storage } from '../lib/storage';
 import CitationModal from '../components/CitationModal';
 import FileChatModal from '../components/FileChatModal';
 import { useProject } from '../contexts/ProjectContext';
 import Breadcrumbs from '../components/Breadcrumbs';
 import ZoteroImportModal from '../components/ZoteroImportModal';
 import { kv } from '../lib/kv';
-import { resourcesService } from '../lib/resources';
+import { resourcesService, type Resource } from '../lib/resources';
 
 export default function Resources() {
   const { activeProject } = useProject();
@@ -22,7 +22,7 @@ export default function Resources() {
   const [showZoteroModal, setShowZoteroModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const provider = import.meta.env.VITE_PROVIDER || 'puter';
+
   const UPLOADS_DIR = 'research-dashboard/uploads';
 
   useEffect(() => {
@@ -36,20 +36,15 @@ export default function Resources() {
     }
 
     let projectResources: Resource[] = [];
-    if (provider === 'supabase') {
-      try {
-        projectResources = await resourcesService.listForProject(activeProject.id);
-      } catch (err) {
-        console.error('Failed to fetch resources from Supabase', err);
-      }
-    } else {
-      const data = await kv.get('research_resources') || [];
-      projectResources = data.filter((r: Resource) => (r as any).projectId === activeProject.id || r.project_id === activeProject.id);
+    try {
+      projectResources = await resourcesService.listForProject(activeProject.id);
+    } catch (err) {
+      console.error('Failed to fetch resources', err);
     }
 
-    setResources(projectResources.sort((a: Resource, b: Resource) => 
-      new Date(b.date_added || b.created_at || 0).getTime() - 
-      new Date(a.date_added || a.created_at || 0).getTime()
+    setResources(projectResources.sort((a: Resource, b: Resource) =>
+      new Date(b.created_at || 0).getTime() -
+      new Date(a.created_at || 0).getTime()
     ));
 
     // Get download URLs for only project resources
@@ -57,7 +52,7 @@ export default function Resources() {
     for (const res of projectResources) {
       if (res.path) {
         try {
-          urls[res.id] = await puterService.fsGetURL(res.path);
+          urls[res.id] = await storage.getReadURL(res.path);
         } catch (err) {
           console.error(`Failed to get URL for ${res.name}`, err);
         }
@@ -73,37 +68,29 @@ export default function Resources() {
 
     setUploading(true);
     try {
-      const id = Math.random().toString(36).substring(7);
       const filename = `${Date.now()}-${file.name}`;
       const path = `${UPLOADS_DIR}/${filename}`;
 
       // Upload to Storage (handles both Supabase and Puter)
-      await puterService.fsWrite(path, file);
+      await storage.write(path, file);
 
       // Save metadata
       const resource: Partial<Resource> = {
-        id,
         project_id: activeProject?.id,
         name: file.name,
         source: 'apexscholar',
-        source_id: id,
+        // source_id: id,
         type: file.type,
         path,
-        date_added: new Date().toISOString()
+        created_at: new Date().toISOString()
       };
 
-      if (provider === 'supabase') {
-        await resourcesService.create(resource);
-      } else {
-        const allResources = await kv.get('research_resources') || [];
-        const updatedResources = [resource as Resource, ...allResources];
-        await kv.set('research_resources', updatedResources);
-      }
+      await resourcesService.create(resource);
 
       fetchResources();
     } catch (error) {
       console.error('Upload failed', error);
-      alert(`Failed to upload file to ${provider === 'supabase' ? 'Supabase' : 'Puter'} Storage`);
+      alert(`Failed to upload file to Storage`);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -113,19 +100,11 @@ export default function Resources() {
   const handleDelete = async (id: string, path: string) => {
     if (!confirm('Are you sure you want to delete this resource?')) return;
     try {
-      // Delete from Storage
       if (path) {
-        await puterService.fsDelete(path);
+        await storage.delete(path);
       }
 
-      // Update metadata
-      if (provider === 'supabase') {
-        await resourcesService.delete(id);
-      } else {
-        const allResources = await kv.get('research_resources') || [];
-        const updatedResources = allResources.filter((r: Resource) => r.id !== id);
-        await kv.set('research_resources', updatedResources);
-      }
+      await resourcesService.delete(id);
 
       fetchResources();
     } catch (err) {
@@ -251,7 +230,7 @@ export default function Resources() {
 
                   {/* Date Added */}
                   <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
-                    {formatDistanceToNow(new Date(resource.date_added || resource.created_at || new Date()), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(resource.created_at || new Date()), { addSuffix: true })}
                   </td>
 
                   {/* Actions */}

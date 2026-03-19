@@ -6,7 +6,7 @@ export interface Resource {
     user_id: string;
     name: string;
     source: string;
-    source_id: string;
+    source_id?: string;
     type: string;
     abstract: string;
     doi?: string;

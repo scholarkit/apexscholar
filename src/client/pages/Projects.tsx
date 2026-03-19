@@ -76,14 +76,14 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: CreateProjectModalPro
         setIsSubmitting(true);
         try {
             await onCreate({ name: name.trim(), description: description.trim(), tags, startDate });
-            
+
             // Reset form after successful creation
             setName('');
             setDescription('');
             setTags([]);
             setStartDate('');
             setTagInput('');
-            
+
             // Close modal after successful creation
             onClose();
         } catch (error) {
@@ -230,7 +230,7 @@ export default function Projects() {
                 tags: data.tags.length > 0 ? data.tags : undefined,
                 startDate: data.startDate || null,
             });
-            
+
             // Set the newly created project as active
             if (newProject) {
                 setActiveProject(newProject);
@@ -258,7 +258,7 @@ export default function Projects() {
             <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div>
-                    <h1 className="text-2xl font-semibold text-white mb-2">Research Projects</h1>
+                    <h1 className="text-2xl font-semibold mb-2">Research Projects</h1>
                     <p className="text-base text-zinc-400">Organize and manage your research workspaces.</p>
                 </div>
                 <button

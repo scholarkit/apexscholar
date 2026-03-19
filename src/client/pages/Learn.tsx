@@ -27,7 +27,7 @@ export default function Learn() {
             {/* Header */}
             <header>
                 <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
-                <h1 className="text-2xl font-semibold text-white mb-2">Learn</h1>
+                <h1 className="text-2xl font-semibold mb-2">Learn</h1>
                 <p className="text-base text-zinc-400">
                     Structured courses to master every step of the research process.
                 </p>

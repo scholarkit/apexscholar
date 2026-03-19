@@ -13,7 +13,7 @@ import Resources from './pages/Resources';
 import Insights from './pages/Insights';
 import Composr from './pages/Composr';
 import Login from './components/Login';
-import { puterService } from './lib/puter';
+import { auth } from './lib/auth';
 import { initE2EE, isE2EEEnabled, unlockE2EE, getE2EEConfig } from './lib/e2ee';
 import Explore from './pages/Explore';
 import Kanban from './pages/Kanban';
@@ -25,6 +25,7 @@ import CourseView from './pages/CourseView';
 import LessonView from './pages/LessonView';
 import ProjectSettings from './pages/ProjectSettings';
 import { ProjectProvider } from './contexts/ProjectContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function App() {
@@ -54,7 +55,7 @@ export default function App() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const signedIn = await puterService.isSignedIn();
+      const signedIn = await auth.isSignedIn();
       setIsAuthenticated(signedIn);
     };
     checkAuth();
@@ -88,15 +89,17 @@ export default function App() {
   // Loading state while checking auth + E2EE
   if (isAuthenticated === null || (e2eeRequired && !e2eeUnlocked && !isAuthenticated)) {
     return (
-      <div className="min-h-[100dvh] bg-[#09090b] flex items-center justify-center">
-        <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
-      </div>
+      <ThemeProvider>
+        <div className="min-h-[100dvh] bg-[--color-bg] flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+        </div>
+      </ThemeProvider>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <>
+      <ThemeProvider>
         {sessionExpired && (
           <div className="fixed top-0 inset-x-0 z-50 flex items-center justify-center gap-3 bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 text-sm text-amber-300">
             <span>⚠️</span>
@@ -105,15 +108,16 @@ export default function App() {
           </div>
         )}
         <Login onLoginSuccess={() => { setIsAuthenticated(true); setSessionExpired(false); }} />
-      </>
+      </ThemeProvider>
     );
   }
 
   // E2EE Unlock Screen (appears over the app)
   if (e2eeRequired && !e2eeUnlocked) {
     return (
-      <div className="min-h-[100dvh] bg-[#09090b] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-zinc-900 border border-indigo-500/20 rounded-xl p-8">
+      <ThemeProvider>
+      <div className="min-h-[100dvh] bg-[--color-bg] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-[--color-surface] border border-indigo-500/20 rounded-xl p-8">
           <div className="flex flex-col items-center text-center mb-6">
             <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mb-4">
               <Lock className="w-7 h-7 text-indigo-400" />
@@ -166,10 +170,12 @@ export default function App() {
           </div>
         </div>
       </div>
+      </ThemeProvider>
     );
   }
 
   return (
+    <ThemeProvider>
     <ProjectProvider>
       <Router>
         <Layout>
@@ -194,5 +200,6 @@ export default function App() {
         </Layout>
       </Router>
     </ProjectProvider>
+    </ThemeProvider>
   );
 }

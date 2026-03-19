@@ -8,10 +8,8 @@ import Breadcrumbs from '../components/Breadcrumbs';
 // @ts-ignore - html2pdf doesn't have official types
 import html2pdf from 'html2pdf.js';
 
-import { Entry, Insight } from '../lib/puter';
+import { type JournalEntry as Entry, type JournalInsight as Insight } from '../lib/journal';
 import { kv } from '../lib/kv';
-
-const provider = import.meta.env.VITE_PROVIDER || 'puter';
 
 export default function Insights() {
   const { activeProject } = useProject();
@@ -48,7 +46,7 @@ export default function Insights() {
     try {
       // 1. Fetch entries from Puter KV for context, filtered by active project
       const allEntries: Entry[] = await kv.get('research_entries') || [];
-      const entries = allEntries.filter(e => e.projectId === activeProject?.id);
+      const entries = allEntries.filter(e => e.project_id === activeProject?.id);
 
       if (entries.length === 0) {
         setSummary("No research entries found for this project yet. Start journaling and selecting this project to generate insights!");
@@ -57,7 +55,7 @@ export default function Insights() {
       }
 
       const context = entries
-        .map((e: Entry) => `[${e.date}] ${e.entry_type}: ${e.content}`)
+        .map((e: Entry) => `[${e.date}] ${e.type}: ${e.content}`)
         .join('\n\n');
 
       const prompt = `You are a research assistant. Based on the following research journal entries, provide a concise summary of recent progress, identified patterns, and potential next steps. Use markdown for formatting, including tables for structured data if helpful. Ensure the output is professional and insightful.
@@ -69,8 +67,7 @@ SUMMARY:`;
 
       // 2. Generate with ai abstraction
       const { ai } = await import('../lib/ai');
-      const response = await ai.chat([
-        provider === 'supabase' ? prompt : { role: 'user', content: prompt }]);
+      const response = await ai.chat([prompt]);
       const generatedSummary = typeof response === 'string'
         ? response  // OpenRouter via ai.ts returns a string by default
         : (response as any).message?.content || response.toString(); // Fallback for Puter

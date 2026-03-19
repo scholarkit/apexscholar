@@ -4,7 +4,7 @@ import { apiFetch } from './apiFetch';
 const provider = import.meta.env.VITE_PROVIDER || 'puter';
 
 export interface Paper {
-    id: string;
+    id?: string;
     project_id?: string;
     paper_id?: string;
     title: string;

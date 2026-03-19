@@ -1,8 +1,6 @@
 import { kv } from './kv';
 import { apiFetch } from './apiFetch';
 
-const provider = import.meta.env.VITE_PROVIDER || 'puter';
-
 export interface JournalEntry {
     id?: string;
     project_id?: string;
@@ -32,68 +30,45 @@ export const journalService = {
      * Journal Entries
      */
     async getEntries(projectId?: string): Promise<JournalEntry[]> {
-        if (provider === 'supabase') {
-            const res = await apiFetch(`${baseUrl}/${projectId || ''}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('supabase_token')}`,
-                },
-            });
-            if (!res.ok) return [];
-            return res.json() || [];
-        }
-        const entries = await kv.get(ENTRIES_KEY);
-        return entries || [];
+        const res = await apiFetch(`${baseUrl}/${projectId || ''}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('supabase_token')}`,
+            },
+        });
+        if (!res.ok) return [];
+        return res.json() || [];
     },
 
     async createEntry(entry: Omit<JournalEntry, 'id'>): Promise<JournalEntry> {
-        if (provider === 'supabase') {
-            const res = await apiFetch(baseUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(entry),
-            });
-            if (!res.ok) throw new Error('Failed to create journal entry');
-            return res.json() || entry;
-        }
-        const newEntry: JournalEntry = {
-            ...entry,
-            id: Math.random().toString(36).substring(7),
-        };
-        const entries = await this.getEntries();
-        await kv.set(ENTRIES_KEY, [newEntry, ...entries]);
-        return newEntry;
+        const res = await apiFetch(baseUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('supabase_token')}`,
+            },
+            body: JSON.stringify(entry),
+        });
+        if (!res.ok) throw new Error('Failed to create journal entry');
+        return res.json() || entry;
     },
 
     async updateEntry(id: string, patch: Partial<JournalEntry>): Promise<JournalEntry> {
-        if (provider === 'supabase') {
-            const res = await apiFetch(`${baseUrl}/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(patch),
-            });
-            if (!res.ok) throw new Error('Failed to update journal entry');
-            return res.json() || patch;
-        }
-
-        const entries = await this.getEntries();
-        const updated = entries.map(e => e.id === id ? { ...e, ...patch } : e);
-        await kv.set(ENTRIES_KEY, updated);
-        return updated.find(e => e.id === id)!;
+        const res = await apiFetch(`${baseUrl}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(patch),
+        });
+        if (!res.ok) throw new Error('Failed to update journal entry');
+        return res.json() || patch;
     },
 
     async deleteEntry(id: string): Promise<void> {
-        if (provider === 'supabase') {
-            const res = await apiFetch(`${baseUrl}/${id}`, {
-                method: 'DELETE',
-            });
-            if (!res.ok) throw new Error('Failed to delete journal entry');
-            return;
-        }
-
-        const entries = await this.getEntries();
-        const updated = entries.filter(e => e.id !== id);
-        await kv.set(ENTRIES_KEY, updated);
+        const res = await apiFetch(`${baseUrl}/${id}`, {
+            method: 'DELETE',
+        });
+        if (!res.ok) throw new Error('Failed to delete journal entry');
+        return;
     },
 
     /**

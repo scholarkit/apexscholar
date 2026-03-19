@@ -52,12 +52,12 @@ resourcesRouter.post('/', requireAuth, async (req, res) => {
             .select('*')
             .single();
         if (error) {
-            return res.status(500).json({ error: 'Failed to create resource' });
+            return res.status(500).json({ error, message: 'Failed to create resource' });
         }
         res.json(data);
     } catch (error) {
         console.error('Error creating resource:', error);
-        res.status(500).json({ error: 'Failed to create resource' });
+        res.status(500).json({ error, message: 'Failed to create resource' });
     }
 })
 

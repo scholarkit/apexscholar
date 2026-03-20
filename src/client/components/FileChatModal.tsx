@@ -4,6 +4,7 @@ import { type Resource } from '../lib/resources';
 import { ai } from '../lib/ai';
 import { storage } from '../lib/storage';
 import { kv } from '../lib/kv';
+import { supermemory } from '../lib/supermemory';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -66,7 +67,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
         try {
             const stat = await storage.stat(resource.path);
             const fullPath = stat.path;
-            
+
             const userContent = `[Context file: ${resource.name}]\n\n${userMessage}`;
 
             const response = await ai.chat(
@@ -97,6 +98,16 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
 
             // Save to KV
             await kv.set(HISTORY_KEY, finalMessages);
+            
+            // Track chat interaction in memory
+            supermemory.addMemory(`[resource] chat: file=${resource.name}, userMessageLength=${userMessage.length}, aiResponseLength=${fullResponse.length}`, { 
+                module: 'resource', 
+                action: 'chat',
+                fileName: resource.name,
+                fileId: resource.id,
+                userMessageLength: userMessage.length,
+                aiResponseLength: fullResponse.length
+            });
         } catch (err) {
             console.error('Chat failed', err);
             alert('Failed to get AI response. Please try again.');
@@ -117,9 +128,9 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-zinc-950 border border-white/10 w-full max-w-2xl h-[80vh] flex flex-col rounded-xl animate-in zoom-in-95 duration-200">
+            <div className="bg-zinc-950 border border-[var(--color-border)] w-full max-w-2xl h-[80vh] flex flex-col rounded-xl animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-indigo-500/10 rounded-xl">
                             <Bot className="w-5 h-5 text-indigo-400" />
@@ -171,13 +182,13 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                         <>
                             {messages.map((m, i) => (
                                 <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${m.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-zinc-900 border border-white/10 text-zinc-400'
+                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${m.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-[var(--color-surface)] border border-[var(--color-border)] text-zinc-400'
                                         }`}>
                                         {m.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                                     </div>
                                     <div className={`max-w-[85%] rounded-xl p-3 text-sm ${m.role === 'user'
                                         ? 'bg-indigo-500 text-white'
-                                        : 'bg-zinc-900/50 border border-white/5 text-zinc-300 prose prose-invert prose-sm max-w-none'
+                                        : 'bg-[var(--color-surface)]/50 border border-white/5 text-zinc-300 prose prose-invert prose-sm max-w-none'
                                         }`}>
                                         {m.role === 'assistant' ? (
                                             <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
@@ -189,10 +200,10 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                             ))}
                             {streamingMessage && (
                                 <div className="flex gap-3">
-                                    <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-white/10 text-zinc-400 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-8 h-8 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-zinc-400 flex items-center justify-center flex-shrink-0">
                                         <Bot className="w-4 h-4" />
                                     </div>
-                                    <div className="max-w-[85%] rounded-xl p-3 text-sm bg-zinc-900/50 border border-white/5 text-zinc-300 prose prose-invert prose-sm max-w-none">
+                                    <div className="max-w-[85%] rounded-xl p-3 text-sm bg-[var(--color-surface)]/50 border border-white/5 text-zinc-300 prose prose-invert prose-sm max-w-none">
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingMessage}</ReactMarkdown>
                                         <div className="inline-block w-1 h-3 bg-indigo-500 ml-1 animate-pulse" />
                                     </div>
@@ -204,7 +215,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                 </div>
 
                 {/* Input */}
-                <form onSubmit={handleSend} className="p-4 border-t border-white/10">
+                <form onSubmit={handleSend} className="p-4 border-t border-[var(--color-border)]">
                     <div className="relative">
                         <input
                             type="text"
@@ -212,7 +223,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             disabled={loading}
-                            className="w-full bg-zinc-900 border border-white/10 rounded-xl pl-4 pr-12 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all disabled:opacity-50"
+                            className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl pl-4 pr-12 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all disabled:opacity-50"
                         />
                         <button
                             type="submit"

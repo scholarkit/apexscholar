@@ -391,7 +391,7 @@ export default function Settings() {
                                 onClick={() => setTheme(opt.value)}
                                 className={`relative rounded-xl border-2 p-4 text-left transition-all duration-200 ${isActive
                                     ? 'border-indigo-500 ring-2 ring-indigo-500/20'
-                                    : 'border-[--color-border] hover:border-indigo-500/50'
+                                    : 'border-[var(--color-border)] hover:border-indigo-500/50'
                                     }`}
                                 style={{ background: 'var(--color-surface-2)' }}
                             >
@@ -449,7 +449,7 @@ export default function Settings() {
                                 value={e2eePassphrase}
                                 onChange={e => setE2eePassphrase(e.target.value)}
                                 placeholder="At least 8 characters"
-                                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full px-3 py-2 bg-[var(--color-surface)] border border-zinc-700 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                             <button type="button" onClick={() => setShowPassphrase(!showPassphrase)} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300">
                                 {showPassphrase ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -463,7 +463,7 @@ export default function Settings() {
                             value={e2eeConfirm}
                             onChange={e => setE2eeConfirm(e.target.value)}
                             placeholder="Re-enter your passphrase"
-                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-3 py-2 bg-[var(--color-surface)] border border-zinc-700 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                     </div>
                     {e2eeError && <p className="text-sm text-red-400">{e2eeError}</p>}
@@ -505,7 +505,7 @@ export default function Settings() {
                                         value={e2eePassphrase}
                                         onChange={e => setE2eePassphrase(e.target.value)}
                                         placeholder="Enter your encryption passphrase"
-                                        className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        className="w-full px-3 py-2 bg-[var(--color-surface)] border border-zinc-700 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                         onKeyDown={e => e.key === 'Enter' && handleUnlockE2EE()}
                                     />
                                     <button type="button" onClick={() => setShowPassphrase(!showPassphrase)} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300">
@@ -525,7 +525,7 @@ export default function Settings() {
             {/* Change Passphrase Modal */}
             {changePass && (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                    <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-md w-full shadow-2xl">
+                    <div className="bg-[var(--color-surface)] border border-zinc-700 rounded-xl p-6 max-w-md w-full shadow-2xl">
                         <h3 className="text-lg font-semibold text-white mb-4">Change Passphrase</h3>
                         <div className="space-y-4">
                             <div>
@@ -550,7 +550,7 @@ export default function Settings() {
     const renderIntegrations = () => (
         <div className="space-y-4">
             <p className="text-sm text-zinc-400">Connect Zotero and other research tools to bring your library into Apex Scholar.</p>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-neutral-800">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-[var(--color-surface)]/50 rounded-xl border border-[var(--color-border)]">
                 <div>
                     <h3 className="text-sm font-medium text-white mb-1">Zotero</h3>
                     <p className="text-xs text-zinc-400">Connect your Zotero account to sync your research libraries and collections.</p>
@@ -561,7 +561,7 @@ export default function Settings() {
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-medium">
                             <CheckCircle2 className="w-4 h-4" /> Connected
                         </div>
-                        <button onClick={handleDisconnectZotero} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-medium transition-colors">Disconnect</button>
+                        <button onClick={handleDisconnectZotero} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl text-xs font-medium transition-colors">Disconnect</button>
                     </div>
                 ) : (
                     <button onClick={handleConnectZotero} disabled={zoteroConnecting} className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-600/20 border border-indigo-500/20 text-indigo-400 rounded-xl text-sm font-medium transition-colors flex-shrink-0 disabled:opacity-50">
@@ -576,16 +576,16 @@ export default function Settings() {
     const renderData = () => (
         <div className="space-y-4">
             <p className="text-sm text-zinc-400">Export your entire workspace as a JSON backup, or restore from a previous backup.</p>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-neutral-800">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-[var(--color-surface)]/50 rounded-xl border border-[var(--color-border)]">
                 <div>
                     <h3 className="text-sm font-medium text-white mb-1">Export Backup</h3>
                     <p className="text-xs text-zinc-400">Download a JSON file containing all your entries, resources, insights, kanban, and knowledgebase.</p>
                 </div>
-                <button onClick={handleBackup} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-medium text-white transition-colors flex-shrink-0">
+                <button onClick={handleBackup} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-xl text-sm font-medium text-white transition-colors flex-shrink-0">
                     <Download className="w-4 h-4" /> Export Backup
                 </button>
             </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-900/50 rounded-xl border border-neutral-800">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-[var(--color-surface)]/50 rounded-xl border border-[var(--color-border)]">
                 <div>
                     <h3 className="text-sm font-medium text-white mb-1">Import Backup</h3>
                     <p className="text-xs text-zinc-400">Restore your data from a previously exported JSON backup file. This will overwrite current data.</p>
@@ -664,7 +664,7 @@ export default function Settings() {
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0">
                         <p className="text-xs text-rose-300 font-medium sm:max-w-[160px] text-center">Are you absolutely sure? This is irreversible.</p>
                         <div className="flex gap-2">
-                            <button onClick={() => setResetConfirm(false)} disabled={resetting} className="flex-1 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-zinc-300 rounded-xl text-sm font-medium transition-colors disabled:opacity-50">Cancel</button>
+                            <button onClick={() => setResetConfirm(false)} disabled={resetting} className="flex-1 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-[var(--color-border)] text-zinc-300 rounded-xl text-sm font-medium transition-colors disabled:opacity-50">Cancel</button>
                             <button onClick={handleReset} disabled={resetting} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
                                 {resetting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                                 {resetting ? 'Resetting…' : 'Yes, Reset'}
@@ -711,7 +711,7 @@ export default function Settings() {
 
             {activeModule ? (
                 /* ── Module Detail View ── */
-                <div className={`bg-zinc-900/40 border ${activeModule === 'danger' ? 'border-rose-500/20' : activeModule === 'encryption' ? 'border-indigo-500/20' : 'border-neutral-800'} rounded-xl p-4 sm:p-6`}>
+                <div className={`bg-[var(--color-surface)]/40 border ${activeModule === 'danger' ? 'border-rose-500/20' : activeModule === 'encryption' ? 'border-indigo-500/20' : 'border-[var(--color-border)]'} rounded-xl p-4 sm:p-6`}>
                     {moduleContent[activeModule]?.()}
                 </div>
             ) : (
@@ -721,7 +721,7 @@ export default function Settings() {
                         <button
                             key={module.id}
                             onClick={() => setActiveModule(module.id)}
-                            className={`rounded-xl bg-neutral-900 border shadow-sm group p-6 transition-all text-left backdrop-blur-sm relative overflow-hidden ${module.id === 'danger' ? 'border-rose-500/20 hover:border-rose-500/40' : 'border-neutral-800 hover:border-indigo-500/30'}`}
+                            className={`rounded-xl bg-[var(--color-surface)] border shadow-sm group p-6 transition-all text-left backdrop-blur-sm relative overflow-hidden ${module.id === 'danger' ? 'border-rose-500/20 hover:border-rose-500/40' : 'border-[var(--color-border)] hover:border-indigo-500/30'}`}
                         >
                             <div className={`absolute top-0 right-0 w-24 h-24 bg-${module.color}-500/5 blur-3xl rounded-full -mr-8 -mt-8 group-hover:bg-${module.color}-500/10 transition-colors`} />
                             <div className="flex items-center sm:items-start justify-between gap-2 mb-4 relative z-10">
@@ -737,11 +737,11 @@ export default function Settings() {
                                         {module.icon}
                                     </div>
                                 </div>
-                                <h3 className="sm:hidden text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2 relative z-10 mr-auto">{module.name}</h3>
+                                <h3 className="sm:hidden text-base sm:text-lg font-semibold mb-1 sm:mb-2 relative z-10 mr-auto">{module.name}</h3>
 
                                 <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-zinc-400 transition-colors" />
                             </div>
-                            <h3 className="text-base hidden sm:block sm:text-lg font-semibold text-white mb-1 sm:mb-2 relative z-10">{module.name}</h3>
+                            <h3 className="text-base hidden sm:block sm:text-lg font-semibold mb-1 sm:mb-2 relative z-10">{module.name}</h3>
                             <p className="hidden sm:block text-sm text-zinc-500 leading-relaxed relative z-10">{module.description}</p>
                         </button>
                     ))}

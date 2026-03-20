@@ -525,17 +525,17 @@ function InsightPanel({
             </div>
             <div className="p-4 space-y-4 max-h-96 overflow-y-auto custom-scrollbar text-sm">
                 {/* Metadata */}
-                <div className="flex gap-4 mb-4 border-b    border-neutral-800 pb-4">
+                <div className="flex gap-4 mb-4 border-b    border-[var(--color-border)] pb-4">
                     <div className="flex-1">
                         <span className="text-[10px] uppercase font-bold text-zinc-500">Domain</span>
                         {isEditing ? (
-                            <input value={localInsight.domain} onChange={e => handleFieldChange('domain', e.target.value)} className="w-full bg-zinc-900 border border-white/10 p-1 text-xs text-white rounded outline-none" />
+                            <input value={localInsight.domain} onChange={e => handleFieldChange('domain', e.target.value)} className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] p-1 text-xs text-white rounded outline-none" />
                         ) : <p className="text-zinc-300 font-medium">{localInsight.domain || '—'}</p>}
                     </div>
                     <div className="flex-1">
                         <span className="text-[10px] uppercase font-bold text-zinc-500">Task</span>
                         {isEditing ? (
-                            <input value={localInsight.task} onChange={e => handleFieldChange('task', e.target.value)} className="w-full bg-zinc-900 border border-white/10 p-1 text-xs text-white rounded outline-none" />
+                            <input value={localInsight.task} onChange={e => handleFieldChange('task', e.target.value)} className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] p-1 text-xs text-white rounded outline-none" />
                         ) : <p className="text-zinc-300 font-medium">{localInsight.task || '—'}</p>}
                     </div>
                 </div>
@@ -545,7 +545,7 @@ function InsightPanel({
                     <div key={field}>
                         <span className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">{field}</span>
                         {isEditing ? (
-                            <textarea value={localInsight[field] as string} onChange={e => handleFieldChange(field, e.target.value)} className="w-full bg-zinc-900 border border-white/10 p-2 text-xs text-white rounded outline-none min-h-[60px]" />
+                            <textarea value={localInsight[field] as string} onChange={e => handleFieldChange(field, e.target.value)} className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] p-2 text-xs text-white rounded outline-none min-h-[60px]" />
                         ) : <p className="text-white bg-white/5 p-2 rounded-xl leading-relaxed text-xs">{localInsight[field] as string || '—'}</p>}
                     </div>
                 ))}
@@ -562,7 +562,7 @@ function InsightPanel({
                                     value={arr.join('\n')}
                                     onChange={e => handleFieldChange(field, e.target.value)}
                                     placeholder="One item per line..."
-                                    className="w-full bg-zinc-900 border border-white/10 p-2 text-xs text-white rounded outline-none min-h-[80px]"
+                                    className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] p-2 text-xs text-white rounded outline-none min-h-[80px]"
                                 />
                             ) : (
                                 <ul className="list-disc pl-4 space-y-1 mt-1">
@@ -601,7 +601,7 @@ function SourceScanner({ statuses }: { statuses: SourceStatus[] }) {
                         className={`p-3 rounded-xl border transition-all duration-300 flex items-center justify-between ${s.status === 'loading' ? 'bg-indigo-500/5 border-indigo-500/30' :
                             s.status === 'done' ? 'bg-emerald-500/5 border-emerald-500/20' :
                                 s.status === 'error' ? 'bg-red-500/5 border-red-500/20' :
-                                    'bg-zinc-900 border-white/5 opacity-50'
+                                    'bg-[var(--color-surface)] border-white/5 opacity-50'
                             }`}
                     >
                         <div className="flex items-center gap-3">
@@ -722,7 +722,7 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
     };
 
     return (
-        <div className="bg-zinc-900/40 border border-neutral-800 rounded-xl p-5 hover:bg-zinc-900/60 transition-colors group flex flex-col gap-3">
+        <div className="bg-[var(--color-surface)]/40 border border-[var(--color-border)] rounded-xl p-5 hover:bg-[var(--color-surface)]/60 transition-colors group flex flex-col gap-3">
             {/* Source badge + year */}
             <div className="flex items-center justify-between gap-2">
                 <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${paper.source === 'arxiv' ? 'text-orange-400 bg-orange-500/10 border-orange-500/20' :
@@ -748,7 +748,7 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
             </div>
 
             {/* Title */}
-            <h3 className="text-white font-semibold text-sm leading-snug">{paper.title}</h3>
+            <h3 className="font-semibold text-sm leading-snug">{paper.title}</h3>
 
             {/* Authors */}
             {paper.authors.length > 0 && (
@@ -783,10 +783,10 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
             )}
 
             {/* Actions */}
-            <div className="mt-auto pt-3 border-t    border-neutral-800 flex flex-wrap items-center gap-2">
+            <div className="mt-auto pt-3 border-t    border-[var(--color-border)] flex flex-wrap items-center gap-2">
                 {paper.url && (
                     <a href={paper.url} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl hover:bg-white/5"
+                        className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-[var(--color-text-muted)] transition-colors px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl hover:bg-[var(--color-surface-hover)]"
                     >
                         <ExternalLink className="w-3.5 h-3.5" />
                         Open
@@ -801,7 +801,7 @@ function PaperCard({ paper, isSaved, insight, onImport, onRemove, onCite, onSave
                     </a>
                 )}
                 <button onClick={() => onCite(paper)}
-                    className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl transition-colors hover:cursor-pointer"
                 >
                     <Quote className="w-3.5 h-3.5" />
                     Cite
@@ -1212,21 +1212,21 @@ export default function Explore() {
             <header className="relative">
                 <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div className="flex items-center gap-3 mb-1">
-                    <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2">
+                    <h1 className="text-xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
                         Explore
                     </h1>
                     <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-500/15 text-indigo-500 border border-indigo-500/25 rounded-full">Beta</span>
                 </div>
-                <p className="text-base text-zinc-400 max-w-2xl leading-relaxed">
-                    Aggregate research from <span className="text-zinc-200">arXiv</span>, <span className="text-zinc-200">OpenAlex</span>, <span className="text-zinc-200">Google Scholar</span>, <span className="text-zinc-200">CrossRef</span> and <span className="text-zinc-200">Semantic Scholar</span> instantly.
+                <p className="text-base text-[var(--color-text-muted)] max-w-2xl leading-relaxed">
+                    Aggregate research from <span className="text-[var(--color-text-faint)]">arXiv</span>, <span className="text-[var(--color-text-faint)]">OpenAlex</span>, <span className="text-[var(--color-text-faint)]">Google Scholar</span>, <span className="text-[var(--color-text-faint)]">CrossRef</span> and <span className="text-[var(--color-text-faint)]">Semantic Scholar</span> instantly.
                 </p>
             </header>
 
             {/* Tabs */}
-            <div className="flex flex-wrap gap-1 bg-zinc-900/50 border border-neutral-800 p-1 rounded-xl w-fit">
+            <div className="flex flex-wrap gap-1 bg-[var(--color-surface)] border border-[var(--color-border)] p-1 rounded-xl w-fit">
                 {(['search', 'saved', 'graph'] as const).map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
-                        className={`w-full sm:w-fit px-4 py-2 rounded-xl text-sm font-medium transition-all capitalize flex items-center gap-2 ${activeTab === tab ? 'bg-white/10 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'
+                        className={`w-full sm:w-fit px-4 py-2 rounded-xl text-sm font-medium transition-all capitalize flex items-center gap-2 ${activeTab === tab ? 'bg-[var(--color-accent)] text-white shadow' : 'text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)]'
                             }`}
                     >
                         {tab === 'search' ? <Search className="w-3.5 h-3.5" /> :
@@ -1236,7 +1236,7 @@ export default function Explore() {
                             tab === 'saved' ? 'Knowledge Base' :
                                 'Reasoning Graph'}
                         {tab === 'saved' && savedPapers.length > 0 && (
-                            <span className="ml-1 px-1.5 py-0.5 text-xs bg-indigo-500/20 text-indigo-500 rounded-full">{savedPapers.length}</span>
+                            <span className="ml-1 px-1.5 py-0.5 text-xs bg-[var(--color-surface)] text-indigo-500 rounded-full">{savedPapers.length}</span>
                         )}
                         {tab === 'graph' && graph.nodes.length > 0 && (
                             <span className="ml-1 px-1.5 py-0.5 text-xs bg-amber-500/20 text-amber-400 rounded-full">{graph.nodes.length}</span>
@@ -1257,7 +1257,7 @@ export default function Explore() {
                                 value={query}
                                 onChange={e => setQuery(e.target.value)}
                                 placeholder="Search papers, titles, authors, topics…"
-                                className="w-full pl-11 pr-4 py-3 bg-zinc-900 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 placeholder-zinc-600 text-sm"
+                                className="w-full pl-11 pr-4 py-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 placeholder-zinc-600 text-sm"
                             />
                             {query && (
                                 <button type="button" onClick={() => { setQuery(''); setResults([]); setError(null); }}
@@ -1273,15 +1273,15 @@ export default function Explore() {
                             <select
                                 value={source}
                                 onChange={(e) => setSource(e.target.value as SourceFilter)}
-                                className="w-full appearance-none pl-11 pr-10 py-3 bg-zinc-900 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm cursor-pointer hover:bg-zinc-800 transition-colors"
+                                className="w-full appearance-none pl-11 pr-10 py-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm cursor-pointer hover:bg-[var(--color-surface-hover)] transition-colors"
                             >
-                                <option value="all" className="bg-zinc-900">All Sources</option>
-                                <option value="arxiv" className="bg-zinc-900">arXiv</option>
-                                <option value="openalex" className="bg-zinc-900">OpenAlex</option>
-                                <option value="semanticscholar" className="bg-zinc-900">Semantic Scholar</option>
-                                <option value="googlescholar" className="bg-zinc-900">Google Scholar</option>
-                                <option value="pubmed" className="bg-zinc-900">PubMed</option>
-                                <option value="crossref" className="bg-zinc-900">CrossRef</option>
+                                <option value="all" className="bg-[var(--color-surface)]">All Sources</option>
+                                <option value="arxiv" className="bg-[var(--color-surface)]">arXiv</option>
+                                <option value="openalex" className="bg-[var(--color-surface)]">OpenAlex</option>
+                                <option value="semanticscholar" className="bg-[var(--color-surface)]">Semantic Scholar</option>
+                                <option value="googlescholar" className="bg-[var(--color-surface)]">Google Scholar</option>
+                                <option value="pubmed" className="bg-[var(--color-surface)]">PubMed</option>
+                                <option value="crossref" className="bg-[var(--color-surface)]">CrossRef</option>
                             </select>
                             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none transition-transform group-hover:translate-y-[-40%]" />
                         </div>
@@ -1330,14 +1330,14 @@ export default function Explore() {
                                 <div className="space-y-4 animate-pulse">
                                     <div className="h-6 w-48 bg-zinc-800 rounded"></div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {[1, 2].map(i => <div key={i} className="h-48 bg-zinc-900 border border-neutral-800 rounded-xl"></div>)}
+                                        {[1, 2].map(i => <div key={i} className="h-48 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl"></div>)}
                                     </div>
                                 </div>
                             ) : recommendations.length > 0 ? (
                                 <div>
                                     <div className="flex items-center gap-2 mb-4">
                                         <Sparkles className="w-4 h-4 text-amber-400" />
-                                        <h3 className="text-white font-medium">Recommended based on your searches</h3>
+                                        <h3 className="font-medium">Recommended based on your searches</h3>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {recommendations.map(paper => (
@@ -1385,7 +1385,7 @@ export default function Explore() {
             {activeTab === 'saved' && (
                 <div className="space-y-4">
                     {savedPapers.length === 0 ? (
-                        <div className="text-center py-20 border border-dashed border-white/10 rounded-xl bg-zinc-900/20">
+                        <div className="text-center py-20 border border-dashed border-[var(--color-border)] rounded-xl bg-[var(--color-surface)]/20">
                             <Bookmark className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-white mb-2">No papers saved yet</h3>
                             <p className="text-zinc-500 text-sm max-w-sm mx-auto">Search for papers and click <strong>Import</strong> to add them here.</p>
@@ -1426,9 +1426,9 @@ export default function Explore() {
                     )}
 
                     {graph.nodes.length === 0 && !isRebuildingGraph ? (
-                        <div className="text-center py-20 border border-dashed border-white/10 rounded-xl bg-zinc-900/20">
+                        <div className="text-center py-20 border border-dashed border-[var(--color-border)] rounded-xl bg-[var(--color-surface)]/20">
                             <Network className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-white mb-2">Graph is empty</h3>
+                            <h3 className="text-lg font-medium mb-2">Graph is empty</h3>
                             <p className="text-zinc-500 text-sm max-w-sm mx-auto">Extract insights from papers in your Knowledge Base to build the reasoning graph.</p>
                             <button onClick={() => rebuildGraph()}
                                 className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-medium transition-colors"
@@ -1440,7 +1440,7 @@ export default function Explore() {
                     ) : (
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                             {gapInsights && (
-                                <div className="lg:col-span-4 bg-zinc-900/10 border border-indigo-500/30 rounded-xl p-4 shadow-xl">
+                                <div className="lg:col-span-4 bg-[var(--color-surface)]/10 border border-indigo-500/30 rounded-xl p-4 shadow-xl">
                                     <div className="flex items-center gap-2 mb-3">
                                         <Sparkles className="w-4 h-4 text-indigo-500" />
                                         <h3 className="text-[10px] font-bold text-white uppercase tracking-widest">Gap Insights</h3>
@@ -1451,13 +1451,13 @@ export default function Explore() {
                                     </div>
                                 </div>
                             )}
-                            <div className="lg:col-span-3 bg-black border border-white/10 rounded-xl overflow-hidden relative">
+                            <div className="lg:col-span-3 bg-black border border-[var(--color-border)] rounded-xl overflow-hidden relative">
                                 {/* Overlay Controls */}
                                 <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
                                     <button
                                         onClick={handleIdentifyGap}
                                         disabled={isIdentifyingGap || graph.nodes.length < 2}
-                                        className="bg-zinc-900/80 hover:bg-zinc-800 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-xl flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                                        className="bg-[var(--color-surface)]/80 hover:bg-zinc-800 backdrop-blur-md border border-[var(--color-border)] px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-xl flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                                     >
                                         {isIdentifyingGap ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5 text-indigo-500" />}
                                         {isIdentifyingGap ? "Identifying Gaps..." : "Identify Gap"}
@@ -1499,7 +1499,7 @@ export default function Explore() {
                                         ctx.fillText(label, node.x, node.y);
                                     }}
                                 />
-                                <div className="absolute top-4 left-4 flex flex-col gap-2 bg-zinc-900/80 backdrop-blur border border-white/10 p-3 rounded-xl">
+                                <div className="absolute top-4 left-4 flex flex-col gap-2 bg-[var(--color-surface)]/80 backdrop-blur border border-[var(--color-border)] p-3 rounded-xl">
                                     <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Legend</span>
                                     {['problem', 'method', 'dataset', 'metric', 'domain'].map(type => (
                                         <div key={type} className="flex items-center gap-2 text-xs text-zinc-300">
@@ -1515,7 +1515,7 @@ export default function Explore() {
                                 </div>
                             </div>
 
-                            <div className="bg-zinc-900/40 border border-neutral-800 rounded-xl p-5 overflow-y-auto space-y-4">
+                            <div className="bg-[var(--color-surface)]/40 border border-[var(--color-border)] rounded-xl p-5 overflow-y-auto space-y-4">
                                 {selectedNode ? (
                                     <div className="space-y-6">
                                         <div>
@@ -1530,7 +1530,7 @@ export default function Explore() {
                                                     const p = savedPapers.find(sp => sp.id === pid);
                                                     if (!p) return null;
                                                     return (
-                                                        <div key={pid} className="bg-zinc-900/80 border border-neutral-800 p-3 rounded-xl">
+                                                        <div key={pid} className="bg-[var(--color-surface)]/80 border border-[var(--color-border)] p-3 rounded-xl">
                                                             <div className="text-xs text-zinc-400 mb-1">{p.year}</div>
                                                             <div className="text-sm font-medium text-white leading-snug">{p.title}</div>
                                                         </div>

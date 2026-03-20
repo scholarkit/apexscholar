@@ -32,11 +32,11 @@ export default function QuickCiteModal({ meta, onClose }: QuickCiteModalProps) {
             onClick={onClose}
         >
             <div
-                className="w-full max-w-xl bg-zinc-900 border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden"
+                className="w-full max-w-xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl shadow-black/50 overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b    border-neutral-800">
+                <div className="flex items-center justify-between px-6 py-4 border-b    border-[var(--color-border)]">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
                             <Quote className="w-4 h-4 text-indigo-500" />
@@ -53,7 +53,7 @@ export default function QuickCiteModal({ meta, onClose }: QuickCiteModalProps) {
 
                 {/* Metadata summary */}
                 <div className="px-6 pt-5 pb-2">
-                    <div className="p-3 rounded-xl bg-black border    border-neutral-800 space-y-1">
+                    <div className="p-3 rounded-xl bg-black border    border-[var(--color-border)] space-y-1">
                         <p className="text-white text-sm font-medium leading-snug">{meta.title}</p>
                         {meta.authors.length > 0 && (
                             <p className="text-zinc-400 text-xs">{meta.authors.join(', ')}</p>
@@ -84,7 +84,7 @@ export default function QuickCiteModal({ meta, onClose }: QuickCiteModalProps) {
 
                 {/* Citation Output */}
                 <div className="px-6 pt-3 pb-6">
-                    <pre className="w-full p-4 rounded-xl bg-black border    border-neutral-800 text-zinc-300 text-xs font-mono whitespace-pre-wrap break-all leading-relaxed min-h-[80px]">
+                    <pre className="w-full p-4 rounded-xl bg-black border    border-[var(--color-border)] text-zinc-300 text-xs font-mono whitespace-pre-wrap break-all leading-relaxed min-h-[80px]">
                         {citation}
                     </pre>
                     <button

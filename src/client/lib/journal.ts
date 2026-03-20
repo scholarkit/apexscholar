@@ -1,5 +1,6 @@
 import { kv } from './kv';
 import { apiFetch } from './apiFetch';
+import { supermemory } from '../lib/supermemory';
 
 export interface JournalEntry {
     id?: string;
@@ -50,24 +51,57 @@ export const journalService = {
             body: JSON.stringify(entry),
         });
         if (!res.ok) throw new Error('Failed to create journal entry');
+        
+        // Track journal entry creation in memory
+        supermemory.addMemory(`[journal] create_entry: type=${entry.type}, projectId=${entry.project_id || 'none'}, contentPreview=${entry.content.substring(0, 100)}${entry.content.length > 100 ? '...' : ''}`, { 
+            module: 'journal', 
+            action: 'create_entry',
+            entryType: entry.type,
+            projectId: entry.project_id,
+            contentPreview: entry.content.substring(0, 100) + (entry.content.length > 100 ? '...' : '')
+        });
+        
         return res.json() || entry;
     },
 
     async updateEntry(id: string, patch: Partial<JournalEntry>): Promise<JournalEntry> {
         const res = await apiFetch(`${baseUrl}/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('supabase_token')}`,
+            },
             body: JSON.stringify(patch),
         });
         if (!res.ok) throw new Error('Failed to update journal entry');
+        
+        // Track journal entry update in memory
+        supermemory.addMemory(`[journal] update_entry: entryId=${id}, updatedFields=${Object.keys(patch).join(', ')}`, { 
+            module: 'journal', 
+            action: 'update_entry',
+            entryId: id,
+            updatedFields: Object.keys(patch)
+        });
+        
         return res.json() || patch;
     },
 
     async deleteEntry(id: string): Promise<void> {
         const res = await apiFetch(`${baseUrl}/${id}`, {
             method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('supabase_token')}`,
+            },
         });
         if (!res.ok) throw new Error('Failed to delete journal entry');
+        
+        // Track journal entry deletion in memory
+        supermemory.addMemory(`[journal] delete_entry: entryId=${id}`, { 
+            module: 'journal', 
+            action: 'delete_entry',
+            entryId: id
+        });
+        
         return;
     },
 
@@ -89,6 +123,15 @@ export const journalService = {
 
         const insights = await this.getInsights();
         await kv.set(INSIGHTS_KEY, [newInsight, ...insights]);
+        
+        // Track insight creation in memory
+        supermemory.addMemory(`[journal] create_insight: projectId=${insight.projectId || 'none'}, contentPreview=${insight.content.substring(0, 100)}${insight.content.length > 100 ? '...' : ''}`, { 
+            module: 'journal', 
+            action: 'create_insight',
+            projectId: insight.projectId,
+            contentPreview: insight.content.substring(0, 100) + (insight.content.length > 100 ? '...' : '')
+        });
+        
         return newInsight;
     },
 
@@ -96,5 +139,12 @@ export const journalService = {
         const insights = await this.getInsights();
         const updated = insights.filter(i => i.id !== id);
         await kv.set(INSIGHTS_KEY, updated);
+        
+        // Track insight deletion in memory
+        supermemory.addMemory(`[journal] delete_insight: insightId=${id}`, { 
+            module: 'journal', 
+            action: 'delete_insight',
+            insightId: id
+        });
     }
 };

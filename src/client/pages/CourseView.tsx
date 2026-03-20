@@ -54,7 +54,7 @@ export default function CourseView() {
             </nav>
 
             {/* Course Header */}
-            <div className="bg-zinc-900/40 border border-neutral-800 rounded-xl p-6 sm:p-8">
+            <div className="bg-[var(--color-surface)]/40 border border-[var(--color-border)] rounded-xl p-6 sm:p-8">
                 <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 <div className="flex items-start gap-5 mb-6">
                     <div className="text-5xl leading-none select-none">{getIcon(course.coverEmoji)}</div>
@@ -67,7 +67,7 @@ export default function CourseView() {
                                 {course.level}
                             </span>
                             {course.tags.map((t) => (
-                                <span key={t} className="text-[11px] px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-zinc-400">{t}</span>
+                                <span key={t} className="text-[11px] px-2.5 py-1 rounded-full bg-white/5 border border-[var(--color-border)] text-zinc-400">{t}</span>
                             ))}
                         </div>
                         <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">{course.title}</h1>
@@ -122,7 +122,7 @@ export default function CourseView() {
                                         className={`group flex items-center gap-4 p-4 rounded-xl border transition-all duration-200
                       ${isDone
                                                 ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40'
-                                                : 'bg-zinc-900/40    border-neutral-800 hover:border-indigo-500/40 hover:bg-zinc-900/60'
+                                                : 'bg-[var(--color-surface)]/40    border-[var(--color-border)] hover:border-indigo-500/40 hover:bg-[var(--color-surface)]/60'
                                             }`}
                                     >
                                         <div className="flex-shrink-0">
@@ -153,7 +153,7 @@ export default function CourseView() {
                                         </div>
                                     </Link>
                                 ) : (
-                                    <div className="flex items-center gap-4 p-4 rounded-xl border    border-neutral-800 bg-zinc-900/20 opacity-50 cursor-not-allowed">
+                                    <div className="flex items-center gap-4 p-4 rounded-xl border    border-[var(--color-border)] bg-[var(--color-surface)]/20 opacity-50 cursor-not-allowed">
                                         <Lock className="w-5 h-5 text-zinc-700 flex-shrink-0" />
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">

@@ -26,10 +26,10 @@ export default function Breadcrumbs() {
     }
 
     return (
-        <nav className="flex items-center gap-2 text-xs sm:text-sm text-zinc-500 mb-6 group animate-in slide-in-from-top-1 duration-300">
+        <nav className="flex items-center gap-2 text-xs sm:text-sm text-[var(--color-text-faint)] mb-6 group animate-in slide-in-from-top-1 duration-300">
             <Link
                 to="/projects"
-                className="flex items-center gap-1.5 hover:text-white transition-colors"
+                className="flex items-center gap-1.5 hover:text-[var(--color-text-muted)] transition-colors"
             >
                 <Home className="w-3.5 h-3.5" />
                 <span>Projects</span>
@@ -47,7 +47,7 @@ export default function Breadcrumbs() {
             {pathSegments.length > 0 && pathSegments[0] !== 'projects' && (
                 <>
                     <ChevronRight className="w-3.5 h-3.5 text-zinc-700" />
-                    <span className="text-white font-semibold">
+                    <span className="font-semibold">
                         {getPageName(pathSegments[0])}
                     </span>
                 </>

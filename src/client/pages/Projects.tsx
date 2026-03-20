@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, FolderGit, LayoutDashboard, BookOpen, FolderSearch, SquareKanban, Lightbulb, ChevronRight, Settings, FolderOpen, PenTool, ChevronDown, X, Calendar } from 'lucide-react';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
+import { useMemory } from '../hooks/useMemory';
 
 const MODULES = [
     {
@@ -117,9 +118,9 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: CreateProjectModalPro
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={onClose}
             />
-            <div className="relative w-full max-w-lg bg-zinc-900 border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-lg bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-white">Create New Project</h3>
+                    <h3 className="text-xl font-bold">Create New Project</h3>
                     <button
                         onClick={onClose}
                         className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
@@ -137,7 +138,7 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: CreateProjectModalPro
                             autoFocus
                             value={name}
                             onChange={e => setName(e.target.value)}
-                            className="w-full bg-zinc-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             placeholder="e.g., Quantum Computing Foundations"
                             required
                         />
@@ -149,14 +150,14 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: CreateProjectModalPro
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                             maxLength={200}
-                            className="w-full bg-zinc-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-20 resize-none"
+                            className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-20 resize-none"
                             placeholder="A brief one-liner on the research scope..."
                         />
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-zinc-400 mb-2">Tags</label>
-                        <div className="flex flex-wrap items-center gap-2 w-full bg-zinc-800/50 border border-white/10 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-500/50 min-h-[44px]">
+                        <div className="flex flex-wrap items-center gap-2 w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-500/50 min-h-[44px]">
                             {tags.map(tag => (
                                 <span
                                     key={tag}
@@ -176,7 +177,7 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: CreateProjectModalPro
                                 value={tagInput}
                                 onChange={e => setTagInput(e.target.value)}
                                 onKeyDown={handleTagKeyDown}
-                                className="flex-1 min-w-[120px] bg-transparent text-white text-sm focus:outline-none placeholder:text-zinc-600"
+                                className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none placeholder:text-zinc-600"
                                 placeholder={tags.length === 0 ? "Type and press Enter…" : ""}
                             />
                         </div>
@@ -190,7 +191,7 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: CreateProjectModalPro
                                 type="date"
                                 value={startDate}
                                 onChange={e => setStartDate(e.target.value)}
-                                className="w-full bg-zinc-800/50 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
+                                className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
                             />
                         </div>
                     </div>
@@ -199,7 +200,7 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: CreateProjectModalPro
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-2.5 text-zinc-400 hover:text-white font-medium transition-colors"
+                            className="px-6 py-2.5 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] font-medium transition-colors"
                         >
                             Cancel
                         </button>
@@ -222,6 +223,8 @@ export default function Projects() {
     const navigate = useNavigate();
     const [isCreating, setIsCreating] = useState(false);
 
+    const { trackEvent } = useMemory();
+
     const handleCreateProject = async (data: { name: string; description: string; tags: string[]; startDate: string }) => {
         try {
             const newProject = await createProject({
@@ -229,6 +232,14 @@ export default function Projects() {
                 description: data.description || undefined,
                 tags: data.tags.length > 0 ? data.tags : undefined,
                 startDate: data.startDate || null,
+            });
+
+            // Track project creation in memory
+            trackEvent('project', 'create', {
+                projectName: data.name,
+                projectDescription: data.description,
+                projectTags: data.tags,
+                startDate: data.startDate
             });
 
             // Set the newly created project as active
@@ -274,7 +285,7 @@ export default function Projects() {
             {projects.length > 0 ? (
                 <div className="space-y-4 sm:space-y-8">
                     {/* Active Project Card & Switcher */}
-                    <div className="bg-gradient-to-br from-indigo-500/10 via-zinc-900/50 to-zinc-900/30 border border-indigo-500/20 rounded-xl p-3 sm:p-6 sm:p-8 relative overflow-hidden">
+                    <div className="bg-[var(--color-surface-2)] border border-indigo-500/20 rounded-xl p-3 sm:p-6 sm:p-8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none -mr-32 -mt-32" />
 
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
@@ -284,9 +295,9 @@ export default function Projects() {
                                         <FolderGit className="w-6 h-6 text-indigo-400" />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{activeProject?.name}</h2>
+                                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">{activeProject?.name}</h2>
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
-                                            <p className="text-sm text-indigo-200/70 flex items-center gap-2 font-medium">
+                                            <p className="text-sm text-zinc-500 flex items-center gap-2 font-medium">
                                                 <span className={`w-2 h-2 rounded-full ${activeProject?.status === 'draft' ? 'bg-zinc-400' : 'bg-emerald-500'} animate-pulse`}></span>
                                                 {activeProject?.status === 'draft' ? 'Draft Workspace' : 'Active Workspace'}
                                             </p>
@@ -300,7 +311,7 @@ export default function Projects() {
                                     </div>
                                 </div>
                                 {activeProject?.description && (
-                                    <p className="text-zinc-400 text-base leading-relaxed max-w-2xl border-l-2 border-indigo-500/30 pl-4 py-1">
+                                    <p className="text-zinc-500 text-base leading-relaxed max-w-2xl border-l-2 border-indigo-500/30 pl-4 py-1">
                                         {activeProject.description}
                                     </p>
                                 )}
@@ -309,7 +320,7 @@ export default function Projects() {
                                         {activeProject.tags.map(tag => (
                                             <span
                                                 key={tag}
-                                                className="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300/80 text-xs font-medium border border-indigo-500/15"
+                                                className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[var(--color-surface)] text-[var(--color-accent)] text-xs font-medium border border-indigo-500/15"
                                             >
                                                 {tag}
                                             </span>
@@ -318,16 +329,16 @@ export default function Projects() {
                                 )}
                             </div>
 
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0 bg-black/40 p-2.5 rounded-xl border border-white/5 backdrop-blur-md">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0 p-2.5 rounded-xl border border-white/5 backdrop-blur-md">
                                 <div className="relative flex-1 sm:w-64">
-                                    <label className="absolute -top-2.5 left-3 px-1.5 bg-[#121214] text-[10px] uppercase font-bold text-zinc-400 tracking-wider rounded">Switch Project</label>
+                                    <label className="absolute -top-2.5 left-3 px-1.5 bg-[var(--color-surface)] text-[10px] uppercase font-bold text-zinc-400 tracking-wider rounded">Switch Project</label>
                                     <select
                                         value={activeProject?.id || ''}
                                         onChange={(e) => {
                                             const p = projects.find(proj => proj.id === e.target.value);
                                             if (p) setActiveProject(p);
                                         }}
-                                        className="w-full appearance-none pl-4 pr-10 py-3 bg-zinc-900/80 border border-zinc-700/50 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500/50 cursor-pointer hover:bg-zinc-800 transition-colors shadow-inner"
+                                        className="w-full appearance-none pl-4 pr-10 py-3 bg-[var(--bg-surface)] border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:border-indigo-500/50 cursor-pointer hover:bg-[var(--color-surface-hover)] transition-colors shadow-inner"
                                     >
                                         {projects.map(p => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
@@ -350,16 +361,16 @@ export default function Projects() {
 
                     {activeProject ? (
                         <div className="space-y-6">
-                            <div className="flex items-center gap-2 border-b    border-neutral-800 pb-4">
+                            <div className="flex items-center gap-2 border-b border-[var(--color-border)] pb-4">
                                 <LayoutDashboard className="w-5 h-5 text-indigo-400" />
-                                <h2 className="text-xl font-semibold text-white">Project Modules</h2>
+                                <h2 className="text-xl font-semibold">Project Modules</h2>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {MODULES.map((module) => (
                                     <button
                                         key={module.id}
                                         onClick={() => navigate(module.path)}
-                                        className="rounded-xl border border-neutral-800 bg-neutral-900 shadow-sm group p-3 sm:p-6 border hover:bg-neutral-800 hover:border-indigo-500/30 transition-all text-left backdrop-blur-sm relative overflow-hidden"
+                                        className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] shadow-sm group p-3 sm:p-6 border hover:bg-[var(--color-surface-hover)] hover:border-indigo-500/30 transition-all text-left backdrop-blur-sm relative overflow-hidden"
                                     >
                                         <div className={`absolute top-0 right-0 w-24 h-24 bg-${module.color}-500/5 blur-3xl rounded-full -mr-8 -mt-8 group-hover:bg-${module.color}-500/10 transition-colors`} />
 
@@ -377,14 +388,14 @@ export default function Projects() {
                                             </div>
                                             <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-zinc-400 transition-colors" />
                                         </div>
-                                        <h3 className="text-lg font-semibold text-white mb-2 relative z-10">{module.name}</h3>
+                                        <h3 className="text-lg font-semibold mb-2 relative z-10">{module.name}</h3>
                                         <p className="text-sm text-zinc-500 leading-relaxed relative z-10">{module.description}</p>
                                     </button>
                                 ))}
                             </div>
                         </div>
                     ) : (
-                        <div className="py-20 text-center bg-zinc-900/20 border border-dashed border-white/10 rounded-xl">
+                        <div className="py-20 text-center bg-[var(--color-surface)]/20 border border-dashed border-[var(--color-border)] rounded-xl">
                             <LayoutDashboard className="w-16 h-16 text-zinc-800 mx-auto mb-4" />
                             <h3 className="text-xl font-semibold text-white mb-2">Workspace Locked</h3>
                             <p className="text-zinc-500 max-w-sm mx-auto">Select a project above to unlock its modules and insights.</p>
@@ -392,15 +403,15 @@ export default function Projects() {
                     )}
                 </div>
             ) : (
-                <div className="h-[60vh] flex flex-col items-center justify-center text-center p-6 bg-zinc-900/20 border border-dashed border-white/10 rounded-xl animate-in fade-in duration-700">
+                <div className="h-[60vh] flex flex-col items-center justify-center text-center p-6 bg-[var(--color-surface)]/20 border border-dashed border-[var(--color-border)] rounded-xl animate-in fade-in duration-700">
                     <div className="w-20 h-20 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-8">
                         <FolderGit className="w-10 h-10 text-indigo-500" />
                     </div>
-                    <h2 className="text-lg sm:text-3xl font-bold text-white mb-3 tracking-tight">Begin Your Research Journey</h2>
+                    <h2 className="text-lg sm:text-3xl font-bold mb-3 tracking-tight">Begin Your Research Journey</h2>
                     <p className="text-zinc-500 mb-10 max-w-md leading-relaxed text-sm sm:text-base">Create your first research project area to start documenting discoveries, managing resources, and generating AI-powered insights.</p>
                     <button
                         onClick={() => setIsCreating(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-xl font-medium transition-colors"
                     >
                         <Plus className="w-6 h-6" />
                         Initialize Project

@@ -127,7 +127,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                         </form>
 
                         <div className="flex flex-col sm:flex-row sm:gap-4 space-y-4 sm:space-y-0">
-                            <div className="sm:w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800/30 border border-neutral-800 transition-all hover:bg-zinc-800/50 hover:border-white/10">
+                            <div className="sm:w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800/30 border border-[var(--color-border)] transition-all hover:bg-zinc-800/50 hover:border-[var(--color-border)]">
                                 <div className="p-2 bg-blue-500/10 rounded-xl">
                                     <Globe className="w-5 h-5 text-blue-400" />
                                 </div>
@@ -137,7 +137,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                                 </div>
                             </div>
 
-                            <div className="sm:w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800/30 border border-neutral-800 transition-all hover:bg-zinc-800/50 hover:border-white/10">
+                            <div className="sm:w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800/30 border border-[var(--color-border)] transition-all hover:bg-zinc-800/50 hover:border-[var(--color-border)]">
                                 <div className="p-2 bg-emerald-500/10 rounded-xl">
                                     <Rocket className="w-5 h-5 text-emerald-400" />
                                 </div>

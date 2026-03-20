@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Project, CreateProjectInput, UpdateProjectPatch, projectService } from '../lib/projects';
+import { supermemory } from '../lib/supermemory';
 
 interface ProjectContextType {
     activeProject: Project | null;
@@ -52,12 +53,30 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         // Refresh to get updated sort order
         const updated = await projectService.getProjects();
         setProjects(updated);
+        
+        // Track project activation in memory
+        supermemory.addMemory(`[project] activate: projectId=${project.id}, projectName=${project.name}`, { 
+            module: 'project', 
+            action: 'activate',
+            projectId: project.id,
+            projectName: project.name
+        });
     };
 
     const createProject = async (input: CreateProjectInput) => {
         const proj = await projectService.createProject(input);
         await fetchProjects();
         await setActiveProject(proj);
+        
+        // Track project creation in memory
+        supermemory.addMemory(`[project] create: projectName=${input.name}, tags=${JSON.stringify(input.tags)}, startDate=${input.startDate}`, { 
+            module: 'project', 
+            action: 'create',
+            projectName: input.name,
+            tags: input.tags,
+            startDate: input.startDate
+        });
+        
         return proj;
     };
 
@@ -67,6 +86,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             setActiveProjectState(updated);
         }
         await fetchProjects();
+        
+        // Track project update in memory
+        supermemory.addMemory(`[project] update: projectId=${id}, updatedFields=${JSON.stringify(Object.keys(patch))}`, { 
+            module: 'project', 
+            action: 'update',
+            projectId: id,
+            updatedFields: Object.keys(patch)
+        });
     };
 
     const deleteProject = async (id: string) => {
@@ -77,6 +104,13 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         }
 
         await fetchProjects();
+        
+        // Track project deletion in memory
+        supermemory.addMemory(`[project] delete: projectId=${id}`, { 
+            module: 'project', 
+            action: 'delete',
+            projectId: id
+        });
     };
 
     return (

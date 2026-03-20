@@ -103,7 +103,7 @@ export default function Journal() {
         content: currentEntry.content,
         type: currentEntry.type
       };
-      
+
       if (isNew) {
         await journalService.createEntry(newEntry);
       } else {
@@ -121,26 +121,26 @@ export default function Journal() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this JournalEntry?')) return;
+    if (!confirm('Are you sure you want to delete this Entry?')) return;
     const allEntries = await kv.get('research_entries') || [];
     await journalService.deleteEntry(id);
     fetchEntries();
   };
 
-  const openEditor = (JournalEntry?: JournalEntry) => {
-    if (JournalEntry) {
-      const isWeekly = JournalEntry.type === 'weekly';
+  const openEditor = (Entry?: JournalEntry) => {
+    if (Entry) {
+      const isWeekly = Entry.type === 'weekly';
       let startDate = '';
       let endDate = '';
 
       if (isWeekly) {
-        startDate = JournalEntry.start_date;
-        endDate = JournalEntry.end_date;
+        startDate = Entry.start_date;
+        endDate = Entry.end_date;
       }
 
       setCurrentEntry({
-        ...JournalEntry,
-        start_date: startDate || (isWeekly ? JournalEntry.start_date : ''),
+        ...Entry,
+        start_date: startDate || (isWeekly ? Entry.start_date : ''),
         end_date: endDate || ''
       });
     } else {
@@ -218,7 +218,7 @@ export default function Journal() {
         <div className="w-16 h-16 bg-red-500/10 rounded-xl flex items-center justify-center mb-6">
           <AlertCircle className="w-8 h-8 text-red-500" />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">No Active Project</h2>
+        <h2 className="text-2xl font-bold mb-2">No Active Project</h2>
         <p className="text-zinc-500 mb-8 max-w-sm">You must select or create a project before accessing the Research Journal.</p>
         <button
           onClick={() => navigate('/projects')}
@@ -237,7 +237,7 @@ export default function Journal() {
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
-          <h1 className="text-2xl font-semibold text-white">Research Journal</h1>
+          <h1 className="text-2xl font-semibold">Research Journal</h1>
           <p className="text-base text-zinc-400">Log your progress, meetings, and weekly diaries.</p>
         </div>
         {!isEditing && (
@@ -246,18 +246,18 @@ export default function Journal() {
             className="w-full sm:w-fit mt-2 sm:mt-0 flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-colors  "
           >
             <Plus className="w-4 h-4" />
-            New JournalEntry
+            New Entry
           </button>
         )}
       </header>
 
       {isEditing ? (
-        <div className="bg-zinc-900/50 border border-white/10 rounded-xl p-6 backdrop-blur-sm shadow-2xl">
+        <div className="bg-[var(--color-surface)]/50 border border-[var(--color-border)] rounded-xl p-6 backdrop-blur-sm shadow-2xl">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white">
-              {currentEntry.id ? 'Edit JournalEntry' : 'New JournalEntry'}
+            <h2 className="text-xl font-semibold">
+              {currentEntry.id ? 'Edit Entry' : 'New Entry'}
             </h2>
-            <button onClick={() => setIsEditing(false)} className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+            <button onClick={() => setIsEditing(false)} className="p-2 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-white/5 rounded-xl transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -269,7 +269,7 @@ export default function Journal() {
                 <select
                   value={currentEntry.type}
                   onChange={(e) => setCurrentEntry({ ...currentEntry, type: e.target.value })}
-                  className="w-full bg-black border border-white/10 rounded-xl px-2 sm:px-4 py-1 sm:py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
+                  className="w-full bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-xl px-2 sm:px-4 py-1 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
                 >
                   {entryTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
@@ -283,7 +283,7 @@ export default function Journal() {
                       type="date"
                       value={currentEntry.start_date || ''}
                       onChange={(e) => setCurrentEntry({ ...currentEntry, start_date: e.target.value })}
-                      className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                      className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     />
                   </div>
                   <div>
@@ -292,7 +292,7 @@ export default function Journal() {
                       type="date"
                       value={currentEntry.end_date || ''}
                       onChange={(e) => setCurrentEntry({ ...currentEntry, end_date: e.target.value })}
-                      className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                      className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     />
                   </div>
                 </div>
@@ -303,7 +303,7 @@ export default function Journal() {
                     type="date"
                     value={currentEntry.date || ''}
                     onChange={(e) => setCurrentEntry({ ...currentEntry, date: e.target.value })}
-                    className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />
                 </div>
               )}
@@ -320,7 +320,7 @@ export default function Journal() {
                       title={isListening ? 'Stop recording' : 'Start voice dictation'}
                       className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold transition-all ${isListening
                         ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse'
-                        : 'bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 border border-white/10'
+                        : 'bg-zinc-800 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-zinc-700 border border-[var(--color-border)]'
                         }`}
                     >
                       {isListening ? (
@@ -351,17 +351,17 @@ export default function Journal() {
                 value={currentEntry.content || ''}
                 onChange={(e) => setCurrentEntry({ ...currentEntry, content: e.target.value })}
                 placeholder={isListening ? '🎙️ Speak now — your words will appear here…' : 'Write your research notes here…'}
-                className={`w-full h-64 bg-black border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 font-mono text-sm resize-y transition-colors ${isListening
+                className={`w-full h-64 bg-[var(--color-surface)] border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 font-mono text-sm resize-y transition-colors ${isListening
                   ? 'border-rose-500/40 focus:ring-rose-500/30'
-                  : 'border-white/10 focus:ring-indigo-500/50'
+                  : 'border-[var(--color-border)] focus:ring-indigo-500/50'
                   }`}
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t    border-neutral-800">
+            <div className="flex justify-end gap-3 pt-4 border-t    border-[var(--color-border)]">
               <button
                 onClick={() => setIsEditing(false)}
-                className="px-4 py-2 text-zinc-400 hover:text-white font-medium transition-colors"
+                className="px-4 py-2 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] font-medium transition-colors"
               >
                 Cancel
               </button>
@@ -371,7 +371,7 @@ export default function Journal() {
                 className="flex items-center gap-2 px-6 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors  "
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                {isSaving ? 'Saving...' : 'Save JournalEntry'}
+                {isSaving ? 'Saving...' : 'Save Entry'}
               </button>
             </div>
           </div>
@@ -379,41 +379,41 @@ export default function Journal() {
       ) : (
         <div className="space-y-6">
           {entries.length === 0 ? (
-            <div className="text-center py-20 border border-dashed border-white/10 rounded-xl bg-zinc-900/20">
+            <div className="text-center py-20 border border-dashed border-[var(--color-border)] rounded-xl bg-[var(--color-surface)]/20">
               <FileText className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-white mb-2">No entries yet</h3>
-              <p className="text-zinc-500 mb-6 max-w-sm mx-auto">Start documenting your research journey by creating your first journal JournalEntry.</p>
+              <p className="text-zinc-500 mb-6 max-w-sm mx-auto">Start documenting your research journey by creating your first journal Entry.</p>
               <button
                 onClick={() => openEditor()}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Create JournalEntry
+                Create Entry
               </button>
             </div>
           ) : (
-            entries.map((JournalEntry) => (
-              <div key={JournalEntry.id} className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-3 sm:p-6 hover:bg-zinc-900/60 transition-colors group">
+            entries.map((Entry) => (
+              <div key={Entry.id} className="bg-[var(--color-surface)]/40 border    border-[var(--color-border)] rounded-xl p-3 sm:p-6 hover:bg-[var(--color-surface)]/60 transition-colors group">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-500 text-xs font-semibold tracking-wide uppercase border border-indigo-500/20">
-                      {JournalEntry.type}
+                      {Entry.type}
                     </span>
                     <span className="text-sm text-zinc-500 font-medium">
-                      {JournalEntry.type === 'weekly' ? JournalEntry.date : format(parseEntryDate(JournalEntry.date), 'MMMM d, yyyy')}
+                      {Entry.type === 'weekly' ? Entry.date : format(parseEntryDate(Entry.date), 'MMMM d, yyyy')}
                     </span>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEditor(JournalEntry)} className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+                    <button onClick={() => openEditor(Entry)} className="p-2 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-white/10 rounded-xl transition-colors">
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(JournalEntry.id)} className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors">
+                    <button onClick={() => handleDelete(Entry.id)} className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-                <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-pre:bg-black prose-pre:border prose-pre:border-white/10">
-                  <Markdown>{JournalEntry.content}</Markdown>
+                <div className="prose dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-[var(--color-surface)] prose-pre:border prose-pre:border-[var(--color-border)]">
+                  <Markdown>{Entry.content}</Markdown>
                 </div>
               </div>
             ))

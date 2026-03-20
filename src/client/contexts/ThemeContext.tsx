@@ -7,13 +7,12 @@ const STORAGE_KEY = 'apex-theme';
 interface ThemeContextValue {
     theme: Theme;
     setTheme: (t: Theme) => void;
-    /** The actual applied theme, resolving 'system' to 'dark' or 'light'. */
     resolvedTheme: 'dark' | 'light';
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
     theme: 'system',
-    setTheme: () => {},
+    setTheme: () => { },
     resolvedTheme: 'dark',
 });
 
@@ -30,21 +29,19 @@ function applyTheme(theme: Theme): 'dark' | 'light' {
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [theme, setThemeState] = useState<Theme>(() => {
         const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-        return (stored === 'dark' || stored === 'light' || stored === 'system') ? stored : 'system';
+        return (stored === 'dark' || stored === 'light' || stored === 'system') ? stored : 'dark';
     });
 
     const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light'>(() => applyTheme(
         (localStorage.getItem(STORAGE_KEY) as Theme | null) ?? 'system'
     ));
 
-    // When theme changes, persist and apply
     function setTheme(t: Theme) {
         localStorage.setItem(STORAGE_KEY, t);
         setThemeState(t);
         setResolvedTheme(applyTheme(t));
     }
 
-    // Listen to OS preference changes when in system mode
     useEffect(() => {
         applyTheme(theme);
 

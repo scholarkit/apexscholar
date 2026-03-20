@@ -156,11 +156,11 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div
-        className="bg-zinc-900 border border-neutral-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-neutral-800">
+        <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
           <h2 className="text-lg font-semibold text-white">Import from Zotero</h2>
           <button
             onClick={onClose}
@@ -181,7 +181,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
               <label className="block text-xs font-medium text-zinc-500 mb-2 uppercase tracking-wider">
                 Select Collection
               </label>
-              <div className="p-2 bg-black/40 border border-neutral-800 rounded-xl space-y-1 max-h-[240px] overflow-y-auto custom-scrollbar">
+              <div className="p-2 bg-black/40 border border-[var(--color-border)] rounded-xl space-y-1 max-h-[240px] overflow-y-auto custom-scrollbar">
                 {isLoading ? (
                   <div className="flex flex-col items-center justify-center py-6 text-zinc-500">
                     <Loader2 className="w-6 h-6 animate-spin mb-2" />
@@ -242,7 +242,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-neutral-800 bg-zinc-900/50">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-[var(--color-border)] bg-[var(--color-surface)]/50">
           <div className="text-xs text-indigo-400 font-medium">
             {importProgress}
           </div>

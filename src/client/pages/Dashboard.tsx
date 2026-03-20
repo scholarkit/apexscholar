@@ -30,43 +30,10 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8 w-full">
-        <header className="flex items-center justify-between">
-          <div>
-            <div className="h-8 w-40 bg-zinc-800/60 rounded-xl animate-pulse mb-2"></div>
-            <div className="h-4 w-72 bg-zinc-800/60 rounded-xl animate-pulse"></div>
-          </div>
-        </header>
-
-        {/* KPI Overview Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="p-6 rounded-xl bg-zinc-900/50 border border-neutral-800 backdrop-blur-sm">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-zinc-800/60 rounded-xl animate-pulse"></div>
-                <div className="h-5 w-24 bg-zinc-800/60 rounded-xl animate-pulse"></div>
-              </div>
-              <div className="h-10 w-16 bg-zinc-800/60 rounded-xl animate-pulse"></div>
-            </div>
-          ))}
-        </div>
-
-        {/* Analytics Skeletons */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-          <div className="p-6 rounded-xl bg-zinc-900/50 border border-neutral-800 backdrop-blur-sm h-96 col-span-full"></div>
-        </div>
-
-        {/* Recent Activity Skeleton */}
-        <div className="mt-8">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-5 h-5 bg-zinc-800/60 rounded animate-pulse"></div>
-            <div className="h-6 w-32 bg-zinc-800/60 rounded-xl animate-pulse"></div>
-          </div>
-          <div className="space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="p-5 rounded-xl bg-zinc-900/30 border border-neutral-800 h-28 animate-pulse"></div>
-            ))}
-          </div>
+      <div className="min-h-[100dvh] flex items-center justify-center h-full">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+          <p className="text-zinc-500 font-medium">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -132,44 +99,44 @@ export default function Dashboard() {
 
       {/* KPI Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] p-3 sm:p-6 shadow-sm">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-3 bg-blue-500/10 rounded-xl">
               <BookOpen className="w-6 h-6 text-blue-400" />
             </div>
             <h3 className="text-zinc-400 font-medium">Total Entries</h3>
           </div>
-          <p className="text-right sm:text-left text-4xl font-semibold text-white">{entries.length}</p>
+          <p className="text-right sm:text-left text-4xl font-semibold">{entries.length}</p>
         </div>
 
-        <Link to="/projects" className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm hover:border-violet-500/30 hover:bg-zinc-900/70 transition-all group">
+        <Link to="/projects" className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] p-3 sm:p-6 shadow-sm hover:border-violet-500/30 hover:bg-[var(--color-surface)]/70 transition-all group">
           <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
             <div className="p-3 bg-violet-500/10 rounded-xl group-hover:bg-violet-500/20 transition-colors">
               <Layers className="w-6 h-6 text-violet-400" />
             </div>
             <h3 className="text-zinc-400 font-medium">Projects</h3>
           </div>
-          <p className="text-right sm:text-left text-4xl font-semibold text-white">{projects.length}</p>
+          <p className="text-right sm:text-left text-4xl font-semibold">{projects.length}</p>
         </Link>
 
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] p-3 sm:p-6 shadow-sm">
           <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
             <div className="p-3 bg-emerald-500/10 rounded-xl">
               <FolderOpen className="w-6 h-6 text-emerald-400" />
             </div>
             <h3 className="text-zinc-400 font-medium">Resources</h3>
           </div>
-          <p className="text-right sm:text-left text-4xl font-semibold text-white">{resources.length}</p>
+          <p className="text-right sm:text-left text-4xl font-semibold">{resources.length}</p>
         </div>
 
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 sm:p-6 shadow-sm">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] p-3 sm:p-6 shadow-sm">
           <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
             <div className="p-3 bg-purple-500/10 rounded-xl">
               <Activity className="w-6 h-6 text-purple-400" />
             </div>
             <h3 className="text-zinc-400 font-medium">Last Activity</h3>
           </div>
-          <p className="text-right sm:text-left text-lg sm:text-2xl font-semibold text-white">
+          <p className="text-right sm:text-left text-lg sm:text-2xl font-semibold">
             {lastActivity ? formatDistanceToNow(parseEntryDate(lastActivity), { addSuffix: true }) : 'No activity yet'}
           </p>
         </div>
@@ -178,23 +145,23 @@ export default function Dashboard() {
       {/* Analytics Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         {/* Activity Chart */}
-        <div className="bg-zinc-900/40 border border-neutral-800 rounded-xl p-3 sm:p-6 col-span-full">
+        <div className="bg-[var(--bg-surface-2)] border border-[var(--color-border)] rounded-xl p-3 sm:p-6 col-span-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
                 <Activity className="w-5 h-5 text-indigo-500" />
               </div>
-              <h2 className="text-xl font-semibold text-white">Research Activity</h2>
+              <h2 className="text-xl font-semibold">Research Activity</h2>
             </div>
 
-            <div className="flex bg-black p-1 rounded-xl border border-neutral-800">
+            <div className="flex bg-[var(--bg-surface-2)] p-1 rounded-xl border border-[var(--color-border)]">
               {ranges.map((r) => (
                 <button
                   key={r.id}
                   onClick={() => setTimeRange(r.id as any)}
                   className={`w-full px-2 sm:px-4 py-1.5 text-xs font-medium rounded-xl transition-all ${timeRange === r.id
                     ? 'bg-indigo-500 text-white'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                    : 'text-zinc-500 hover:text-[var(--color-text-faint)]'
                     }`}
                 >
                   {r.label}
@@ -220,12 +187,12 @@ export default function Dashboard() {
         </div>
 
         {/* Entry Types Distribution */}
-        <div className="bg-zinc-900/40 border border-neutral-800 rounded-xl p-3 sm:p-6">
+        <div className="bg-[var(--bg-surface-2)] border border-[var(--color-border)] rounded-xl p-3 sm:p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
               <Calendar className="w-5 h-5 text-emerald-400" />
             </div>
-            <h2 className="text-xl font-semibold text-white">Entry Distribution</h2>
+            <h2 className="text-xl font-semibold">Entry Distribution</h2>
           </div>
           <div className="space-y-4">
             {typeChartData.length === 0 ? (
@@ -235,9 +202,9 @@ export default function Dashboard() {
                 <div key={item.name} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full ${['bg-indigo-500', 'bg-emerald-500', 'bg-blue-500', 'bg-purple-500'][index % 4]}`} />
-                    <span className="text-zinc-300">{item.name}</span>
+                    <span className="text-[var(--color-text-muted)]">{item.name}</span>
                   </div>
-                  <span className="text-white font-medium">{item.value}</span>
+                  <span className="font-medium">{item.value}</span>
                 </div>
               ))
             )}
@@ -245,22 +212,22 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Milestones (From Analytics) */}
-        <div className="bg-zinc-900/40 border border-neutral-800 rounded-xl p-3 sm:p-6">
+        <div className="bg-[var(--bg-surface-2)] border border-[var(--color-border)] rounded-xl p-3 sm:p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 bg-purple-500/10 rounded-xl border border-purple-500/20">
               <GitCommit className="w-5 h-5 text-purple-400" />
             </div>
-            <h2 className="text-xl font-semibold text-white">Recent Milestones</h2>
+            <h2 className="text-xl font-semibold">Recent Milestones</h2>
           </div>
-          <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
+          <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-[var(--color-border)]">
             {entries.slice(0, 5).map((entry, i) => (
               <div key={entry.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-zinc-900 text-zinc-500 group-[.is-active]:text-indigo-500 group-[.is-active]:border-indigo-500/30 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] group-[.is-active]:text-indigo-500 group-[.is-active]:border-indigo-500/30 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
                   <GitCommit className="w-4 h-4" />
                 </div>
-                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-neutral-800 bg-zinc-900/50 shadow">
+                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] shadow">
                   <div className="flex items-center justify-between space-x-2 mb-1">
-                    <div className="font-bold text-white text-xs sm:text-sm">{entry.type}</div>
+                    <div className="font-bold text-xs sm:text-sm">{entry.type}</div>
                     <time className="font-mono text-xs text-zinc-500">{format(parseEntryDate(entry.date), 'MMM d')}</time>
                   </div>
                   <div className="text-zinc-400 text-sm line-clamp-2">{entry.content}</div>
@@ -276,17 +243,17 @@ export default function Dashboard() {
 
       {/* Recent Activity Feed */}
       <div className="mt-8">
-        <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
           <Clock className="w-5 h-5 text-zinc-400" />
           Recent Activity
         </h2>
 
         <div className="space-y-4">
           {entries.slice(0, 5).map((entry) => (
-            <div key={entry.id} className="p-5 rounded-xl bg-neutral-900 border border-neutral-800 transition-colors group">
+            <div key={entry.id} className="p-5 rounded-xl bg-[var(--bg-surface-2)] border border-[var(--color-border)] transition-colors group">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-3">
-                  <span className="px-1 sm:px-2.5 py-1 rounded-xl bg-zinc-800 text-xs font-medium text-zinc-300 border border-neutral-800">
+                  <span className="px-1 sm:px-2.5 py-1 rounded-xl bg-[var(--color-surface-2)] text-xs font-medium text-[var(--color-text-muted)] border border-[var(--color-accent-glow)]">
                     {entry.type}
                   </span>
                   <span className="text-xs sm:text-sm text-zinc-500">
@@ -294,7 +261,7 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
-              <p className="text-zinc-300 line-clamp-2 mt-2 leading-relaxed">
+              <p className="line-clamp-2 mt-2 leading-relaxed">
                 {entry.content}
               </p>
               <Link to="/journal" className="inline-flex items-center text-sm text-indigo-500 hover:text-indigo-300 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -304,7 +271,7 @@ export default function Dashboard() {
           ))}
 
           {entries.length === 0 && (
-            <div className="text-center py-12 bg-zinc-900/20 border border-dashed border-white/10 rounded-xl">
+            <div className="text-center py-12 bg-[var(--color-surface)]/20 border border-dashed border-[var(--color-border)] rounded-xl">
               <BookOpen className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
               <p className="text-white font-medium mb-1">No recent activity</p>
               <p className="text-zinc-500 text-sm mb-6 max-w-sm mx-auto">Start documenting your research journey by creating your first journal entry.</p>

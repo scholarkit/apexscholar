@@ -47,8 +47,8 @@ function SectionCard({
             className={`rounded-xl border p-6 ${danger
                 ? 'border-red-500/20 bg-red-500/5'
                 : comingSoon
-                    ? 'border-neutral-800 bg-neutral-900/50 opacity-60'
-                    : 'border-neutral-800 bg-neutral-900'
+                    ? 'border-[var(--color-border)] bg-neutral-900/50 opacity-60'
+                    : 'border-[var(--color-border)] bg-neutral-900'
                 }`}
         >
             <div className="flex items-start justify-between mb-4">
@@ -241,7 +241,7 @@ export default function ProjectSettings() {
                         <input
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-zinc-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow"
+                            className="w-full bg-zinc-800/50 border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow"
                             placeholder="Project name"
                             required
                         />
@@ -253,7 +253,7 @@ export default function ProjectSettings() {
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="w-full bg-zinc-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-24 resize-none transition-shadow"
+                            className="w-full bg-zinc-800/50 border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-24 resize-none transition-shadow"
                             placeholder="Briefly describe the research scope..."
                         />
                     </div>
@@ -266,7 +266,7 @@ export default function ProjectSettings() {
                                 <select
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value as Project['status'])}
-                                    className="w-full appearance-none bg-zinc-800/50 border border-white/10 rounded-xl pl-4 pr-10 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-zinc-900 transition-colors [color-scheme:dark]"
+                                    className="w-full appearance-none bg-zinc-800/50 border border-[var(--color-border)] rounded-xl pl-4 pr-10 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-[var(--color-surface)] transition-colors [color-scheme:dark]"
                                 >
                                     {STATUS_OPTIONS.map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -286,7 +286,7 @@ export default function ProjectSettings() {
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="w-full bg-zinc-800/50 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
+                                    className="w-full bg-zinc-800/50 border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
                                 />
                             </div>
                         </div>
@@ -298,7 +298,7 @@ export default function ProjectSettings() {
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="w-full bg-zinc-800/50 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
+                                    className="w-full bg-zinc-800/50 border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
                                 />
                             </div>
                         </div>
@@ -331,7 +331,7 @@ export default function ProjectSettings() {
                 icon={<Tag className="w-4 h-4" />}
             >
                 <div className="space-y-4">
-                    <div className="flex flex-wrap items-center gap-2 w-full bg-zinc-800/50 border border-white/10 rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-indigo-500/50 min-h-[44px]">
+                    <div className="flex flex-wrap items-center gap-2 w-full bg-zinc-800/50 border border-[var(--color-border)] rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-indigo-500/50 min-h-[44px]">
                         {tags.map(tag => (
                             <span
                                 key={tag}

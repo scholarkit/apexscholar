@@ -208,12 +208,12 @@ export default function LessonView() {
         prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline
         prose-strong:text-zinc-200
         prose-code:text-indigo-300 prose-code:bg-indigo-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
-        prose-pre:bg-zinc-900 prose-pre:border prose-pre:   border-neutral-800 prose-pre:rounded-xl
+        prose-pre:bg-[var(--color-surface)] prose-pre:border prose-pre:   border-[var(--color-border)] prose-pre:rounded-xl
         prose-blockquote:border-l-indigo-500 prose-blockquote:text-zinc-500
         prose-ul:text-zinc-400 prose-ol:text-zinc-400
         prose-li:marker:text-indigo-500
-        prose-hr:   border-neutral-800
-        bg-zinc-900/40 border border-neutral-800 rounded-xl p-6 sm:p-8 mb-8">
+        prose-hr:   border-[var(--color-border)]
+        bg-[var(--color-surface)]/40 border border-[var(--color-border)] rounded-xl p-6 sm:p-8 mb-8">
                 {lesson.content ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {lesson.content}
@@ -228,12 +228,12 @@ export default function LessonView() {
             </article>
 
             {/* Bottom controls */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t    border-neutral-800">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t    border-[var(--color-border)]">
                 {/* Prev */}
                 {prevLesson ? (
                     <Link
                         to={`/learn/${course.id}/${prevLesson.id}`}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-all text-sm"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--color-border)] text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-all text-sm"
                     >
                         <ChevronLeft className="w-4 h-4" />
                         <span className="truncate max-w-[160px]">{prevLesson.title}</span>
@@ -241,7 +241,7 @@ export default function LessonView() {
                 ) : (
                     <Link
                         to={`/learn/${course.id}`}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-all text-sm"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--color-border)] text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-all text-sm"
                     >
                         <ChevronLeft className="w-4 h-4" /> Back to Course
                     </Link>
@@ -255,7 +255,7 @@ export default function LessonView() {
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all disabled:opacity-40
               ${isDone
                                 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
-                                : 'bg-white/5    border-neutral-800 text-zinc-400 hover:text-white hover:border-zinc-600'
+                                : 'bg-white/5    border-[var(--color-border)] text-zinc-400 hover:text-white hover:border-zinc-600'
                             }`}
                     >
                         {isDone ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}

@@ -65,7 +65,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
     if (!editor) return null;
 
     return (
-        <div className="flex flex-wrap items-center gap-1 p-2 bg-zinc-900/80 border-b border-zinc-800">
+        <div className="flex flex-wrap items-center gap-1 p-2 bg-[var(--color-surface)]/80 border-b border-zinc-800">
             <button
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 className={`p-2 rounded-xl transition-colors ${editor.isActive('bold') ? 'bg-indigo-500/20 text-indigo-400' : 'text-zinc-400 hover:bg-zinc-800'}`}
@@ -423,7 +423,7 @@ Your abstract here.
 
     if (!activeProject && !loading) {
         return (
-            <div className="flex flex-col items-center justify-center h-[60vh] text-center p-6 bg-zinc-900/20 border border-dashed border-white/10 rounded-xl">
+            <div className="flex flex-col items-center justify-center h-[60vh] text-center p-6 bg-[var(--color-surface)]/20 border border-dashed border-[var(--color-border)] rounded-xl">
                 <div className="w-20 h-20 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-8">
                     <FileText className="w-10 h-10 text-indigo-500" />
                 </div>
@@ -509,7 +509,7 @@ Your abstract here.
                 </div>
 
                 {/* Mode Switcher */}
-                <div className="flex items-center bg-zinc-900 p-1 rounded-xl ml-auto">
+                <div className="flex items-center bg-[var(--color-surface)] p-1 rounded-xl ml-auto">
                     <button
                         onClick={() => setActiveMode('latex')}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeMode === 'latex' ? 'bg-indigo-500 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
@@ -532,8 +532,8 @@ Your abstract here.
             <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 relative">
 
                 {/* Sidebar */}
-                <div className={`w-64 flex flex-col bg-zinc-900/50 rounded-xl overflow-hidden backdrop-blur-sm border border-zinc-800 transition-all duration-300 shrink-0 ${!isSidebarOpen ? 'hidden' : ''}`}>
-                    <div className="flex bg-zinc-900/80 border-b border-zinc-800 p-3 items-center justify-between">
+                <div className={`w-64 flex flex-col bg-[var(--color-surface)]/50 rounded-xl overflow-hidden backdrop-blur-sm border border-zinc-800 transition-all duration-300 shrink-0 ${!isSidebarOpen ? 'hidden' : ''}`}>
+                    <div className="flex bg-[var(--color-surface)]/80 border-b border-zinc-800 p-3 items-center justify-between">
                         <span className="text-sm font-semibold text-white">Project Documents</span>
                         <button
                             onClick={async () => {
@@ -697,7 +697,7 @@ Your abstract here.
                 </div>
 
                 {/* Editor Side */}
-                <div className={`flex-1 flex flex-col bg-zinc-900/50 rounded-xl overflow-hidden backdrop-blur-sm transition-all duration-300 ${isPreviewOnly ? 'hidden lg:flex' : 'flex'}`}>
+                <div className={`flex-1 flex flex-col bg-[var(--color-surface)]/50 rounded-xl overflow-hidden backdrop-blur-sm transition-all duration-300 ${isPreviewOnly ? 'hidden lg:flex' : 'flex'}`}>
 
                     <div className="flex-1 overflow-hidden flex flex-col">
                         {activeMode === 'latex' ? (
@@ -729,8 +729,8 @@ Your abstract here.
 
                 {/* Preview Side (Only for LaTeX) */}
                 {activeMode === 'latex' && (
-                    <div className={`flex-1 flex flex-col bg-zinc-900/30 rounded-xl overflow-hidden backdrop-blur-md transition-all duration-300 ${!isPreviewOnly ? 'hidden lg:flex' : 'flex'}`}>
-                        <div className="flex items-center justify-end gap-4 px-6 py-4 bg-zinc-900/80 border-b border-zinc-800 shrink-0">
+                    <div className={`flex-1 flex flex-col bg-[var(--color-surface)]/30 rounded-xl overflow-hidden backdrop-blur-md transition-all duration-300 ${!isPreviewOnly ? 'hidden lg:flex' : 'flex'}`}>
+                        <div className="flex items-center justify-end gap-4 px-6 py-4 bg-[var(--color-surface)]/80 border-b border-zinc-800 shrink-0">
                             <button
                                 onClick={() => setActiveTab('preview')}
                                 className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 'preview' ? 'text-indigo-400' : 'text-zinc-500 hover:text-zinc-300'}`}

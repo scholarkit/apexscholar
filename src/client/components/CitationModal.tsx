@@ -96,11 +96,11 @@ export default function CitationModal({ resource, downloadUrl, onClose }: Citati
             onClick={onClose}
         >
             <div
-                className="w-full max-w-xl bg-zinc-900 border border-white/10 rounded-xl overflow-hidden"
+                className="w-full max-w-xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b    border-neutral-800">
+                <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b    border-[var(--color-border)]">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
                             <Quote className="w-4 h-4 text-indigo-500" />
@@ -191,7 +191,7 @@ export default function CitationModal({ resource, downloadUrl, onClose }: Citati
 
                         {/* Citation output */}
                         <div className="px-3 sm:px-6 pt-1 sm:pt-3 pb-1 sm:pb-6">
-                            <pre className="w-full p-4 rounded-xl bg-black border    border-neutral-800 text-zinc-300 text-xs font-mono whitespace-pre-wrap break-all leading-relaxed min-h-[80px]">
+                            <pre className="w-full p-4 rounded-xl bg-black border    border-[var(--color-border)] text-zinc-300 text-xs font-mono whitespace-pre-wrap break-all leading-relaxed min-h-[80px]">
                                 {citation}
                             </pre>
                             <button

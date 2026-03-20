@@ -86,7 +86,7 @@ export default function BrainModal({ onClose }: BrainModalProps) {
             <div className="w-full h-full flex flex-col lg:flex-row overflow-hidden animate-in zoom-in-95 duration-200">
 
                 {/* ── Profile Panel ─────────────────────────────── */}
-                <aside className="w-full lg:w-80 xl:w-96 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-white/10 bg-zinc-950/80 overflow-y-auto custom-scrollbar">
+                <aside className="w-full lg:w-80 xl:w-96 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-zinc-950/80 overflow-y-auto custom-scrollbar">
                     <div className="p-6">
                         {/* Header */}
                         <div className="flex items-center gap-3 mb-6">
@@ -164,7 +164,7 @@ export default function BrainModal({ onClose }: BrainModalProps) {
                 {/* ── Main Panel (Search + Results) ──────────────── */}
                 <main className="flex-1 flex flex-col overflow-hidden bg-zinc-950/50">
                     {/* Search Bar */}
-                    <div className="p-4 sm:p-6 border-b border-white/10">
+                    <div className="p-4 sm:p-6 border-b border-[var(--color-border)]">
                         <div className="relative max-w-2xl mx-auto">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                             <input
@@ -173,7 +173,7 @@ export default function BrainModal({ onClose }: BrainModalProps) {
                                 placeholder="Search your memories…"
                                 value={query}
                                 onChange={e => onQueryChange(e.target.value)}
-                                className="w-full bg-zinc-900 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                                className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                             />
                             {searching && (
                                 <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400 animate-spin" />
@@ -204,7 +204,7 @@ export default function BrainModal({ onClose }: BrainModalProps) {
 
                         {hasSearched && !searching && results.length === 0 && (
                             <div className="flex flex-col items-center justify-center h-full text-center px-8">
-                                <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-4 border border-white/5">
+                                <div className="w-14 h-14 bg-[var(--color-surface)] rounded-2xl flex items-center justify-center mb-4 border border-white/5">
                                     <Search className="w-6 h-6 text-zinc-600" />
                                 </div>
                                 <h3 className="text-zinc-400 font-medium text-sm mb-1">No memories found</h3>
@@ -219,7 +219,7 @@ export default function BrainModal({ onClose }: BrainModalProps) {
                                 {results.map((item, i) => (
                                     <div
                                         key={item.documentId || i}
-                                        className="group bg-zinc-900/60 border border-white/5 rounded-xl p-4 hover:border-indigo-500/20 transition-all duration-200"
+                                        className="group bg-[var(--color-surface)]/60 border border-white/5 rounded-xl p-4 hover:border-indigo-500/20 transition-all duration-200"
                                     >
                                         <div className="flex items-start justify-between mb-2">
                                             <h4 className="text-sm font-medium text-white truncate max-w-[80%]">

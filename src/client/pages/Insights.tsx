@@ -4,6 +4,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
+import { useMemory } from '../hooks/useMemory';
 import Breadcrumbs from '../components/Breadcrumbs';
 // @ts-ignore - html2pdf doesn't have official types
 import html2pdf from 'html2pdf.js';
@@ -82,6 +83,14 @@ SUMMARY:`;
 
       const existingInsights: Insight[] = await kv.get('research_insights') || [];
       await kv.set('research_insights', [newInsight, ...existingInsights]);
+
+      // Track insight generation in memory
+      const { trackEvent } = useMemory();
+      trackEvent('insights', 'generate', {
+        projectId: activeProject?.id,
+        summaryLength: generatedSummary.length,
+        entriesCount: context.length
+      });
 
       setSummary(generatedSummary);
     } catch (err) {
@@ -230,7 +239,7 @@ SUMMARY:`;
         </button>
       </header>
 
-      <div className="bg-zinc-900/40 border    border-neutral-800 rounded-xl p-2 sm:p-4 min-h-[400px] relative overflow-hidden">
+      <div className="bg-[var(--color-surface)]/40 border    border-[var(--color-border)] rounded-xl p-2 sm:p-4 min-h-[400px] relative overflow-hidden">
         {/* Decorative background element */}
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -252,14 +261,14 @@ SUMMARY:`;
             <p className="text-zinc-400 max-w-md">{error}</p>
             <button
               onClick={generateInsights}
-              className="mt-6 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-colors"
+              className="mt-6 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
             >
               Try Again
             </button>
           </div>
         ) : summary ? (
-          <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-headings:text-white prose-a:text-indigo-500 hover:prose-a:text-indigo-300 prose-code:text-indigo-300 prose-pre:bg-black/50 prose-pre:border prose-pre:   border-neutral-800 relative z-10 transition-all duration-700">
-            {/* <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
+          <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-headings:text-white prose-a:text-indigo-500 hover:prose-a:text-indigo-300 prose-code:text-indigo-300 prose-pre:bg-black/50 prose-pre:border prose-pre:   border-[var(--color-border)] relative z-10 transition-all duration-700">
+            {/* <div className="flex items-center justify-between mb-8 pb-6 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-indigo-500/20 rounded-xl border border-indigo-500/30">
                   <Lightbulb className="w-6 h-6 text-indigo-500" />
@@ -273,7 +282,7 @@ SUMMARY:`;
               <button
                 onClick={exportToPDF}
                 disabled={exporting}
-                className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-medium transition-all text-zinc-300 hover:text-white"
+                className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-xl text-xs font-medium transition-all text-zinc-300 hover:text-white"
               >
                 {exporting ? (
                   <RefreshCw className="w-3 h-3 animate-spin" />
@@ -289,7 +298,7 @@ SUMMARY:`;
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-20 text-center">
-            <div className="w-20 h-20 bg-black rounded-xl flex items-center justify-center mb-6 border    border-neutral-800 shadow-2xl">
+            <div className="w-20 h-20 bg-black rounded-xl flex items-center justify-center mb-6 border    border-[var(--color-border)] shadow-2xl">
               <Lightbulb className="w-10 h-10 text-zinc-600" />
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">Ready to Analyze</h3>
@@ -298,7 +307,7 @@ SUMMARY:`;
             </p>
             <button
               onClick={generateInsights}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
             >
               <Sparkles className="w-5 h-5" />
               Generate First Insight

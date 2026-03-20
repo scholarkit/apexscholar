@@ -46,7 +46,7 @@ export default function Learn() {
                         <Link
                             key={course.id}
                             to={`/learn/${course.id}`}
-                            className="group flex flex-col bg-zinc-900/40 border    border-neutral-800 rounded-xl p-6 hover:border-indigo-500/40 hover:bg-zinc-900/70 transition-all duration-200 hover:shadow-xl hover:shadow-indigo-500/5"
+                            className="group flex flex-col bg-[var(--color-surface)]/40 border    border-[var(--color-border)] rounded-xl p-6 hover:border-indigo-500/40 hover:bg-[var(--color-surface)]/70 transition-all duration-200 hover:shadow-xl hover:shadow-indigo-500/5"
                         >
                             {/* Emoji + Level */}
                             <div className="flex gap-2 items-start justify-between mb-5">
@@ -70,7 +70,7 @@ export default function Learn() {
                             {/* Tags */}
                             <div className="flex flex-wrap gap-1.5 mb-5">
                                 {course.tags.slice(0, 3).map((tag) => (
-                                    <span key={tag} className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-zinc-400">
+                                    <span key={tag} className="px-2 py-0.5 rounded-full bg-white/5 border border-[var(--color-border)] text-[10px] text-zinc-400">
                                         {tag}
                                     </span>
                                 ))}
@@ -112,14 +112,14 @@ export default function Learn() {
                 })}
 
                 {/* Coming Soon placeholder */}
-                <div className="flex flex-col items-center justify-center bg-zinc-900/20 border border-dashed    border-neutral-800 rounded-xl p-6 gap-3 opacity-50 min-h-[260px]">
+                <div className="flex flex-col items-center justify-center bg-[var(--color-surface)]/20 border border-dashed    border-[var(--color-border)] rounded-xl p-6 gap-3 opacity-50 min-h-[260px]">
                     <Lock className="w-7 h-7 text-zinc-600" />
                     <div className="text-center">
                         <p className="text-sm font-medium text-zinc-500">More courses coming soon</p>
                         <p className="text-xs text-zinc-700 mt-1">Academic Writing, Data Analysis, and more</p>
                     </div>
                 </div>
-                <div className="flex flex-col items-center justify-center bg-zinc-900/20 border border-dashed    border-neutral-800 rounded-xl p-6 gap-3 opacity-50 min-h-[260px]">
+                <div className="flex flex-col items-center justify-center bg-[var(--color-surface)]/20 border border-dashed    border-[var(--color-border)] rounded-xl p-6 gap-3 opacity-50 min-h-[260px]">
                     <GraduationCap className="w-7 h-7 text-zinc-600" />
                     <div className="text-center">
                         <p className="text-sm font-medium text-zinc-500">More courses coming soon</p>

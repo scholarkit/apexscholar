@@ -136,7 +136,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               >
                 <Icon className={cn(
                   "w-5 h-5 flex-shrink-0",
-                  isActive ? "text-indigo-500" : "text-zinc-500 group-hover:text-zinc-300",
+                  isActive ? "text-indigo-500" : "text-zinc-500 group-hover:text-[var(--color-accent)]",
                 )} />
                 {!isCollapsed && (
                   <div>
@@ -160,7 +160,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             title={isCollapsed ? 'Brain (Ctrl+B)' : undefined}
             className={cn(
               "flex items-center rounded-xl text-sm font-medium transition-all duration-200 group",
-              "bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 text-indigo-300 hover:from-indigo-500/20 hover:to-purple-500/20 hover:text-indigo-200",
+              "bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 text-[var(--color-accent)] hover:from-indigo-500/20 hover:to-purple-500/20",
               isCollapsed ? "justify-center w-10 h-10" : "gap-3 px-3 py-2.5 w-full"
             )}
           >
@@ -169,7 +169,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <span className="animate-in fade-in slide-in-from-left-1 duration-300">Nexus</span>
             )}
             {!isCollapsed && (
-              <kbd className="ml-auto text-[10px] text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded font-mono border border-white/5">⌘B</kbd>
+              <kbd className="ml-auto text-[10px] text-zinc-600 bg-[var(--color-surface)] px-1.5 py-0.5 rounded font-mono border border-white/5">⌘B</kbd>
             )}
           </button>
         </div>

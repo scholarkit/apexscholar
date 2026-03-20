@@ -5,6 +5,7 @@ import { storage } from '../lib/storage';
 import CitationModal from '../components/CitationModal';
 import FileChatModal from '../components/FileChatModal';
 import { useProject } from '../contexts/ProjectContext';
+import { useMemory } from '../hooks/useMemory';
 import Breadcrumbs from '../components/Breadcrumbs';
 import ZoteroImportModal from '../components/ZoteroImportModal';
 import { kv } from '../lib/kv';
@@ -155,7 +156,7 @@ export default function Resources() {
               placeholder="Search files..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-zinc-900 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 w-full sm:w-64"
+              className="pl-9 pr-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 w-full sm:w-64"
             />
           </div>
           <button
@@ -186,13 +187,13 @@ export default function Resources() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredResources.length === 0 ? (
-          <div className="col-span-full text-center py-10 sm:py-20 border border-dashed border-white/10 rounded-xl bg-zinc-900/20">
+          <div className="col-span-full text-center py-10 sm:py-20 border border-dashed border-[var(--color-border)] rounded-xl bg-[var(--color-surface)]/20">
             <FolderOpen className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">No resources found</h3>
             <p className="text-zinc-500 mb-6 max-w-sm mx-auto">Upload your first research paper, dataset, or image to get started.</p>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
             >
               <Upload className="w-4 h-4" />
               Upload File
@@ -201,7 +202,7 @@ export default function Resources() {
         ) : (
           <table className="col-span-full w-full text-left">
             <thead>
-              <tr className="border-b border-neutral-800">
+              <tr className="border-b border-[var(--color-border)]">
                 <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Resource</th>
                 <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Type</th>
                 <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Added</th>
@@ -210,7 +211,7 @@ export default function Resources() {
             </thead>
             <tbody>
               {filteredResources.map(resource => (
-                <tr key={resource.id} className="group border-b border-neutral-800/60 hover:bg-zinc-900/50 transition-colors">
+                <tr key={resource.id} className="group border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface)]/50 transition-colors">
                   {/* Icon + Name */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">

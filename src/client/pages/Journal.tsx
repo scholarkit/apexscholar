@@ -243,7 +243,7 @@ export default function Journal() {
         {!isEditing && (
           <button
             onClick={() => openEditor()}
-            className="w-full sm:w-fit mt-2 sm:mt-0 flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-colors  "
+            className="w-full sm:w-fit mt-2 sm:mt-0 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
             New Entry

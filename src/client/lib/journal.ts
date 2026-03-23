@@ -30,6 +30,17 @@ export const journalService = {
     /**
      * Journal Entries
      */
+    async getCount(): Promise<number> {
+        const res = await apiFetch(`${baseUrl}/count`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('supabase_token')}`,
+            },
+        });
+        if (!res.ok) return 0;
+        const data = await res.json();
+        return data.count || 0;
+    },
+
     async getEntries(projectId?: string): Promise<JournalEntry[]> {
         const res = await apiFetch(`${baseUrl}/${projectId || ''}`, {
             headers: {

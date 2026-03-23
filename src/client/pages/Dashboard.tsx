@@ -10,19 +10,19 @@ import { JournalEntry, journalService } from '../lib/journal';
 
 export default function Dashboard() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [projects, setProjects] = useState<unknown[]>([]);
+  const [resourcesCount, setResourcesCount] = useState<number>(0);
+  const [projectsCount, setProjectsCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '3m' | 'all'>('30d');
 
   useEffect(() => {
     const loadData = async () => {
       const entriesData = await journalService.getEntries();
-      const resourcesData = await resourcesService.listAll();
-      const projectsData = await projectService.getProjects();
+      const rCount = await resourcesService.getCount();
+      const pCount = await projectService.getCount();
       setEntries(entriesData);
-      setResources(resourcesData);
-      setProjects(projectsData);
+      setResourcesCount(rCount);
+      setProjectsCount(pCount);
       setLoading(false);
     };
     loadData();
@@ -39,9 +39,7 @@ export default function Dashboard() {
     );
   }
 
-  const lastActivity = entries.length > 0 ? entries[0].date : (resources.length > 0 ? resources[0].created_at : null);
-
-  // Analytics logic
+  const lastActivity = entries.length > 0 ? entries[0].date : null;  // Analytics logic
   const today = new Date();
   let startDate: Date;
 
@@ -116,7 +114,7 @@ export default function Dashboard() {
             </div>
             <h3 className="text-zinc-400 font-medium">Projects</h3>
           </div>
-          <p className="text-right sm:text-left text-4xl font-semibold">{projects.length}</p>
+          <p className="text-right sm:text-left text-4xl font-semibold">{projectsCount}</p>
         </Link>
 
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] p-3 sm:p-6 shadow-sm">
@@ -126,7 +124,7 @@ export default function Dashboard() {
             </div>
             <h3 className="text-zinc-400 font-medium">Resources</h3>
           </div>
-          <p className="text-right sm:text-left text-4xl font-semibold">{resources.length}</p>
+          <p className="text-right sm:text-left text-4xl font-semibold">{resourcesCount}</p>
         </div>
 
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] p-3 sm:p-6 shadow-sm">

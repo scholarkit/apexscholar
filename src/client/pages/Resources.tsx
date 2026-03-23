@@ -159,7 +159,7 @@ export default function Resources() {
           </div>
           <button
             onClick={() => setShowZoteroModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl font-medium transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl font-medium transition-colors"
           >
             <BookMarked className="w-4 h-4" />
             Import from Zotero
@@ -167,7 +167,7 @@ export default function Resources() {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl font-medium transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl font-medium transition-colors"
           >
             <Upload className="w-4 h-4" />
             {uploading ? 'Uploading...' : 'Upload File'}
@@ -198,84 +198,97 @@ export default function Resources() {
             </button>
           </div>
         ) : (
-          <table className="col-span-full w-full text-left">
-            <thead>
-              <tr className="border-b border-[var(--color-border)]">
-                <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Resource</th>
-                <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Type</th>
-                <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Added</th>
-                <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredResources.map(resource => (
-                <tr key={resource.id} className="group border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface)]/50 transition-colors">
-                  {/* Icon + Name */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="shrink-0">
-                        {getIcon(resource.type)}
-                      </div>
-                      <p className="text-sm font-medium truncate max-w-[200px]" title={resource.name}>
-                        {resource.name}
-                      </p>
-                    </div>
-                  </td>
-
-                  {/* Type */}
-                  <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
-                    {resource.type}
-                  </td>
-
-                  {/* Date Added */}
-                  <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
-                    {formatDistanceToNow(new Date(resource.created_at || new Date()), { addSuffix: true })}
-                  </td>
-
-                  {/* Actions */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <a
-                        href={resource?.url || resource.metadata?.openUrl || downloadUrls[resource.id] || '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-300 hover:bg-indigo-400/10 px-2 py-1.5 rounded-lg transition-colors font-medium"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        Open
-                      </a>
-                      <button
-                        onClick={() => setChattingWith(resource)}
-                        className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 px-2 py-1.5 rounded-lg transition-colors"
-                        title="Chat with AI about this file"
-                      >
-                        <MessagesSquare className="w-3.5 h-3.5" />
-                        Chat
-                      </button>
-                      <button
-                        onClick={() => setCitingResource(resource)}
-                        className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 px-2 py-1.5 rounded-lg transition-colors"
-                        title="Cite this resource"
-                      >
-                        <Quote className="w-3.5 h-3.5" />
-                        Cite
-                        <span className="text-[10px] ml-0.5 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-500 font-bold uppercase tracking-wider">
-                          Beta
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(resource.id, resource.path)}
-                        className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors ml-1"
-                        title="Delete resource"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
+          <div className="col-span-full w-full overflow-x-auto rounded-lg">
+            <table className="w-full min-w-[320px] text-left">
+              <thead>
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Resource</th>
+                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider hidden sm:table-cell">Type</th>
+                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider hidden md:table-cell">Added</th>
+                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredResources.map(resource => (
+                  <tr key={resource.id} className="group border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface)]/50 transition-colors">
+
+                    {/* Icon + Name */}
+                    <td className="px-4 py-3 max-w-[140px] sm:max-w-[200px]">
+                      <div className="flex items-center gap-3">
+                        <div className="shrink-0">{getIcon(resource.type)}</div>
+                        <p className="text-sm font-medium truncate" title={resource.name}>
+                          {resource.name}
+                        </p>
+                      </div>
+                    </td>
+
+                    {/* Type — hidden on mobile */}
+                    <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap hidden sm:table-cell">
+                      {resource.type}
+                    </td>
+
+                    {/* Date Added — hidden on mobile + tablet */}
+                    <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap hidden md:table-cell">
+                      {formatDistanceToNow(new Date(resource.created_at || new Date()), { addSuffix: true })}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+
+                        {/* Open */}
+                        <a
+                          href={resource?.url || resource.metadata?.openUrl || downloadUrls[resource.id] || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Open"
+                          className="flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-300 hover:bg-indigo-400/10 px-2 py-1.5 rounded-lg transition-colors font-medium"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Open</span>
+                        </a>
+
+                        {/* Chat */}
+                        <button
+                          onClick={() => setChattingWith(resource)}
+                          title="Chat with AI about this file"
+                          className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 px-2 py-1.5 rounded-lg transition-colors"
+                        >
+                          <MessagesSquare className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Chat</span>
+                        </button>
+
+                        {/* Cite */}
+                        <button
+                          onClick={() => setCitingResource(resource)}
+                          title="Cite this resource"
+                          className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 px-2 py-1.5 rounded-lg transition-colors"
+                        >
+                          <Quote className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">
+                            Cite
+                            <span className="text-[10px] ml-0.5 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-500 font-bold uppercase tracking-wider">
+                              Beta
+                            </span>
+                          </span>
+                        </button>
+
+                        {/* Delete */}
+                        <button
+                          onClick={() => handleDelete(resource.id, resource.path)}
+                          title="Delete resource"
+                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors ml-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

@@ -19,6 +19,21 @@ journalRouter.get("/", requireAuth, async (req, res) => {
     }
 });
 
+journalRouter.get("/count", requireAuth, async (req, res) => {
+    try {
+        const user = (req as any).user;
+        const { count, error } = await supabaseAdmin
+            .from("journal_entries")
+            .select("*", { count: 'exact', head: true })
+            .eq("author_id", user.id);
+        if (error) throw error;
+        res.json({ count: count || 0 });
+    } catch (err: any) {
+        console.error("Journal count error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 journalRouter.get("/:id", requireAuth, async (req, res) => {
     try {
         const user = (req as any).user;

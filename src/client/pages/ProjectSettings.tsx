@@ -46,9 +46,7 @@ function SectionCard({
         <div
             className={`rounded-xl border p-6 ${danger
                 ? 'border-red-500/20 bg-red-500/5'
-                : comingSoon
-                    ? 'border-[var(--color-border)] bg-neutral-900/50 opacity-60'
-                    : 'border-[var(--color-border)] bg-neutral-900'
+                : 'border-[var(--color-border)] bg-[var(--color-surface)]'
                 }`}
         >
             <div className="flex items-start justify-between mb-4">
@@ -77,7 +75,7 @@ function SectionCard({
             </div>
             {children && !comingSoon && <div>{children}</div>}
             {comingSoon && (
-                <div className="h-16 rounded-lg bg-zinc-800/50 border border-dashed border-zinc-700 flex items-center justify-center">
+                <div className="h-16 rounded-lg bg-[var(--color-surface-2)] border border-dashed border-zinc-700 flex items-center justify-center">
                     <p className="text-xs text-zinc-600">
                         This feature is not available yet — stay tuned.
                     </p>
@@ -219,10 +217,10 @@ export default function ProjectSettings() {
                 <div>
                     <div className="flex items-center gap-2">
                         <Settings className="w-5 h-5 text-indigo-400" />
-                        <h1 className="text-2xl font-semibold text-white">Project Settings</h1>
+                        <h1 className="text-2xl font-semibold">Project Settings</h1>
                     </div>
                     <p className="text-sm text-zinc-500 ml-7">
-                        <span className="text-indigo-300/70 font-medium">{activeProject.name}</span>
+                        <span className="text-[var(--color-accent)] font-medium">{activeProject.name}</span>
                     </p>
                 </div>
             </header>
@@ -241,7 +239,7 @@ export default function ProjectSettings() {
                         <input
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-zinc-800/50 border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow"
+                            className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow"
                             placeholder="Project name"
                             required
                         />
@@ -253,7 +251,7 @@ export default function ProjectSettings() {
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="w-full bg-zinc-800/50 border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-24 resize-none transition-shadow"
+                            className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 h-24 resize-none transition-shadow"
                             placeholder="Briefly describe the research scope..."
                         />
                     </div>
@@ -266,7 +264,7 @@ export default function ProjectSettings() {
                                 <select
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value as Project['status'])}
-                                    className="w-full appearance-none bg-zinc-800/50 border border-[var(--color-border)] rounded-xl pl-4 pr-10 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-[var(--color-surface)] transition-colors [color-scheme:dark]"
+                                    className="w-full appearance-none bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-[var(--color-surface-2)] transition-colors [color-scheme:dark]"
                                 >
                                     {STATUS_OPTIONS.map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -286,7 +284,7 @@ export default function ProjectSettings() {
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="w-full bg-zinc-800/50 border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
+                                    className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
                                 />
                             </div>
                         </div>
@@ -298,7 +296,7 @@ export default function ProjectSettings() {
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="w-full bg-zinc-800/50 border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
+                                    className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
                                 />
                             </div>
                         </div>
@@ -331,7 +329,7 @@ export default function ProjectSettings() {
                 icon={<Tag className="w-4 h-4" />}
             >
                 <div className="space-y-4">
-                    <div className="flex flex-wrap items-center gap-2 w-full bg-zinc-800/50 border border-[var(--color-border)] rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-indigo-500/50 min-h-[44px]">
+                    <div className="flex flex-wrap items-center gap-2 w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-indigo-500/50 min-h-[44px]">
                         {tags.map(tag => (
                             <span
                                 key={tag}
@@ -401,7 +399,7 @@ export default function ProjectSettings() {
                 {!showDeleteConfirm ? (
                     <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-red-500/5 border border-red-500/10">
                         <div>
-                            <p className="text-sm font-medium text-white">Delete this project</p>
+                            <p className="text-sm font-medium">Delete this project</p>
                             <p className="text-xs text-zinc-500 mt-0.5">
                                 Permanently removes the project and all associated research data.
                             </p>
@@ -428,7 +426,7 @@ export default function ProjectSettings() {
                             autoFocus
                             value={deleteInput}
                             onChange={(e) => setDeleteInput(e.target.value)}
-                            className="w-full bg-zinc-800/50 border border-red-500/30 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm"
+                            className="w-full bg-[var(--color-surface)] border border-red-500/30 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm"
                             placeholder={activeProject.name}
                         />
                         <div className="flex items-center gap-3">

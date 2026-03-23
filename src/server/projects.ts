@@ -20,6 +20,22 @@ projectsRouter.get("/", requireAuth, async (req, res) => {
     }
 });
 
+// Get project count for the authenticated user
+projectsRouter.get("/count", requireAuth, async (req, res) => {
+    try {
+        const user = (req as any).user;
+        const { count, error } = await supabaseAdmin
+            .from("projects")
+            .select("*", { count: 'exact', head: true })
+            .eq('owner_id', user.id);
+        if (error) throw error;
+        res.json({ count: count || 0 });
+    } catch (err: any) {
+        console.error("Projects count error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Get a single project by id, ensuring ownership
 projectsRouter.get("/:id", requireAuth, async (req, res) => {
     try {

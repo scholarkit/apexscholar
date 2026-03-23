@@ -21,6 +21,23 @@ resourcesRouter.get('/', requireAuth, async (req, res) => {
     }
 })
 
+resourcesRouter.get('/count', requireAuth, async (req, res) => {
+    try {
+        const user = (req as any).user;
+        const { count, error } = await supabaseAdmin
+            .from('resources')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id);
+        if (error) {
+            return res.status(500).json({ error: 'Failed to fetch resource count' });
+        }
+        res.json({ count: count || 0 });
+    } catch (error) {
+        console.error('Error fetching resource count:', error);
+        res.status(500).json({ error: 'Failed to fetch resource count' });
+    }
+});
+
 resourcesRouter.get('/:id', requireAuth, async (req, res) => {
     try {
         const user = (req as any).user;

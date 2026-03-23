@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo, useCallback, useRef } from 'react';
 import { Plus, FolderGit, LayoutDashboard, BookOpen, FolderSearch, SquareKanban, Lightbulb, ChevronRight, Settings, FolderOpen, PenTool, ChevronDown, X, Calendar } from 'lucide-react';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
@@ -54,6 +54,43 @@ const MODULES = [
         path: '/composr'
     }
 ];
+
+const COLOR_MAP: Record<string, { bg: string; text: string; glow: string; glowHover: string }> = {
+    teal:    { bg: 'bg-teal-500/10',    text: 'text-teal-400',    glow: 'bg-teal-500/5',  glowHover: 'bg-teal-500/10'    },
+    blue:    { bg: 'bg-blue-500/10',    text: 'text-blue-400',    glow: 'bg-blue-500/5',  glowHover: 'bg-blue-500/10'    },
+    emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', glow: 'bg-emerald-500/5', glowHover: 'bg-emerald-500/10' },
+    orange:  { bg: 'bg-orange-500/10',  text: 'text-orange-400',  glow: 'bg-orange-500/5',  glowHover: 'bg-orange-500/10'  },
+    indigo:  { bg: 'bg-indigo-500/10',  text: 'text-indigo-400',  glow: 'bg-indigo-500/5',  glowHover: 'bg-indigo-500/10'  },
+    purple:  { bg: 'bg-purple-500/10',  text: 'text-purple-400',  glow: 'bg-purple-500/5',  glowHover: 'bg-purple-500/10'  },
+};
+
+const ModuleCard = memo(function ModuleCard({
+    module,
+    onClick,
+}: {
+    module: typeof MODULES[0];
+    onClick: (path: string) => void;
+}) {
+    const colors = COLOR_MAP[module.color] || COLOR_MAP.indigo;
+    const handleClick = useCallback(() => onClick(module.path), [onClick, module.path]);
+
+    return (
+        <button
+            onClick={handleClick}
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] shadow-sm group p-3 sm:p-6 hover:bg-[var(--color-surface-hover)] hover:border-indigo-500/30 transition-all text-left relative overflow-hidden backdrop-blur-sm"
+        >
+            <div className={`absolute top-0 right-0 w-24 h-24 ${colors.glow} blur-3xl rounded-full -mr-8 -mt-8 group-hover:${colors.glowHover} transition-colors will-change-transform`} />
+            <div className="flex items-start justify-between mb-4 relative z-10">
+                <div className={`p-3 ${colors.bg} rounded-xl group-hover:scale-110 transition-transform duration-300`}>
+                    <div className={colors.text}>{module.icon}</div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-zinc-400 transition-colors" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2 relative z-10">{module.name}</h3>
+            <p className="text-sm text-zinc-500 leading-relaxed relative z-10">{module.description}</p>
+        </button>
+    );
+});
 
 interface CreateProjectModalProps {
     isOpen: boolean;
@@ -223,9 +260,11 @@ export default function Projects() {
     const navigate = useNavigate();
     const [isCreating, setIsCreating] = useState(false);
 
-    const { trackEvent } = useMemory();
+    const memoryRef = useRef(useMemory());
 
-    const handleCreateProject = async (data: { name: string; description: string; tags: string[]; startDate: string }) => {
+    const handleNavigate = useCallback((path: string) => navigate(path), [navigate]);
+
+    const handleCreateProject = useCallback(async (data: { name: string; description: string; tags: string[]; startDate: string }) => {
         try {
             const newProject = await createProject({
                 name: data.name,
@@ -235,7 +274,7 @@ export default function Projects() {
             });
 
             // Track project creation in memory
-            trackEvent('project', 'create', {
+            memoryRef.current.trackEvent('project', 'create', {
                 projectName: data.name,
                 projectDescription: data.description,
                 projectTags: data.tags,
@@ -250,7 +289,7 @@ export default function Projects() {
             console.error('Failed to create project:', error);
             throw error;
         }
-    };
+    }, [createProject, setActiveProject]);
 
     if (loading) {
         return (
@@ -267,7 +306,7 @@ export default function Projects() {
         <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
             {/* Header */}
             <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+                <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none will-change-transform" />
                 <div>
                     <h1 className="text-2xl font-semibold mb-2">Research Projects</h1>
                     <p className="text-base text-zinc-400">Organize and manage your research workspaces.</p>
@@ -285,8 +324,8 @@ export default function Projects() {
             {projects.length > 0 ? (
                 <div className="space-y-4 sm:space-y-8">
                     {/* Active Project Card & Switcher */}
-                    <div className="bg-[var(--color-surface-2)] border border-indigo-500/20 rounded-xl p-3 sm:p-6 sm:p-8 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none -mr-32 -mt-32" />
+                    <div className="border border-[var(--color-border)] rounded-xl p-3 sm:p-6 sm:p-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none -mr-32 -mt-32 will-change-transform" />
 
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
                             <div className="flex-1 space-y-4">
@@ -367,30 +406,7 @@ export default function Projects() {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {MODULES.map((module) => (
-                                    <button
-                                        key={module.id}
-                                        onClick={() => navigate(module.path)}
-                                        className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] shadow-sm group p-3 sm:p-6 border hover:bg-[var(--color-surface-hover)] hover:border-indigo-500/30 transition-all text-left backdrop-blur-sm relative overflow-hidden"
-                                    >
-                                        <div className={`absolute top-0 right-0 w-24 h-24 bg-${module.color}-500/5 blur-3xl rounded-full -mr-8 -mt-8 group-hover:bg-${module.color}-500/10 transition-colors`} />
-
-                                        <div className="flex items-start justify-between mb-4 relative z-10">
-                                            <div className={`p-3 bg-${module.color}-500/10 rounded-xl group-hover:scale-110 transition-transform duration-300`}>
-                                                <div className={
-                                                    module.color === 'blue' ? 'text-blue-400' :
-                                                        module.color === 'emerald' ? 'text-emerald-400' :
-                                                            module.color === 'orange' ? 'text-orange-400' :
-                                                                module.color === 'teal' ? 'text-teal-400' :
-                                                                    'text-indigo-400'
-                                                }>
-                                                    {module.icon}
-                                                </div>
-                                            </div>
-                                            <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-zinc-400 transition-colors" />
-                                        </div>
-                                        <h3 className="text-lg font-semibold mb-2 relative z-10">{module.name}</h3>
-                                        <p className="text-sm text-zinc-500 leading-relaxed relative z-10">{module.description}</p>
-                                    </button>
+                                    <ModuleCard key={module.id} module={module} onClick={handleNavigate} />
                                 ))}
                             </div>
                         </div>
@@ -420,11 +436,13 @@ export default function Projects() {
             )}
 
             {/* Modal */}
-            <CreateProjectModal
-                isOpen={isCreating}
-                onClose={() => setIsCreating(false)}
-                onCreate={handleCreateProject}
-            />
+            {isCreating && (
+                <CreateProjectModal
+                    isOpen={isCreating}
+                    onClose={() => setIsCreating(false)}
+                    onCreate={handleCreateProject}
+                />
+            )}
         </div>
     );
 }

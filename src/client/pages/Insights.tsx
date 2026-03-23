@@ -228,7 +228,7 @@ SUMMARY:`;
         <button
           onClick={generateInsights}
           disabled={loading}
-          className="mt-2 sm:mt-0 w-full sm:w-fit flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl font-medium transition-colors  "
+          className="mt-2 sm:mt-0 w-full sm:w-fit flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl font-medium transition-colors  "
         >
           {loading ? (
             <RefreshCw className="w-4 h-4 animate-spin" />

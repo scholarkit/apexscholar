@@ -17,6 +17,7 @@ import { journalRouter } from './journal.ts';
 import { resourcesRouter } from './resources.ts';
 import { grantRouter } from './grants.ts';
 import { exploreRouter } from './explore.ts';
+import { brainRouter } from './brain.ts';
 
 const PORT = 3000;
 
@@ -41,6 +42,7 @@ app.use('/api/journal', journalRouter);
 app.use('/api/resources', resourcesRouter);
 app.use('/api/funding', grantRouter);
 app.use('/api/explore', exploreRouter);
+app.use('/api/brain', brainRouter);
 
 // Global error handler
 app.use(errorHandler);

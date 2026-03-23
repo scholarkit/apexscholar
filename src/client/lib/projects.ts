@@ -1,5 +1,4 @@
 import { kv } from './kv';
-import { auth } from './auth';
 
 const provider = import.meta.env.VITE_PROVIDER;
 
@@ -30,6 +29,22 @@ const PROJECTS_KEY = 'research_projects';
 const baseUrl = '/api/projects'
 
 export const projectService = {
+    async getCount(): Promise<number> {
+        if (provider === 'supabase') {
+            const token = localStorage.getItem('supabase_token');
+            const res = await fetch(`${baseUrl}/count`, {
+                headers: {
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+            });
+            if (!res.ok) return 0;
+            const data = await res.json();
+            return data.count || 0;
+        }
+        const projects = await kv.get(PROJECTS_KEY);
+        return (projects || []).length;
+    },
+
     async getProjects(): Promise<Project[]> {
         if (provider === 'supabase') {
             const token = localStorage.getItem('supabase_token');

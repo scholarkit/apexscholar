@@ -25,6 +25,15 @@ export interface Resource {
 const getToken = () => localStorage.getItem('supabase_token') || '';
 
 export const resourcesService = {
+    async getCount(): Promise<number> {
+        const res = await apiFetch(`/api/resources/count`, {
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        if (!res.ok) return 0;
+        const data = await res.json();
+        return data.count || 0;
+    },
+
     async listAll(): Promise<Resource[]> {
         const res = await apiFetch(`/api/resources`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }

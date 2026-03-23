@@ -256,7 +256,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 to={item.path}
                 className={cn(
                   "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group",
-                  isActive ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                  isActive ? "bg-white/10" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                 )}
               >
                 <Icon className={cn(

@@ -222,7 +222,7 @@ export default function Funding() {
             <div className="space-y-6">
                 {/* Toolbar */}
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div className="flex flex-col sm:flex-row gap-1 p-1 bg-[var(--color-surface)] border border-[var(--color-border)] p-1 rounded-xl w-fit">
+                    <div className="flex flex-col sm:flex-row gap-1 p-1 bg-[var(--color-surface)] border border-[var(--color-border)] p-1 rounded-xl sm:w-fit">
                         {(['overview', 'requirements', 'budget'] as const).map(tab => (
                             <button
                                 key={tab}

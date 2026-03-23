@@ -101,7 +101,9 @@ export default function Journal() {
         project_id: activeProject?.id,
         date: finalDate,
         content: currentEntry.content,
-        type: currentEntry.type
+        type: currentEntry.type,
+        start_date: currentEntry.type === 'weekly' ? currentEntry.start_date : (currentEntry.date || currentEntry.start_date),
+        end_date: currentEntry.type === 'weekly' ? currentEntry.end_date : (currentEntry.date || currentEntry.end_date)
       };
 
       if (isNew) {
@@ -148,7 +150,8 @@ export default function Journal() {
       setCurrentEntry({
         type: 'daily',
         start_date: today,
-        end_date: today
+        end_date: today,
+        date: today
       });
     }
     // Stop any active recording when switching entries

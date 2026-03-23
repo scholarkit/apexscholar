@@ -169,7 +169,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <span className="animate-in fade-in slide-in-from-left-1 duration-300">Nexus</span>
             )}
             {!isCollapsed && (
-              <kbd className="ml-auto text-[10px] text-zinc-600 bg-[var(--color-surface)] px-1.5 py-0.5 rounded font-mono border border-white/5">⌘B</kbd>
+              <kbd className="ml-auto text-[10px] text-zinc-600 bg-[var(--color-surface)] px-1.5 py-0.5 rounded font-mono border border-white/5">⌘ B</kbd>
             )}
           </button>
         </div>

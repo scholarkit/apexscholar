@@ -63,7 +63,7 @@ export default function Dashboard() {
 
   const activityData = intervalDays.map(date => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const count = entries.filter(e => e.start_date === dateStr).length;
+    const count = entries.filter(e => format(parseEntryDate(e.date), 'yyyy-MM-dd') === dateStr).length;
     return {
       date: format(date, timeRange === '7d' ? 'EEE' : 'MMM d'),
       count,

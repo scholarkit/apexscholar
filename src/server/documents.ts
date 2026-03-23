@@ -4,7 +4,7 @@ import { supabaseAdmin } from './supabase.ts';
 
 export const documentsRouter = Router();
 
-documentsRouter.get("/documents", requireAuth, async (req, res) => {
+documentsRouter.get("/", requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     const { project_id } = req.query;
@@ -24,7 +24,7 @@ documentsRouter.get("/documents", requireAuth, async (req, res) => {
   }
 });
 
-documentsRouter.post("/documents", requireAuth, async (req, res) => {
+documentsRouter.post("/", requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     const { project_id, title, type } = req.body;
@@ -43,7 +43,7 @@ documentsRouter.post("/documents", requireAuth, async (req, res) => {
   }
 });
 
-documentsRouter.put("/documents/:id", requireAuth, async (req, res) => {
+documentsRouter.put("/:id", requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     const { id } = req.params;
@@ -68,7 +68,7 @@ documentsRouter.put("/documents/:id", requireAuth, async (req, res) => {
   }
 });
 
-documentsRouter.delete("/documents/:id", requireAuth, async (req, res) => {
+documentsRouter.delete("/:id", requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     const { id } = req.params;

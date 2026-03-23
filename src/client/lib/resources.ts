@@ -11,9 +11,9 @@ export interface Resource {
     abstract: string;
     doi?: string;
     url?: string;
-    year?: string;
+    year?: number;
     journal?: string;
-    authros?: any[];
+    authors?: any[];
     path?: string;
     metadata?: any;
     zotero_version?: string;

@@ -15,7 +15,7 @@ export const storage = {
     async write(path: string, content: any, options?: any) {
         let body: any = content;
         let contentType = 'application/octet-stream';
-        
+
         if (content instanceof File || content instanceof Blob) {
             body = await content.arrayBuffer();
             contentType = content.type || contentType;
@@ -25,6 +25,16 @@ export const storage = {
             body = JSON.stringify(content);
             contentType = 'application/json';
         }
+
+        const mimeMap: any = {
+            pdf: 'application/pdf',
+            png: 'image/png',
+            jpg: 'image/jpeg',
+            jpeg: 'image/jpeg'
+        };
+
+        const ext = path.split('.').pop()?.toLowerCase();
+        contentType = mimeMap[ext] || 'application/octet-stream';
 
         const res = await apiFetch(`/api/storage/write?path=${encodeURIComponent(path)}`, {
             method: 'POST',
@@ -43,17 +53,17 @@ export const storage = {
 
     async read(path: string) {
         const url = await this.getReadURL(path);
-        
+
         // Fetch the actual content from the signed URL
         const contentRes = await fetch(url);
         if (!contentRes.ok) throw new Error('Failed to fetch file content');
-        
+
         const contentType = contentRes.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
             return await contentRes.json();
         } else if (contentType.includes('text/')) {
             const text = await contentRes.text();
-            return text; 
+            return text;
         }
         return await contentRes.blob();
     },

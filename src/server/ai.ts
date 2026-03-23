@@ -24,9 +24,9 @@ aiRouter.post("/chat", async (req, res) => {
     const { messages, options } = req.body;
     const model = options?.model || "google/gemini-2.5-flash"; // default fallback
 
-    const formattedMessages = messages.map((m: string) => ({
-      role: "user",
-      content: m,
+    const formattedMessages = messages.map((m: { role: string; content: string }) => ({
+      role: m.role,
+      content: m.content,
     }));
 
     const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {

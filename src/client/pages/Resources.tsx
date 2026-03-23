@@ -5,10 +5,8 @@ import { storage } from '../lib/storage';
 import CitationModal from '../components/CitationModal';
 import FileChatModal from '../components/FileChatModal';
 import { useProject } from '../contexts/ProjectContext';
-import { useMemory } from '../hooks/useMemory';
 import Breadcrumbs from '../components/Breadcrumbs';
 import ZoteroImportModal from '../components/ZoteroImportModal';
-import { kv } from '../lib/kv';
 import { resourcesService, type Resource } from '../lib/resources';
 
 export default function Resources() {
@@ -24,7 +22,7 @@ export default function Resources() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
 
-  const UPLOADS_DIR = 'research-dashboard/uploads';
+  const UPLOADS_DIR = 'resources/uploads';
 
   useEffect(() => {
     fetchResources();
@@ -121,7 +119,7 @@ export default function Resources() {
     if (type.includes('pdf')) return <FileText className={classes} />;
     if (type.includes('image')) return <ImageIcon className={classes} />;
     if (type.includes('text')) return <FileText className={classes} />;
-    return <File className="w-8 h-8 text-zinc-400" />;
+    return <File className="w-4 h-4 text-zinc-400" />;
   };
 
   const filteredResources = resources.filter(r =>
@@ -145,7 +143,7 @@ export default function Resources() {
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
-          <h1 className="text-2xl font-semibold text-white">Resource Library</h1>
+          <h1 className="text-2xl font-semibold">Resource Library</h1>
           <p className="text-base text-zinc-400">Manage your PDFs, images, and text files.</p>
         </div>
         <div className="w-full sm:w-fit flex flex-col sm:flex-row gap-3 mt-2 sm:mt-0">
@@ -156,7 +154,7 @@ export default function Resources() {
               placeholder="Search files..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 w-full sm:w-64"
+              className="pl-9 pr-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 w-full sm:w-64"
             />
           </div>
           <button
@@ -189,11 +187,11 @@ export default function Resources() {
         {filteredResources.length === 0 ? (
           <div className="col-span-full text-center py-10 sm:py-20 border border-dashed border-[var(--color-border)] rounded-xl bg-[var(--color-surface)]/20">
             <FolderOpen className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">No resources found</h3>
+            <h3 className="text-lg font-medium mb-2">No resources found</h3>
             <p className="text-zinc-500 mb-6 max-w-sm mx-auto">Upload your first research paper, dataset, or image to get started.</p>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-xl font-medium transition-colors hover:cursor-pointer"
             >
               <Upload className="w-4 h-4" />
               Upload File
@@ -218,7 +216,7 @@ export default function Resources() {
                       <div className="shrink-0">
                         {getIcon(resource.type)}
                       </div>
-                      <p className="text-white text-sm font-medium truncate max-w-[200px]" title={resource.name}>
+                      <p className="text-sm font-medium truncate max-w-[200px]" title={resource.name}>
                         {resource.name}
                       </p>
                     </div>

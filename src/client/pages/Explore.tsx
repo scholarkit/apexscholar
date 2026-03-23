@@ -546,7 +546,7 @@ function InsightPanel({
                         <span className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">{field}</span>
                         {isEditing ? (
                             <textarea value={localInsight[field] as string} onChange={e => handleFieldChange(field, e.target.value)} className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] p-2 text-xs text-white rounded outline-none min-h-[60px]" />
-                        ) : <p className="text-white bg-white/5 p-2 rounded-xl leading-relaxed text-xs">{localInsight[field] as string || '—'}</p>}
+                        ) : <p className="text-white bg-[var(--color-border)] p-2 rounded-xl leading-relaxed text-xs">{localInsight[field] as string || '—'}</p>}
                     </div>
                 ))}
 
@@ -601,7 +601,7 @@ function SourceScanner({ statuses }: { statuses: SourceStatus[] }) {
                         className={`p-3 rounded-xl border transition-all duration-300 flex items-center justify-between ${s.status === 'loading' ? 'bg-indigo-500/5 border-indigo-500/30' :
                             s.status === 'done' ? 'bg-emerald-500/5 border-emerald-500/20' :
                                 s.status === 'error' ? 'bg-red-500/5 border-red-500/20' :
-                                    'bg-[var(--color-surface)] border-white/5 opacity-50'
+                                    'bg-[var(--color-surface)] border-[var(--color-border)] opacity-50'
                             }`}
                     >
                         <div className="flex items-center gap-3">
@@ -1311,17 +1311,17 @@ export default function Explore() {
                     {!loading && !error && results.length === 0 && (
                         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             {!loadingRecs && recommendations.length === 0 &&
-                                <div className="text-center py-20 border border-white/5 rounded-2xl bg-gradient-to-b from-white/[0.02] to-transparent backdrop-blur-sm relative overflow-hidden group">
+                                <div className="text-center py-20 border border-[var(--color-border)] rounded-2xl bg-gradient-to-b from-white/[0.02] to-transparent backdrop-blur-sm relative overflow-hidden group">
                                     <div className="absolute inset-0 bg-indigo-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                                     <Telescope className="w-12 h-12 text-zinc-700 mx-auto mb-6 group-hover:text-indigo-500/50 transition-colors duration-500" />
-                                    <h3 className="text-xl font-semibold text-white mb-3">Your research journey starts here</h3>
+                                    <h3 className="text-xl font-semibold mb-3">Your research journey starts here</h3>
                                     <p className="text-sm text-zinc-500 max-w-md mx-auto leading-relaxed px-6">
                                         Enter a topic, DOI, or author name above to scan humanity's collective knowledge across all major scientific repositories.
                                     </p>
                                     <div className="mt-8 flex justify-center gap-4 text-[10px] font-bold uppercase tracking-widest text-zinc-600">
-                                        <span className="px-3 py-1 border border-white/5 rounded-full">300M+ Papers</span>
-                                        <span className="px-3 py-1 border border-white/5 rounded-full">Real-time Insights</span>
-                                        <span className="px-3 py-1 border border-white/5 rounded-full">Instant Citations</span>
+                                        <span className="px-3 py-1 border border-[var(--color-border)] rounded-full">300M+ Papers</span>
+                                        <span className="px-3 py-1 border border-[var(--color-border)] rounded-full">Real-time Insights</span>
+                                        <span className="px-3 py-1 border border-[var(--color-border)] rounded-full">Instant Citations</span>
                                     </div>
                                 </div>
                             }
@@ -1387,7 +1387,7 @@ export default function Explore() {
                     {savedPapers.length === 0 ? (
                         <div className="text-center py-20 border border-dashed border-[var(--color-border)] rounded-xl bg-[var(--color-surface)]/20">
                             <Bookmark className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-white mb-2">No papers saved yet</h3>
+                            <h3 className="text-lg font-medium mb-2">No papers saved yet</h3>
                             <p className="text-zinc-500 text-sm max-w-sm mx-auto">Search for papers and click <strong>Import</strong> to add them here.</p>
                             <button onClick={() => setActiveTab('search')}
                                 className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-medium transition-colors"

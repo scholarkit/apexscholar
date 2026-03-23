@@ -8,7 +8,7 @@ import { kv } from '../lib/kv';
 import { useNavigate } from 'react-router-dom';
 import { resourcesService } from '../lib/resources';
 
-const UPLOADS_DIR = 'research-dashboard/uploads';
+const UPLOADS_DIR = 'resources/uploads';
 
 
 interface ZoteroImportModalProps {
@@ -109,7 +109,6 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
         const path = `${UPLOADS_DIR}/${filename}`;
 
         return {
-          id: `zotero_${item.key}`,
           project_id: activeProject.id,
           name: resolveTitle(d),
           source: 'zotero',
@@ -128,7 +127,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
         };
       };
 
-      const mappedResources: Resource[] = allItems.map(mapZoteroItem).filter(Boolean);
+      const mappedResources: Partial<Resource>[] = allItems.map(mapZoteroItem).filter(Boolean);
       setImportProgress('Saving resources to storage...');
 
       for (const res of mappedResources) {
@@ -161,7 +160,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
-          <h2 className="text-lg font-semibold text-white">Import from Zotero</h2>
+          <h2 className="text-lg font-semibold">Import from Zotero</h2>
           <button
             onClick={onClose}
             className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
@@ -181,7 +180,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
               <label className="block text-xs font-medium text-zinc-500 mb-2 uppercase tracking-wider">
                 Select Collection
               </label>
-              <div className="p-2 bg-black/40 border border-[var(--color-border)] rounded-xl space-y-1 max-h-[240px] overflow-y-auto custom-scrollbar">
+              <div className="p-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl space-y-1 max-h-[240px] overflow-y-auto custom-scrollbar">
                 {isLoading ? (
                   <div className="flex flex-col items-center justify-center py-6 text-zinc-500">
                     <Loader2 className="w-6 h-6 animate-spin mb-2" />
@@ -199,7 +198,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
                     <div
                       className={`flex items-center gap-3 text-sm p-2.5 rounded-lg cursor-pointer transition-colors ${selectedCollection === 'library'
                         ? 'bg-indigo-500/10 text-indigo-400'
-                        : 'text-zinc-300 hover:bg-white/5'
+                        : 'text-[var(--color-text-faint)] hover:bg-white/5'
                         }`}
                       onClick={() => setSelectedCollection('library')}
                     >
@@ -220,7 +219,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
                           key={id}
                           className={`flex items-center gap-3 text-sm pl-8 p-2.5 rounded-lg cursor-pointer transition-colors ${isSelected
                             ? 'bg-indigo-500/10 text-indigo-400'
-                            : 'text-zinc-300 hover:bg-white/5'
+                            : 'text-[var(--color-text-faint)] hover:bg-white/5'
                             }`}
                           onClick={() => setSelectedCollection(id)}
                         >

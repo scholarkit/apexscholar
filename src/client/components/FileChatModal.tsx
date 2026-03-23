@@ -98,10 +98,10 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
 
             // Save to KV
             await kv.set(HISTORY_KEY, finalMessages);
-            
+
             // Track chat interaction in memory
-            supermemory.addMemory(`[resource] chat: file=${resource.name}, userMessageLength=${userMessage.length}, aiResponseLength=${fullResponse.length}`, { 
-                module: 'resource', 
+            supermemory.addMemory(`[resource] chat: file=${resource.name}, userMessageLength=${userMessage.length}, aiResponseLength=${fullResponse.length}`, {
+                module: 'resource',
                 action: 'chat',
                 fileName: resource.name,
                 fileId: resource.id,
@@ -128,7 +128,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-zinc-950 border border-[var(--color-border)] w-full max-w-2xl h-[80vh] flex flex-col rounded-xl animate-in zoom-in-95 duration-200">
+            <div className="bg-[var(--color-surface)] border border-[var(--color-border)] w-full max-w-2xl h-[80vh] flex flex-col rounded-xl animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
                     <div className="flex items-center gap-3">
@@ -136,7 +136,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                             <Bot className="w-5 h-5 text-indigo-400" />
                         </div>
                         <div>
-                            <h2 className="text-sm font-semibold text-white truncate max-w-[200px] sm:max-w-md">
+                            <h2 className="text-sm font-semibold truncate max-w-[200px] sm:max-w-md">
                                 Chat with {resource.name}
                             </h2>
                             <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">AI Assistant</p>
@@ -154,7 +154,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                         )}
                         <button
                             onClick={onClose}
-                            className="p-2 text-zinc-500 hover:text-white transition-colors"
+                            className="p-2 text-zinc-500 hover:text-[var(--color-muted)] transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -173,7 +173,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                             <div className="w-12 h-12 bg-indigo-500/5 rounded-xl flex items-center justify-center mb-4 border border-indigo-500/10">
                                 <Bot className="w-6 h-6 text-indigo-400" />
                             </div>
-                            <h3 className="text-white font-medium mb-1">Upload successful</h3>
+                            <h3 className="font-medium mb-1">Upload successful</h3>
                             <p className="text-xs text-zinc-500 max-w-[280px]">
                                 I've indexed **{resource.name}**. Ask me questions about its content, purpose, or data.
                             </p>
@@ -223,7 +223,7 @@ export default function FileChatModal({ resource, onClose }: FileChatModalProps)
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             disabled={loading}
-                            className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl pl-4 pr-12 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all disabled:opacity-50"
+                            className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl pl-4 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all disabled:opacity-50"
                         />
                         <button
                             type="submit"

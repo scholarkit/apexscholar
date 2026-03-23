@@ -552,7 +552,7 @@ export default function Settings() {
             <p className="text-sm text-zinc-400">Connect Zotero and other research tools to bring your library into Apex Scholar.</p>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-[var(--color-surface)]/50 rounded-xl border border-[var(--color-border)]">
                 <div>
-                    <h3 className="text-sm font-medium text-white mb-1">Zotero</h3>
+                    <h3 className="text-sm font-medium mb-1">Zotero</h3>
                     <p className="text-xs text-zinc-400">Connect your Zotero account to sync your research libraries and collections.</p>
                     {zoteroError && <p className="text-xs text-red-400 mt-2">{zoteroError}</p>}
                 </div>
@@ -561,7 +561,7 @@ export default function Settings() {
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-medium">
                             <CheckCircle2 className="w-4 h-4" /> Connected
                         </div>
-                        <button onClick={handleDisconnectZotero} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl text-xs font-medium transition-colors">Disconnect</button>
+                        <button onClick={handleDisconnectZotero} className="px-3 py-1.5 bg-[var(--color-surface)] hover:bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl text-xs font-medium transition-colors hover:cursor-pointer">Disconnect</button>
                     </div>
                 ) : (
                     <button onClick={handleConnectZotero} disabled={zoteroConnecting} className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-600/20 border border-indigo-500/20 text-indigo-400 rounded-xl text-sm font-medium transition-colors flex-shrink-0 disabled:opacity-50">
@@ -578,16 +578,16 @@ export default function Settings() {
             <p className="text-sm text-zinc-400">Export your entire workspace as a JSON backup, or restore from a previous backup.</p>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-[var(--color-surface)]/50 rounded-xl border border-[var(--color-border)]">
                 <div>
-                    <h3 className="text-sm font-medium text-white mb-1">Export Backup</h3>
+                    <h3 className="text-sm font-medium mb-1">Export Backup</h3>
                     <p className="text-xs text-zinc-400">Download a JSON file containing all your entries, resources, insights, kanban, and knowledgebase.</p>
                 </div>
-                <button onClick={handleBackup} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-xl text-sm font-medium text-white transition-colors flex-shrink-0">
+                <button onClick={handleBackup} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-xl text-sm font-medium transition-colors flex-shrink-0">
                     <Download className="w-4 h-4" /> Export Backup
                 </button>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-[var(--color-surface)]/50 rounded-xl border border-[var(--color-border)]">
                 <div>
-                    <h3 className="text-sm font-medium text-white mb-1">Import Backup</h3>
+                    <h3 className="text-sm font-medium mb-1">Import Backup</h3>
                     <p className="text-xs text-zinc-400">Restore your data from a previously exported JSON backup file. This will overwrite current data.</p>
                 </div>
                 <input ref={restoreInputRef} type="file" accept=".json" onChange={handleRestore} className="hidden" />
@@ -612,10 +612,10 @@ export default function Settings() {
                 <div className="space-y-5">
                     <div className="space-y-2">
                         <div className="flex items-end justify-between">
-                            <span className="text-2xl font-bold text-white">{formatBytes(storageTotal ?? 0)}</span>
+                            <span className="text-2xl font-bold">{formatBytes(storageTotal ?? 0)}</span>
                             <span className="text-xs text-zinc-500">of {formatBytes(STORAGE_LIMIT_BYTES)} used</span>
                         </div>
-                        <div className="w-full h-2.5 bg-white/5 rounded-full overflow-hidden">
+                        <div className="w-full h-2.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                             <div className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-emerald-600 to-emerald-400" style={{ width: `${Math.min(100, ((storageTotal ?? 0) / STORAGE_LIMIT_BYTES) * 100)}%` }} />
                         </div>
                         <p className="text-xs text-zinc-600">{(((storageTotal ?? 0) / STORAGE_LIMIT_BYTES) * 100).toFixed(2)}% of your free-tier quota</p>
@@ -653,7 +653,7 @@ export default function Settings() {
             <p className="text-sm text-zinc-400">These actions are irreversible. Please be absolutely certain before proceeding.</p>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-rose-500/5 rounded-xl border border-rose-500/15">
                 <div>
-                    <h3 className="text-sm font-medium text-white mb-1">Reset All Data</h3>
+                    <h3 className="text-sm font-medium mb-1">Reset All Data</h3>
                     <p className="text-xs text-zinc-400">Permanently delete all entries, resources, projects, funding, kanban, insights, and knowledgebase.</p>
                 </div>
                 {!resetConfirm ? (
@@ -694,7 +694,7 @@ export default function Settings() {
                 {activeModule && (
                     <button
                         onClick={() => setActiveModule(null)}
-                        className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                        className="p-2 text-zinc-400 hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)] rounded-xl transition-colors"
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>

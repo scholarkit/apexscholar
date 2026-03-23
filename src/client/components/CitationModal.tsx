@@ -106,7 +106,7 @@ export default function CitationModal({ resource, downloadUrl, onClose }: Citati
                             <Quote className="w-4 h-4 text-indigo-500" />
                         </div>
                         <div>
-                            <h2 className="text-white font-semibold text-base">Citation Engine</h2>
+                            <h2 className="font-semibold text-base">Citation Engine</h2>
                             <p className="text-zinc-500 text-xs mt-0.5 truncate max-w-[280px]">{resource.name}</p>
                         </div>
                     </div>
@@ -120,7 +120,7 @@ export default function CitationModal({ resource, downloadUrl, onClose }: Citati
                     <div className="px-3 sm:px-6 py-3 sm:py-4 space-y-5">
                         <div className="flex items-center gap-3">
                             <Loader2 className="w-5 h-5 text-indigo-500 animate-spin flex-shrink-0" />
-                            <span className="text-white font-medium text-sm">Extracting metadata...</span>
+                            <span className="font-medium text-sm">Extracting metadata...</span>
                         </div>
                         <div className="space-y-2.5 pl-8">
                             {steps.map((s, i) => (
@@ -154,7 +154,7 @@ export default function CitationModal({ resource, downloadUrl, onClose }: Citati
                         <div className="px-6 pt-5 space-y-3">
                             <div className="flex items-start justify-between gap-3">
                                 <div className="space-y-1 flex-1 min-w-0">
-                                    <p className="text-white font-semibold text-sm leading-snug truncate">{meta.title}</p>
+                                    <p className="font-semibold text-sm leading-snug truncate">{meta.title}</p>
                                     {meta.authors.length > 0 && (
                                         <p className="text-zinc-400 text-xs truncate">{meta.authors.join(', ')}</p>
                                     )}

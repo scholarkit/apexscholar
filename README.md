@@ -32,7 +32,7 @@
 - **Grant & Funding Tracker:** Stay on top of proposal deadlines, checklist requirements, document links, and budget spending.
 - **Citation Engine:** Quickly auto-generate citations for your saved literature.
 - **Kanban Task Board:** A drag-and-drop integrated board to map out your literature review, analysis, and data collection phases.
-- **Cloud Backup & Restore:** Encrypted, secure storage via Puter.js integration ensuring your research data is always safe.
+- **Cloud Backup & Restore:** Encrypted, secure storage via Supabase ensuring your research data is always safe.
 
 ## 🚀 Getting Started
 
@@ -58,12 +58,19 @@ To run Apex Scholar locally on your machine, follow these steps:
 3. **Environment Setup:**
    Create a `.env` file in the root directory and add any required API keys (e.g., NCBI, SerpAPI, etc.):
    ```env
-   VITE_PROVIDER=puter
-   SERPAPI_API_KEY=your_key_here
-   NCBI_API_KEY=your_key_here
-   SUPERMEMORY_API_KEY=your_key_here
-   GITHUB_TOKEN=your_token_here
-   VITE_ZOTERO_CLIENT_KEY=your_key_here
+   VITE_PROVIDER=supabase
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_key
+   SERPAPI_API_KEY=your_serpapi_key
+   NCBI_API_KEY=your_ncbi_key
+   GITHUB_TOKEN=your_github_token
+   GITHUB_OWNER=scholarkit
+   GITHUB_REPO=LaTex
+   VITE_ZOTERO_CLIENT_KEY=your_zotero_key
+   MOONSHOT_API_KEY=your_moonshot_key  # optional
+   SUPERMEMORY_API_KEY=your_supermemory_key
+   NODE_ENV=development
    ```
 
 4. **Start the development server:**
@@ -75,7 +82,7 @@ To run Apex Scholar locally on your machine, follow these steps:
 
 ## 🗺️ Roadmap
 
-We are constantly growing to meet the needs of the academic community. Here’s what’s on the horizon:
+We are constantly growing to meet the needs of the academic community. Here's what's on the horizon:
 
 ### Literature & Citation Management
 - **Reference Syncing:** Native integrations with Mendeley, and EndNote APIs etc.
@@ -100,6 +107,7 @@ Contributions are welcome and greatly appreciated! If you have suggestions for a
 This project is open-source. Please see the `LICENSE` file for more details.
 
 ---
+
 <div align="center">
   <p>Built with ❤️ for the research community.</p>
 </div>

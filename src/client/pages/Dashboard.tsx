@@ -1,34 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, FolderOpen, Activity, Plus, Clock, Layers, Calendar, GitCommit } from 'lucide-react';
-import { formatDistanceToNow, format, subDays, eachDayOfInterval } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { Resource, resourcesService } from '../lib/resources';
+import {
+  Activity,
+  BookOpen,
+  Calendar,
+  Clock,
+  FolderOpen,
+  GitCommit,
+  Layers,
+  Plus,
+} from 'lucide-react';
+import { eachDayOfInterval, format, formatDistanceToNow, subDays } from 'date-fns';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { parseEntryDate } from '../utils/dateUtils';
-import { projectService } from '../lib/projects';
-import { JournalEntry, journalService } from '../lib/journal';
+import { useDashboardData } from '../hooks/queries/useDashboardData';
 
 export default function Dashboard() {
-  const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [resourcesCount, setResourcesCount] = useState<number>(0);
-  const [projectsCount, setProjectsCount] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
+  const { entries, resourcesCount, projectsCount, isLoading } = useDashboardData();
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '3m' | 'all'>('30d');
 
-  useEffect(() => {
-    const loadData = async () => {
-      const entriesData = await journalService.getEntries();
-      const rCount = await resourcesService.getCount();
-      const pCount = await projectService.getCount();
-      setEntries(entriesData);
-      setResourcesCount(rCount);
-      setProjectsCount(pCount);
-      setLoading(false);
-    };
-    loadData();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center h-full">
         <div className="animate-pulse flex flex-col items-center gap-4">
@@ -39,7 +30,7 @@ export default function Dashboard() {
     );
   }
 
-  const lastActivity = entries.length > 0 ? entries[0].date : null;  // Analytics logic
+  const lastActivity = entries.length > 0 ? entries[0]!.date : null; // Analytics logic
   const today = new Date();
   let startDate: Date;
 
@@ -52,7 +43,7 @@ export default function Dashboard() {
   } else {
     // All Time: find the earliest entry or fallback to 30 days ago
     if (entries.length > 0) {
-      const dates = entries.map(e => parseEntryDate(e.date).getTime());
+      const dates = entries.map((e) => parseEntryDate(e.date).getTime());
       startDate = new Date(Math.min(...dates));
     } else {
       startDate = subDays(today, 29);
@@ -61,20 +52,25 @@ export default function Dashboard() {
 
   const intervalDays = eachDayOfInterval({ start: startDate, end: today });
 
-  const activityData = intervalDays.map(date => {
+  const activityData = intervalDays.map((date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const count = entries.filter(e => format(parseEntryDate(e.date), 'yyyy-MM-dd') === dateStr).length;
+    const count = entries.filter(
+      (e) => format(parseEntryDate(e.date), 'yyyy-MM-dd') === dateStr
+    ).length;
     return {
       date: format(date, timeRange === '7d' ? 'EEE' : 'MMM d'),
       count,
-      fullDate: dateStr
+      fullDate: dateStr,
     };
   });
 
-  const typeData = entries.reduce((acc, entry) => {
-    acc[entry.type] = (acc[entry.type] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const typeData = entries.reduce(
+    (acc, entry) => {
+      acc[entry.type] = (acc[entry.type] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   const typeChartData = Object.entries(typeData).map(([name, value]) => ({ name, value }));
 
@@ -91,7 +87,9 @@ export default function Dashboard() {
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
           <h1 className="text-2xl font-semibold mb-2">Dashboard</h1>
-          <p className="text-base text-zinc-400">Welcome back. Here's what's happening in your research.</p>
+          <p className="text-base text-zinc-400">
+            Welcome back. Here's what's happening in your research.
+          </p>
         </div>
       </header>
 
@@ -107,7 +105,10 @@ export default function Dashboard() {
           <p className="text-right sm:text-left text-4xl font-semibold">{entries.length}</p>
         </div>
 
-        <Link to="/projects" className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] p-3 sm:p-6 shadow-sm hover:border-violet-500/30 hover:bg-[var(--color-surface)]/70 transition-all group">
+        <Link
+          to="/projects"
+          className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] p-3 sm:p-6 shadow-sm hover:border-violet-500/30 hover:bg-[var(--color-surface)]/70 transition-all group"
+        >
           <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
             <div className="p-3 bg-violet-500/10 rounded-xl group-hover:bg-violet-500/20 transition-colors">
               <Layers className="w-6 h-6 text-violet-400" />
@@ -135,7 +136,9 @@ export default function Dashboard() {
             <h3 className="text-zinc-400 font-medium">Last Activity</h3>
           </div>
           <p className="text-right sm:text-left text-lg sm:text-2xl font-semibold">
-            {lastActivity ? formatDistanceToNow(parseEntryDate(lastActivity), { addSuffix: true }) : 'No activity yet'}
+            {lastActivity
+              ? formatDistanceToNow(parseEntryDate(lastActivity), { addSuffix: true })
+              : 'No activity yet'}
           </p>
         </div>
       </div>
@@ -157,10 +160,11 @@ export default function Dashboard() {
                 <button
                   key={r.id}
                   onClick={() => setTimeRange(r.id as any)}
-                  className={`w-full px-2 sm:px-4 py-1.5 text-xs font-medium rounded-xl transition-all ${timeRange === r.id
-                    ? 'bg-indigo-500 text-white'
-                    : 'text-zinc-500 hover:text-[var(--color-text-faint)]'
-                    }`}
+                  className={`w-full px-2 sm:px-4 py-1.5 text-xs font-medium rounded-xl transition-all ${
+                    timeRange === r.id
+                      ? 'bg-indigo-500 text-white'
+                      : 'text-zinc-500 hover:text-[var(--color-text-faint)]'
+                  }`}
                 >
                   {r.label}
                 </button>
@@ -171,10 +175,27 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={activityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                <XAxis dataKey="date" stroke="#ffffff40" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#ffffff40" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                <XAxis
+                  dataKey="date"
+                  stroke="#ffffff40"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="#ffffff40"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#18181b', borderColor: '#ffffff10', borderRadius: '8px', color: '#fff' }}
+                  contentStyle={{
+                    backgroundColor: '#18181b',
+                    borderColor: '#ffffff10',
+                    borderRadius: '8px',
+                    color: '#fff',
+                  }}
                   itemStyle={{ color: '#818cf8' }}
                   cursor={{ fill: '#ffffff05' }}
                 />
@@ -199,7 +220,9 @@ export default function Dashboard() {
               typeChartData.map((item, index) => (
                 <div key={item.name} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${['bg-indigo-500', 'bg-emerald-500', 'bg-blue-500', 'bg-purple-500'][index % 4]}`} />
+                    <div
+                      className={`w-3 h-3 rounded-full ${['bg-indigo-500', 'bg-emerald-500', 'bg-blue-500', 'bg-purple-500'][index % 4]}`}
+                    />
                     <span className="text-[var(--color-text-muted)]">{item.name}</span>
                   </div>
                   <span className="font-medium">{item.value}</span>
@@ -219,14 +242,19 @@ export default function Dashboard() {
           </div>
           <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-[var(--color-border)]">
             {entries.slice(0, 5).map((entry, i) => (
-              <div key={entry.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+              <div
+                key={entry.id}
+                className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
+              >
                 <div className="flex items-center justify-center w-10 h-10 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] group-[.is-active]:text-indigo-500 group-[.is-active]:border-indigo-500/30 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
                   <GitCommit className="w-4 h-4" />
                 </div>
                 <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] shadow">
                   <div className="flex items-center justify-between space-x-2 mb-1">
                     <div className="font-bold text-xs sm:text-sm">{entry.type}</div>
-                    <time className="font-mono text-xs text-zinc-500">{format(parseEntryDate(entry.date), 'MMM d')}</time>
+                    <time className="font-mono text-xs text-zinc-500">
+                      {format(parseEntryDate(entry.date), 'MMM d')}
+                    </time>
                   </div>
                   <div className="text-zinc-400 text-sm line-clamp-2">{entry.content}</div>
                 </div>
@@ -248,7 +276,10 @@ export default function Dashboard() {
 
         <div className="space-y-4">
           {entries.slice(0, 5).map((entry) => (
-            <div key={entry.id} className="p-5 rounded-xl bg-[var(--bg-surface-2)] border border-[var(--color-border)] transition-colors group">
+            <div
+              key={entry.id}
+              className="p-5 rounded-xl bg-[var(--bg-surface-2)] border border-[var(--color-border)] transition-colors group"
+            >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-3">
                   <span className="px-1 sm:px-2.5 py-1 rounded-xl bg-[var(--color-surface-2)] text-xs font-medium text-[var(--color-text-muted)] border border-[var(--color-accent-glow)]">
@@ -259,10 +290,11 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
-              <p className="line-clamp-2 mt-2 leading-relaxed">
-                {entry.content}
-              </p>
-              <Link to="/journal" className="inline-flex items-center text-sm text-indigo-500 hover:text-indigo-300 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <p className="line-clamp-2 mt-2 leading-relaxed">{entry.content}</p>
+              <Link
+                to="/journal"
+                className="inline-flex items-center text-sm text-indigo-500 hover:text-indigo-300 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
                 View full entry &rarr;
               </Link>
             </div>
@@ -272,8 +304,13 @@ export default function Dashboard() {
             <div className="text-center py-12 bg-[var(--color-surface)]/20 border border-dashed border-[var(--color-border)] rounded-xl">
               <BookOpen className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
               <p className="text-white font-medium mb-1">No recent activity</p>
-              <p className="text-zinc-500 text-sm mb-6 max-w-sm mx-auto">Start documenting your research journey by creating your first journal entry.</p>
-              <Link to="/journal" className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 text-indigo-500 hover:bg-indigo-600/20 border border-indigo-500/20 rounded-xl font-medium transition-colors">
+              <p className="text-zinc-500 text-sm mb-6 max-w-sm mx-auto">
+                Start documenting your research journey by creating your first journal entry.
+              </p>
+              <Link
+                to="/journal"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 text-indigo-500 hover:bg-indigo-600/20 border border-indigo-500/20 rounded-xl font-medium transition-colors"
+              >
                 <Plus className="w-4 h-4" /> Create Journal Entry
               </Link>
             </div>

@@ -1,5 +1,19 @@
-import { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, SkipForward, BookOpen, FolderOpen, Search, PenLine, BarChart3, Settings, Zap, Globe, Lock } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+  BarChart3,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  FolderOpen,
+  Globe,
+  Lock,
+  PenLine,
+  Search,
+  Settings,
+  SkipForward,
+  X,
+  Zap,
+} from 'lucide-react';
 
 const ONBOARDING_COMPLETE_KEY = 'apexscholar_onboarding_complete';
 
@@ -15,114 +29,124 @@ interface OnboardingStep {
 const steps: OnboardingStep[] = [
   {
     id: 1,
-    title: "Welcome to Apex Scholar",
-    description: "Your all-in-one research management platform. Let's take a quick tour to help you get started.",
+    title: 'Welcome to Apex Scholar',
+    description:
+      "Your all-in-one research management platform. Let's take a quick tour to help you get started.",
     icon: <BookOpen className="w-16 h-16" />,
     tips: [
-      "Secure, portable research workspace",
-      "AI-powered insights and knowledge graphs",
-      "End-to-end encryption for your data"
-    ]
+      'Secure, portable research workspace',
+      'AI-powered insights and knowledge graphs',
+      'End-to-end encryption for your data',
+    ],
   },
   {
     id: 2,
-    title: "Dashboard — Your Research Hub",
-    description: "Get a quick overview of your research activity, recent entries, project stats, and milestones. Track your progress at a glance.",
+    title: 'Dashboard — Your Research Hub',
+    description:
+      'Get a quick overview of your research activity, recent entries, project stats, and milestones. Track your progress at a glance.',
     icon: <BarChart3 className="w-16 h-16" />,
     tips: [
-      "View activity charts for custom time ranges",
-      "See entry distribution by type",
-      "Monitor recent milestones"
-    ]
+      'View activity charts for custom time ranges',
+      'See entry distribution by type',
+      'Monitor recent milestones',
+    ],
   },
   {
     id: 3,
-    title: "Projects — Organize Your Work",
-    description: "Create and manage research projects. Each project can have its own notes, resources, and kanban board. Track progress and collaborate.",
+    title: 'Projects — Organize Your Work',
+    description:
+      'Create and manage research projects. Each project can have its own notes, resources, and kanban board. Track progress and collaborate.',
     icon: <FolderOpen className="w-16 h-16" />,
     tips: [
-      "Create projects with start/end dates",
-      "Add tags for easy filtering",
-      "Switch between projects anytime"
-    ]
+      'Create projects with start/end dates',
+      'Add tags for easy filtering',
+      'Switch between projects anytime',
+    ],
   },
   {
     id: 4,
-    title: "Resources — Build Your Library",
-    description: "Search and save research papers from ArXiv, Google Scholar, PubMed, and more. Import from URLs, BibTeX, or add manually.",
+    title: 'Resources — Build Your Library',
+    description:
+      'Search and save research papers from ArXiv, Google Scholar, PubMed, and more. Import from URLs, BibTeX, or add manually.',
     icon: <Search className="w-16 h-16" />,
     tips: [
-      "Unified search across multiple sources",
-      "Auto-extract metadata and PDFs",
-      "Tag and categorize resources"
-    ]
+      'Unified search across multiple sources',
+      'Auto-extract metadata and PDFs',
+      'Tag and categorize resources',
+    ],
   },
   {
     id: 5,
-    title: "Journal — Document Your Insights",
-    description: "Keep a research journal with rich text, LaTeX support, and embedded resources. Document daily progress, ideas, and findings.",
+    title: 'Journal — Document Your Insights',
+    description:
+      'Keep a research journal with rich text, LaTeX support, and embedded resources. Document daily progress, ideas, and findings.',
     icon: <PenLine className="w-16 h-16" />,
     tips: [
-      "Write with Markdown and LaTeX",
-      "Attach resources and notes",
-      "Compile LaTeX to PDF automatically"
-    ]
+      'Write with Markdown and LaTeX',
+      'Attach resources and notes',
+      'Compile LaTeX to PDF automatically',
+    ],
   },
   {
     id: 6,
-    title: "Explore — Discover New Research",
-    description: "Browse trending papers, authors, and topics. Get personalized recommendations based on your interests and projects.",
+    title: 'Explore — Discover New Research',
+    description:
+      'Browse trending papers, authors, and topics. Get personalized recommendations based on your interests and projects.',
     icon: <Globe className="w-16 h-16" />,
     tips: [
-      "Search across all integrated sources",
-      "Filter by date, source, and relevance",
-      "Save directly to your resources"
-    ]
+      'Search across all integrated sources',
+      'Filter by date, source, and relevance',
+      'Save directly to your resources',
+    ],
   },
   {
     id: 7,
-    title: "Kanban — Track Your Tasks",
-    description: "Visual project management with drag-and-drop kanban boards. Columns for To Do, In Progress, Review, and Done.",
+    title: 'Kanban — Track Your Tasks',
+    description:
+      'Visual project management with drag-and-drop kanban boards. Columns for To Do, In Progress, Review, and Done.',
     icon: <Zap className="w-16 h-16" />,
     tips: [
-      "Drag tasks between columns",
-      "Add due dates and descriptions",
-      "Sync with project entries"
-    ]
+      'Drag tasks between columns',
+      'Add due dates and descriptions',
+      'Sync with project entries',
+    ],
   },
   {
     id: 8,
-    title: "Insights — AI-Powered Analysis",
-    description: "Let AI generate summaries, connect ideas, and surface patterns across your research. Get citations, context, and more.",
+    title: 'Insights — AI-Powered Analysis',
+    description:
+      'Let AI generate summaries, connect ideas, and surface patterns across your research. Get citations, context, and more.',
     icon: <BarChart3 className="w-16 h-16" />,
     tips: [
-      "Auto-generated resource summaries",
-      "Knowledge graph visualization",
-      "Smart citation suggestions"
-    ]
+      'Auto-generated resource summaries',
+      'Knowledge graph visualization',
+      'Smart citation suggestions',
+    ],
   },
   {
     id: 9,
-    title: "Settings — Customize Your Experience",
-    description: "Configure E2EE encryption, manage your account, toggle features, and set preferences. Keep your data secure.",
+    title: 'Settings — Customize Your Experience',
+    description:
+      'Configure E2EE encryption, manage your account, toggle features, and set preferences. Keep your data secure.',
     icon: <Settings className="w-16 h-16" />,
     tips: [
-      "Enable/disable end-to-end encryption",
-      "Set your vault passphrase",
-      "Configure API keys and integrations"
-    ]
+      'Enable/disable end-to-end encryption',
+      'Set your vault passphrase',
+      'Configure API keys and integrations',
+    ],
   },
   {
     id: 10,
     title: "You're All Set!",
-    description: "You now have a complete overview of Apex Scholar. Start exploring and building your research empire!",
+    description:
+      'You now have a complete overview of Apex Scholar. Start exploring and building your research empire!',
     icon: <Lock className="w-16 h-16" />,
     tips: [
-      "Your data is encrypted and secure",
-      "Sync across all your devices",
-      "Need help? Check the documentation anytime"
-    ]
-  }
+      'Your data is encrypted and secure',
+      'Sync across all your devices',
+      'Need help? Check the documentation anytime',
+    ],
+  },
 ];
 
 export default function OnboardingModal() {
@@ -167,7 +191,6 @@ export default function OnboardingModal() {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
       <div className="relative w-full max-w-6xl mx-4 h-[90vh] flex flex-col bg-[var(--color-surface)] border border-[var(--color-border)] rounded-3xl shadow-2xl overflow-hidden">
-
         {/* Header with progress and close */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-[var(--color-border)]">
           <div className="flex items-center gap-4">
@@ -208,7 +231,9 @@ export default function OnboardingModal() {
                   {step.icon}
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm text-zinc-400 font-medium uppercase tracking-wider">Step {step.id}</p>
+                  <p className="text-sm text-zinc-400 font-medium uppercase tracking-wider">
+                    Step {step.id}
+                  </p>
                   <h2 className="text-3xl font-bold">{step.title}</h2>
                 </div>
               </div>
@@ -218,7 +243,10 @@ export default function OnboardingModal() {
             {step.tips && (
               <div className="relative z-10 mt-12 w-full max-w-sm space-y-3">
                 {step.tips.map((tip, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-4 rounded-xl bg-[var(--color-surface)]/50 border border-[var(--color-border)]">
+                  <div
+                    key={idx}
+                    className="flex items-start gap-3 p-4 rounded-xl bg-[var(--color-surface)]/50 border border-[var(--color-border)]"
+                  >
                     <div className="w-2 h-2 mt-2 rounded-full bg-emerald-500 shrink-0" />
                     <p className="text-sm text-zinc-300">{tip}</p>
                   </div>
@@ -246,12 +274,13 @@ export default function OnboardingModal() {
 
               {/* Feature highlights */}
               <div className="space-y-3 pt-4">
-                {step.tips && step.tips.map((tip, idx) => (
-                  <div key={idx} className="flex items-start gap-3">
-                    <div className="w-2 h-2 mt-2 rounded-full bg-emerald-500 shrink-0" />
-                    <p className="text-zinc-300">{tip}</p>
-                  </div>
-                ))}
+                {step.tips &&
+                  step.tips.map((tip, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <div className="w-2 h-2 mt-2 rounded-full bg-emerald-500 shrink-0" />
+                      <p className="text-zinc-300">{tip}</p>
+                    </div>
+                  ))}
               </div>
             </div>
 
@@ -279,7 +308,7 @@ export default function OnboardingModal() {
                   className="flex items-center gap-2 px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
                 >
                   {isLastStep ? (
-                    "Get Started"
+                    'Get Started'
                   ) : (
                     <>
                       Next

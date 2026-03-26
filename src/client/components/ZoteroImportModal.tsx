@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react';
-import { X, Library, Folder, CheckCircle2, Download, Loader2, AlertTriangle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { AlertTriangle, CheckCircle2, Download, Folder, Library, Loader2, X } from 'lucide-react';
 import { storage } from '../lib/storage';
 import { type Resource } from '../lib/resources';
-import { zoteroService, ZoteroCredentials } from '../lib/zotero';
+import { type ZoteroCredentials, zoteroService } from '../lib/zotero';
 import { useProject } from '../contexts/ProjectContext';
 import { kv } from '../lib/kv';
 import { useNavigate } from 'react-router-dom';
 import { resourcesService } from '../lib/resources';
 
 const UPLOADS_DIR = 'resources/uploads';
-
 
 interface ZoteroImportModalProps {
   onClose: () => void;
@@ -67,12 +66,18 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
       const limit = 100;
       let hasMore = true;
 
-      const syncVersions = await kv.get('zotero_sync_versions') || {};
+      const syncVersions = (await kv.get('zotero_sync_versions')) || {};
       const lastVersion = syncVersions[selectedCollection] || null;
 
       while (hasMore) {
         setImportProgress(`Fetching items (${allItems.length} loaded)...`);
-        const batch = await zoteroService.getItems(credentials, selectedCollection, start, limit, lastVersion);
+        const batch = await zoteroService.getItems(
+          credentials,
+          selectedCollection,
+          start,
+          limit,
+          lastVersion
+        );
 
         if (!batch || batch.length === 0) {
           hasMore = false;
@@ -96,7 +101,12 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
       let maxVersion = lastVersion || 0;
 
       const resolveTitle = (data) =>
-        data.name || data.title || data.shortTitle || data.subject || data.filename || `${data.itemType} — ${data.dateAdded?.substring(0, 10)}`;
+        data.name ||
+        data.title ||
+        data.shortTitle ||
+        data.subject ||
+        data.filename ||
+        `${data.itemType} — ${data.dateAdded?.substring(0, 10)}`;
 
       const SKIP_TYPES = ['attachment', 'note', 'annotation'];
 
@@ -120,7 +130,9 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
           url: d.url || null,
           year: d.date ? new Date(d.date).getFullYear() : null,
           journal: d.publicationTitle || d.bookTitle || null,
-          authors: (d.creators || []).filter(c => c.creatorType === 'author').map(c => `${c.firstName || ''} ${c.lastName || ''}`.trim()),
+          authors: (d.creators || [])
+            .filter((c) => c.creatorType === 'author')
+            .map((c) => `${c.firstName || ''} ${c.lastName || ''}`.trim()),
           type: d.itemType,
           zotero_version: item.version,
           zotero_meta: d,
@@ -156,7 +168,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div
         className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
@@ -190,16 +202,22 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
                   <div className="flex flex-col items-center justify-center py-6 text-rose-400">
                     <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
                     <span className="text-sm px-4 text-center">{error}</span>
-                    <button onClick={() => navigate('/settings')} className="text-indigo-400 hover:text-indigo-300 hover:cursor-pointer">Go to Settings</button>
+                    <button
+                      onClick={() => navigate('/settings')}
+                      className="text-indigo-400 hover:text-indigo-300 hover:cursor-pointer"
+                    >
+                      Go to Settings
+                    </button>
                   </div>
                 ) : (
                   <>
                     {/* Library Root */}
                     <div
-                      className={`flex items-center gap-3 text-sm p-2.5 rounded-lg cursor-pointer transition-colors ${selectedCollection === 'library'
-                        ? 'bg-indigo-500/10 text-indigo-400'
-                        : 'text-[var(--color-text-faint)] hover:bg-white/5'
-                        }`}
+                      className={`flex items-center gap-3 text-sm p-2.5 rounded-lg cursor-pointer transition-colors ${
+                        selectedCollection === 'library'
+                          ? 'bg-indigo-500/10 text-indigo-400'
+                          : 'text-[var(--color-text-faint)] hover:bg-white/5'
+                      }`}
                       onClick={() => setSelectedCollection('library')}
                     >
                       <Library className="w-4 h-4 shrink-0" />
@@ -217,10 +235,11 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
                       return (
                         <div
                           key={id}
-                          className={`flex items-center gap-3 text-sm pl-8 p-2.5 rounded-lg cursor-pointer transition-colors ${isSelected
-                            ? 'bg-indigo-500/10 text-indigo-400'
-                            : 'text-[var(--color-text-faint)] hover:bg-white/5'
-                            }`}
+                          className={`flex items-center gap-3 text-sm pl-8 p-2.5 rounded-lg cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-indigo-500/10 text-indigo-400'
+                              : 'text-[var(--color-text-faint)] hover:bg-white/5'
+                          }`}
                           onClick={() => setSelectedCollection(id)}
                         >
                           <Folder className="w-4 h-4 shrink-0" />
@@ -242,9 +261,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
 
         {/* Footer */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-[var(--color-border)] bg-[var(--color-surface)]/50">
-          <div className="text-xs text-indigo-400 font-medium">
-            {importProgress}
-          </div>
+          <div className="text-xs text-indigo-400 font-medium">{importProgress}</div>
           <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
             <button
               onClick={onClose}

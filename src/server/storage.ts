@@ -5,34 +5,39 @@ import express from 'express';
 
 export const storageRouter = Router();
 
-storageRouter.post("/write", requireAuth, express.raw({ type: '*/*', limit: '100mb' }), async (req, res) => {
-  try {
-    const user = (req as any).user;
-    let pathUrl = req.query.path as string;
-    if (!pathUrl) return res.status(400).json({ error: 'Missing path query parameter' });
-    pathUrl = `${user.id}/${pathUrl}`;
+storageRouter.post(
+  '/write',
+  requireAuth,
+  express.raw({ type: '*/*', limit: '100mb' }),
+  async (req, res) => {
+    try {
+      const user = (req as any).user;
+      let pathUrl = req.query.path as string;
+      if (!pathUrl) return res.status(400).json({ error: 'Missing path query parameter' });
+      pathUrl = `${user.id}/${pathUrl}`;
 
-    // Ensure user isolates their files if needed, but for now we follow the path strictly.
-    // E.g. path format should be validated.
-    const contentType = req.headers['content-type'] || 'application/octet-stream';
-    const fileBuffer = req.body;
+      // Ensure user isolates their files if needed, but for now we follow the path strictly.
+      // E.g. path format should be validated.
+      const contentType = req.headers['content-type'] || 'application/octet-stream';
+      const fileBuffer = req.body;
 
-    const { data, error } = await supabaseAdmin.storage
-      .from('apexscholar-resources')
-      .upload(pathUrl, fileBuffer, {
-        contentType,
-        upsert: true
-      });
+      const { data, error } = await supabaseAdmin.storage
+        .from('apexscholar-resources')
+        .upload(pathUrl, fileBuffer, {
+          contentType,
+          upsert: true,
+        });
 
-    if (error) throw error;
-    res.json({ success: true, data });
-  } catch (err: any) {
-    console.error("Storage write error:", err);
-    res.status(500).json({ error: err.message });
+      if (error) throw error;
+      res.json({ success: true, data });
+    } catch (err: any) {
+      console.error('Storage write error:', err);
+      res.status(500).json({ error: err.message });
+    }
   }
-});
+);
 
-storageRouter.get("/read", requireAuth, async (req, res) => {
+storageRouter.get('/read', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     let pathUrl = req.query.path as string;
@@ -47,12 +52,12 @@ storageRouter.get("/read", requireAuth, async (req, res) => {
     if (error) throw error;
     res.json({ success: true, url: data.signedUrl });
   } catch (err: any) {
-    console.error("Storage read error:", err);
+    console.error('Storage read error:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-storageRouter.delete("/delete", requireAuth, async (req, res) => {
+storageRouter.delete('/delete', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     let pathUrl = req.query.path as string;
@@ -70,26 +75,24 @@ storageRouter.delete("/delete", requireAuth, async (req, res) => {
   }
 });
 
-storageRouter.get("/list", requireAuth, async (req, res) => {
+storageRouter.get('/list', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     const rawPathUrl = (req.query.path as string) || '';
     const pathUrl = rawPathUrl ? `${user.id}/${rawPathUrl}` : user.id;
 
-    const { data, error } = await supabaseAdmin.storage
-      .from('apexscholar-resources')
-      .list(pathUrl);
+    const { data, error } = await supabaseAdmin.storage.from('apexscholar-resources').list(pathUrl);
 
     if (error) throw error;
 
     // Map to puter.fs.list format
-    const mappedConfig = data.map(item => ({
+    const mappedConfig = data.map((item) => ({
       name: item.name,
       is_dir: !item.metadata, // folders typically don't have metadata size in Supabase list
       size: item.metadata?.size || 0,
       created: item.created_at,
       modified: item.updated_at,
-      path: rawPathUrl ? `${rawPathUrl}/${item.name}` : item.name
+      path: rawPathUrl ? `${rawPathUrl}/${item.name}` : item.name,
     }));
 
     res.json({ success: true, data: mappedConfig });
@@ -98,7 +101,7 @@ storageRouter.get("/list", requireAuth, async (req, res) => {
   }
 });
 
-storageRouter.get("/stat", requireAuth, async (req, res) => {
+storageRouter.get('/stat', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     let pathUrl = req.query.path as string;
@@ -118,9 +121,9 @@ storageRouter.get("/stat", requireAuth, async (req, res) => {
       .list(dirPath, { search: filename });
 
     if (error) throw error;
-    const file = data.find(f => f.name === filename);
+    const file = data.find((f) => f.name === filename);
 
-    if (!file) throw new Error("File not found");
+    if (!file) throw new Error('File not found');
 
     res.json({
       success: true,
@@ -130,8 +133,8 @@ storageRouter.get("/stat", requireAuth, async (req, res) => {
         size: file.metadata?.size || 0,
         created: file.created_at,
         modified: file.updated_at,
-        path: originalPathUrl
-      }
+        path: originalPathUrl,
+      },
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

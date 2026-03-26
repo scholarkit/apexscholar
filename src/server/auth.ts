@@ -3,7 +3,7 @@ import { supabase, supabaseAdmin } from './supabase.ts';
 
 export const authRouter = Router();
 
-authRouter.post("/signup", async (req, res) => {
+authRouter.post('/signup', async (req, res) => {
   try {
     const { email, password, display_name, options } = req.body;
 
@@ -14,8 +14,8 @@ authRouter.post("/signup", async (req, res) => {
       email_confirm: true,
       user_metadata: {
         ...options?.data,
-        display_name: display_name
-      }
+        display_name: display_name,
+      },
     });
     if (createError) throw createError;
 
@@ -29,7 +29,7 @@ authRouter.post("/signup", async (req, res) => {
   }
 });
 
-authRouter.post("/login", async (req, res) => {
+authRouter.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -40,10 +40,10 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
-authRouter.post("/refresh", async (req, res) => {
+authRouter.post('/refresh', async (req, res) => {
   try {
     const { refresh_token } = req.body;
-    if (!refresh_token) return res.status(400).json({ error: "Missing refresh_token" });
+    if (!refresh_token) return res.status(400).json({ error: 'Missing refresh_token' });
 
     const { data, error } = await supabase.auth.refreshSession({ refresh_token });
     if (error) throw error;
@@ -53,24 +53,24 @@ authRouter.post("/refresh", async (req, res) => {
   }
 });
 
-authRouter.post("/logout", async (req, res) => {
+authRouter.post('/logout', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     if (authHeader) {
       const token = authHeader.replace('Bearer ', '');
       const { error } = await supabaseAdmin.auth.admin.signOut(token);
-      if (error) console.error("Admin signout error:", error);
+      if (error) console.error('Admin signout error:', error);
     }
-    res.json({ message: "Logged out successfully" });
+    res.json({ message: 'Logged out successfully' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-authRouter.get("/user", async (req, res) => {
+authRouter.get('/user', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ error: "Missing authorization header" });
+    if (!authHeader) return res.status(401).json({ error: 'Missing authorization header' });
 
     const token = authHeader.replace('Bearer ', '');
     const { data, error } = await supabaseAdmin.auth.getUser(token);

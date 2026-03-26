@@ -4,43 +4,43 @@ dotenv.config({ path: '.env' });
 
 export const sourcesRouter = Router();
 
-sourcesRouter.get("/arxiv", async (req, res) => {
+sourcesRouter.get('/arxiv', async (req, res) => {
   try {
-    const q: any = req.query.q || "ai";
+    const q: any = req.query.q || 'ai';
     const url = `https://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(q)}&start=0&max_results=10`;
     const response = await fetch(url);
     const xml = await response.text();
 
     // Set content type so the browser knows it's XML
-    res.set("Content-Type", "text/xml");
+    res.set('Content-Type', 'text/xml');
     res.send(xml);
   } catch (err) {
-    res.status(500).json({ error: "arXiv fetch failed" });
+    res.status(500).json({ error: 'arXiv fetch failed' });
   }
 });
 
-sourcesRouter.get("/scholar", async (req, res) => {
+sourcesRouter.get('/scholar', async (req, res) => {
   try {
-    const q: any = req.query.q || "";
+    const q: any = req.query.q || '';
     const apiKey = process.env.SERPAPI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "SERPAPI_API_KEY missing in .env" });
+      return res.status(500).json({ error: 'SERPAPI_API_KEY missing in .env' });
     }
     const url = `https://serpapi.com/search.json?engine=google_scholar&q=${encodeURIComponent(q)}&api_key=${apiKey}`;
     const response = await fetch(url);
     const data = await response.json();
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: "Google Scholar fetch failed" });
+    res.status(500).json({ error: 'Google Scholar fetch failed' });
   }
 });
 
-sourcesRouter.get("/pubmed", async (req, res) => {
+sourcesRouter.get('/pubmed', async (req, res) => {
   try {
-    const q: any = req.query.q || "ai";
+    const q: any = req.query.q || 'ai';
     const apiKey = process.env.NCBI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "NCBI_API_KEY missing in .env" });
+      return res.status(500).json({ error: 'NCBI_API_KEY missing in .env' });
     }
 
     // Step 1: Search for IDs
@@ -50,8 +50,8 @@ sourcesRouter.get("/pubmed", async (req, res) => {
     const ids = searchData?.esearchresult?.idlist || [];
 
     if (!ids || ids.length === 0) {
-      res.set("Content-Type", "text/xml");
-      return res.send("<?xml version=\"1.0\" ?><PubmedArticleSet></PubmedArticleSet>");
+      res.set('Content-Type', 'text/xml');
+      return res.send('<?xml version="1.0" ?><PubmedArticleSet></PubmedArticleSet>');
     }
 
     // Step 2: Fetch full XML data for those IDs
@@ -59,29 +59,30 @@ sourcesRouter.get("/pubmed", async (req, res) => {
     const fetchRes = await fetch(fetchUrl);
     const xml = await fetchRes.text();
 
-    res.set("Content-Type", "text/xml");
+    res.set('Content-Type', 'text/xml');
     res.send(xml);
   } catch (err) {
-    res.status(500).json({ error: "PubMed fetch failed" });
+    res.status(500).json({ error: 'PubMed fetch failed' });
   }
 });
 
-sourcesRouter.get("/resolve-pdf", async (req, res) => {
+sourcesRouter.get('/resolve-pdf', async (req, res) => {
   try {
     const targetUrl = req.query.url as string;
-    if (!targetUrl) return res.status(400).json({ error: "Missing url" });
+    if (!targetUrl) return res.status(400).json({ error: 'Missing url' });
 
     const response = await fetch(targetUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       },
-      redirect: 'follow'
+      redirect: 'follow',
     });
 
-    if (!response.ok) return res.status(500).json({ error: "Failed to fetch target URL" });
+    if (!response.ok) return res.status(500).json({ error: 'Failed to fetch target URL' });
 
     const finalUrl = response.url;
-    const contentType = response.headers.get('content-type')?.toLowerCase() || "";
+    const contentType = response.headers.get('content-type')?.toLowerCase() || '';
 
     // If already a PDF, or redirects to one
     if (finalUrl.toLowerCase().endsWith('.pdf') || contentType.includes('application/pdf')) {
@@ -90,26 +91,28 @@ sourcesRouter.get("/resolve-pdf", async (req, res) => {
 
     // If not HTML/Text, we can't parse it with cheerio
     if (!contentType.includes('text/html') && !contentType.includes('text/plain')) {
-      return res.json({ pdfUrl: "" });
+      return res.json({ pdfUrl: '' });
     }
 
     const html = await response.text();
 
     const $ = (await import('cheerio')).load(html);
 
-    let pdfUrl = $('meta[name="citation_pdf_url"]').attr('content') || "";
+    let pdfUrl = $('meta[name="citation_pdf_url"]').attr('content') || '';
 
     if (!pdfUrl) {
       const ogUrl = $('meta[property="og:url"]').attr('content');
       if (ogUrl && ogUrl.includes('/abs/')) {
-        pdfUrl = ogUrl.replace('/abs/', '/pdf/') + ".pdf";
+        pdfUrl = ogUrl.replace('/abs/', '/pdf/') + '.pdf';
       }
     }
 
     // 2. Link tags
     if (!pdfUrl) {
-      pdfUrl = $('link[type="application/pdf"]').attr('href') ||
-        $('link[rel="alternate"][href$=".pdf"]').attr('href') || "";
+      pdfUrl =
+        $('link[type="application/pdf"]').attr('href') ||
+        $('link[rel="alternate"][href$=".pdf"]').attr('href') ||
+        '';
     }
 
     // 3. Anchor tags
@@ -132,7 +135,6 @@ sourcesRouter.get("/resolve-pdf", async (req, res) => {
     res.json({ pdfUrl });
   } catch (err) {
     console.error('PDF resolution error:', err);
-    res.status(500).json({ error: "PDF resolution failed" });
+    res.status(500).json({ error: 'PDF resolution failed' });
   }
 });
-

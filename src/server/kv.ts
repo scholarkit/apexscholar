@@ -4,7 +4,7 @@ import { supabaseAdmin } from './supabase.ts';
 
 export const kvRouter = Router();
 
-kvRouter.get("/:key", requireAuth, async (req, res) => {
+kvRouter.get('/:key', requireAuth, async (req, res) => {
   try {
     const { key } = req.params;
     const user = (req as any).user;
@@ -24,11 +24,11 @@ kvRouter.get("/:key", requireAuth, async (req, res) => {
   }
 });
 
-kvRouter.post("/", requireAuth, async (req, res) => {
+kvRouter.post('/', requireAuth, async (req, res) => {
   try {
     const { key, value } = req.body;
     const user = (req as any).user;
-    if (!key) return res.status(400).json({ error: "Missing key" });
+    if (!key) return res.status(400).json({ error: 'Missing key' });
 
     const { data, error } = await supabaseAdmin
       .from('kv_store')
@@ -46,7 +46,7 @@ kvRouter.post("/", requireAuth, async (req, res) => {
   }
 });
 
-kvRouter.delete("/:key", requireAuth, async (req, res) => {
+kvRouter.delete('/:key', requireAuth, async (req, res) => {
   try {
     const { key } = req.params;
     const user = (req as any).user;
@@ -57,7 +57,7 @@ kvRouter.delete("/:key", requireAuth, async (req, res) => {
       .eq('user_id', user.id);
 
     if (error) throw error;
-    res.json({ success: true, message: "Key deleted" });
+    res.json({ success: true, message: 'Key deleted' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

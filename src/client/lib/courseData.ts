@@ -5,41 +5,41 @@
  */
 
 export interface Lesson {
-    id: string;
-    title: string;
-    description: string;
-    duration: string; // e.g. "12 min"
-    content: string;  // Markdown body — fill in per-lesson later
+  id: string;
+  title: string;
+  description: string;
+  duration: string; // e.g. "12 min"
+  content: string; // Markdown body — fill in per-lesson later
 }
 
 export interface Course {
-    id: string;
-    title: string;
-    description: string;
-    coverEmoji: string;
-    accentColor: string; // Tailwind color class fragment e.g. "indigo"
-    level: 'Beginner' | 'Intermediate' | 'Advanced';
-    tags: string[];
-    lessons: Lesson[];
+  id: string;
+  title: string;
+  description: string;
+  coverEmoji: string;
+  accentColor: string; // Tailwind color class fragment e.g. "indigo"
+  level: 'Beginner' | 'Intermediate' | 'Advanced';
+  tags: string[];
+  lessons: Lesson[];
 }
 
 export const COURSES: Course[] = [
-    {
-        id: 'research-fundamentals',
-        title: 'Research Fundamentals',
-        description:
-            'A structured, end-to-end journey through the research process — from choosing a topic to publishing your findings.',
-        coverEmoji: 'microscope',
-        accentColor: 'indigo',
-        level: 'Beginner',
-        tags: ['Introduction', 'Overview'],
-        lessons: [
-            {
-                id: 'what-is-research',
-                title: 'What is Research?',
-                description: 'Understand the definition, purpose, and different types of research.',
-                duration: '8 min',
-                content: `## What is Research?
+  {
+    id: 'research-fundamentals',
+    title: 'Research Fundamentals',
+    description:
+      'A structured, end-to-end journey through the research process — from choosing a topic to publishing your findings.',
+    coverEmoji: 'microscope',
+    accentColor: 'indigo',
+    level: 'Beginner',
+    tags: ['Introduction', 'Overview'],
+    lessons: [
+      {
+        id: 'what-is-research',
+        title: 'What is Research?',
+        description: 'Understand the definition, purpose, and different types of research.',
+        duration: '8 min',
+        content: `## What is Research?
 
 Research is a **systematic process** of investigating a question or problem in order to discover new knowledge or improve existing knowledge.
 
@@ -89,13 +89,14 @@ If the results provide a **new insight or measurable improvement**, that work qu
 
 > **Research is the structured pursuit of new knowledge through systematic investigation and evidence.**
 `,
-            },
-            {
-                id: 'choosing-a-topic',
-                title: 'Aspects of Research',
-                description: 'Research is a complete lifecycle — explore its 9 core aspects from problem to publication.',
-                duration: '12 min',
-                content: `## Aspects of Research
+      },
+      {
+        id: 'choosing-a-topic',
+        title: 'Aspects of Research',
+        description:
+          'Research is a complete lifecycle — explore its 9 core aspects from problem to publication.',
+        duration: '12 min',
+        content: `## Aspects of Research
 
 Research is not just "doing experiments" or "reading papers" — it is a **complete lifecycle of activities**.
 
@@ -250,29 +251,31 @@ Every research has **limitations** — and that's perfectly fine.
 
 > **Remember:** Problem → Literature → Method → Data → Experiment → Evaluation → Analysis → Publication → Future Work
 `,
-            }
-        ],
-    },
+      },
+    ],
+  },
 ];
 
-export const COURSES_2: Course[] = [...COURSES,
-{
+export const COURSES_2: Course[] = [
+  ...COURSES,
+  {
     id: 'problem-identification',
     title: 'Problem Identification in Research',
     description:
-        'Learn to identify, evaluate, and formulate research problems — the most critical skill every researcher must master before starting any project.',
+      'Learn to identify, evaluate, and formulate research problems — the most critical skill every researcher must master before starting any project.',
     coverEmoji: 'search',
     accentColor: 'violet',
     level: 'Intermediate',
     tags: ['Problem Formulation', 'Research Gaps', 'Critical Thinking'],
     lessons: [
-        // ── Module 1: Foundations ──────────────────────────────────────────
-        {
-            id: 'what-is-a-research-problem',
-            title: 'What is a Research Problem?',
-            description: 'Understand the meaning and role of a research problem — where every project begins.',
-            duration: '8 min',
-            content: `## What is a Research Problem?
+      // ── Module 1: Foundations ──────────────────────────────────────────
+      {
+        id: 'what-is-a-research-problem',
+        title: 'What is a Research Problem?',
+        description:
+          'Understand the meaning and role of a research problem — where every project begins.',
+        duration: '8 min',
+        content: `## What is a Research Problem?
 
 A **research problem** is not simply a topic you are interested in — it is a clearly defined question arising from a **gap in existing knowledge**.
 
@@ -321,13 +324,13 @@ Convert these broad topics into research problems:
 
 *Hint: Ask yourself — what specifically is unknown, insufficient, or broken in each area?*
 `,
-        },
-        {
-            id: 'components-of-a-research-problem',
-            title: 'Components of a Research Problem',
-            description: 'Learn the structure that every well-formed research problem follows.',
-            duration: '10 min',
-            content: `## Components of a Research Problem
+      },
+      {
+        id: 'components-of-a-research-problem',
+        title: 'Components of a Research Problem',
+        description: 'Learn the structure that every well-formed research problem follows.',
+        duration: '10 min',
+        content: `## Components of a Research Problem
 
 A well-formed research problem is not a single sentence — it is built from **three connected components**.
 
@@ -395,15 +398,15 @@ Read any research paper abstract and try to extract:
 2. The **gap** the authors identified
 3. The **question** they set out to answer
 `,
-        },
+      },
 
-        // ── Module 2: Discovering Research Problems ────────────────────────
-        {
-            id: 'sources-of-research-problems',
-            title: 'Sources of Research Problems',
-            description: 'Discover the four major places where research problems originate.',
-            duration: '10 min',
-            content: `## Sources of Research Problems
+      // ── Module 2: Discovering Research Problems ────────────────────────
+      {
+        id: 'sources-of-research-problems',
+        title: 'Sources of Research Problems',
+        description: 'Discover the four major places where research problems originate.',
+        duration: '10 min',
+        content: `## Sources of Research Problems
 
 Where do research problems come from? Researchers don't invent them from thin air — there are **four reliable sources** you can tap into.
 
@@ -454,13 +457,14 @@ List **three possible research problems** — one from each of these sources:
 2. A real-world issue in that field
 3. A new technology that creates new challenges
 `,
-        },
-        {
-            id: 'finding-research-gaps',
-            title: 'Finding Research Gaps in Literature',
-            description: 'Learn how researchers extract problems from existing papers using systematic gap analysis.',
-            duration: '12 min',
-            content: `## Finding Research Gaps in Literature
+      },
+      {
+        id: 'finding-research-gaps',
+        title: 'Finding Research Gaps in Literature',
+        description:
+          'Learn how researchers extract problems from existing papers using systematic gap analysis.',
+        duration: '12 min',
+        content: `## Finding Research Gaps in Literature
 
 The most reliable source of research problems is **existing literature**. But reading papers is not enough — you need to know *where to look* for gaps.
 
@@ -530,15 +534,16 @@ Read the **Limitations** and **Future Work** sections.
 
 List every research gap you can identify and rewrite each one as a research problem statement.
 `,
-        },
+      },
 
-        // ── Module 3: Evaluating Research Problems ─────────────────────────
-        {
-            id: 'characteristics-good-problem',
-            title: 'Characteristics of a Good Research Problem',
-            description: 'Learn the six criteria that determine whether a problem is worth researching.',
-            duration: '10 min',
-            content: `## Characteristics of a Good Research Problem
+      // ── Module 3: Evaluating Research Problems ─────────────────────────
+      {
+        id: 'characteristics-good-problem',
+        title: 'Characteristics of a Good Research Problem',
+        description:
+          'Learn the six criteria that determine whether a problem is worth researching.',
+        duration: '10 min',
+        content: `## Characteristics of a Good Research Problem
 
 Not every gap is worth researching. Before committing to a problem, you need to evaluate it rigorously.
 
@@ -595,13 +600,14 @@ Evaluate the following research problems against the six criteria above and give
 3. *Improve artificial intelligence.*
 4. *Can transformer-based models outperform CNN architectures in histopathology image classification?*
 `,
-        },
-        {
-            id: 'narrowing-broad-topic',
-            title: 'Narrowing a Broad Topic',
-            description: 'Learn to transform vague, broad topics into precise and researchable problems step by step.',
-            duration: '10 min',
-            content: `## Narrowing a Broad Topic
+      },
+      {
+        id: 'narrowing-broad-topic',
+        title: 'Narrowing a Broad Topic',
+        description:
+          'Learn to transform vague, broad topics into precise and researchable problems step by step.',
+        duration: '10 min',
+        content: `## Narrowing a Broad Topic
 
 One of the most common mistakes new researchers make is starting with a topic that is **far too broad** to research meaningfully. Narrowing is a skill — and it follows a clear process.
 
@@ -671,15 +677,16 @@ Take one of these broad topics and narrow it to a specific research problem usin
 
 Document each narrowing step — don't skip straight to the final problem.
 `,
-        },
+      },
 
-        // ── Module 4: Formulating the Problem ─────────────────────────────
-        {
-            id: 'writing-problem-statement',
-            title: 'Writing a Problem Statement',
-            description: 'Learn how to clearly articulate your research problem in a structured, compelling statement.',
-            duration: '12 min',
-            content: `## Writing a Problem Statement
+      // ── Module 4: Formulating the Problem ─────────────────────────────
+      {
+        id: 'writing-problem-statement',
+        title: 'Writing a Problem Statement',
+        description:
+          'Learn how to clearly articulate your research problem in a structured, compelling statement.',
+        duration: '12 min',
+        content: `## Writing a Problem Statement
 
 A **problem statement** is the formal written form of your research problem. It is usually the first substantive paragraph of a research paper or proposal — and it sets the tone for everything that follows.
 
@@ -737,15 +744,16 @@ Write a short problem statement (3–5 sentences) for this scenario:
 
 > *Medical imaging systems can detect tumours in MRI scans but require expert radiologists for review. There is a shortage of radiologists in rural hospitals, causing diagnostic delays. You are researching an automated system to assist.*
 `,
-        },
+      },
 
-        // ── Module 5: Advanced Skills ──────────────────────────────────────
-        {
-            id: 'avoiding-common-mistakes',
-            title: 'Avoiding Common Mistakes',
-            description: 'Understand the errors beginners most often make when choosing and framing research problems.',
-            duration: '8 min',
-            content: `## Avoiding Common Mistakes
+      // ── Module 5: Advanced Skills ──────────────────────────────────────
+      {
+        id: 'avoiding-common-mistakes',
+        title: 'Avoiding Common Mistakes',
+        description:
+          'Understand the errors beginners most often make when choosing and framing research problems.',
+        duration: '8 min',
+        content: `## Avoiding Common Mistakes
 
 Most early-stage researchers make the same set of mistakes when identifying research problems. Knowing what to avoid will save you weeks of wasted effort.
 
@@ -805,13 +813,14 @@ If the answer is "almost nobody" or "the benefit is trivial," reconsider the pro
 | Does the necessary data exist and can you access it? | Change the problem or find a dataset |
 | Does solving this matter to anyone? | Reconsider the significance |
 `,
-        },
-        {
-            id: 'problem-to-research-question',
-            title: 'From Problem to Research Question',
-            description: 'Learn how to translate a defined problem into clear, focused research questions that guide your study.',
-            duration: '10 min',
-            content: `## From Problem to Research Question
+      },
+      {
+        id: 'problem-to-research-question',
+        title: 'From Problem to Research Question',
+        description:
+          'Learn how to translate a defined problem into clear, focused research questions that guide your study.',
+        duration: '10 min',
+        content: `## From Problem to Research Question
 
 A research problem describes **what is wrong or unknown**. A research question translates that into a **specific, answerable question** that your study will investigate.
 
@@ -867,15 +876,16 @@ For each problem below, write **2–3 research questions**:
 1. *Machine translation systems perform poorly on low-resource languages with limited training data.*
 2. *Student engagement drops significantly in online courses compared to face-to-face learning.*
 `,
-        },
+      },
 
-        // ── Final Lesson ───────────────────────────────────────────────────
-        {
-            id: 'problem-identification-workflow',
-            title: 'The Research Problem Identification Workflow',
-            description: 'A practical, step-by-step workflow that ties together everything in this course.',
-            duration: '15 min',
-            content: `## The Research Problem Identification Workflow
+      // ── Final Lesson ───────────────────────────────────────────────────
+      {
+        id: 'problem-identification-workflow',
+        title: 'The Research Problem Identification Workflow',
+        description:
+          'A practical, step-by-step workflow that ties together everything in this course.',
+        duration: '15 min',
+        content: `## The Research Problem Identification Workflow
 
 This is the complete, practical workflow used by researchers to go from a general interest to a well-formed research problem — ready to become a proposal or a paper.
 
@@ -979,26 +989,27 @@ Read the literature summary below and complete all three tasks:
 
 > **You are now equipped to begin any research project with a solid, defensible, and meaningful problem. Good luck.**
 `,
-        },
+      },
     ],
-},
-{
+  },
+  {
     id: 'literature-review',
     title: 'Literature Review in Research',
     description:
-        'Learn to locate, read, analyse, and synthesize academic literature — turning a sea of papers into a clear, compelling literature review.',
+      'Learn to locate, read, analyse, and synthesize academic literature — turning a sea of papers into a clear, compelling literature review.',
     coverEmoji: 'book-copy',
     accentColor: 'emerald',
     level: 'Intermediate',
     tags: ['Literature Review', 'Academic Reading', 'Research Gaps'],
     lessons: [
-        // ── Module 1: Foundations ─────────────────────────────────────────
-        {
-            id: 'what-is-a-literature-review',
-            title: 'What is a Literature Review?',
-            description: 'Understand what a literature review is and why it is an essential part of every research project.',
-            duration: '8 min',
-            content: `## What is a Literature Review?
+      // ── Module 1: Foundations ─────────────────────────────────────────
+      {
+        id: 'what-is-a-literature-review',
+        title: 'What is a Literature Review?',
+        description:
+          'Understand what a literature review is and why it is an essential part of every research project.',
+        duration: '8 min',
+        content: `## What is a Literature Review?
 
 A **literature review** is a systematic examination and synthesis of existing research related to a specific research problem.
 
@@ -1044,13 +1055,13 @@ The review synthesises all of this to show *why* your proposed research is neede
 
 > A literature review is the evidence that you have done your homework — and that there is genuinely something left to do.
 `,
-        },
-        {
-            id: 'types-of-literature-reviews',
-            title: 'Types of Literature Reviews',
-            description: 'Understand the four main types of literature reviews and when each is used.',
-            duration: '8 min',
-            content: `## Types of Literature Reviews
+      },
+      {
+        id: 'types-of-literature-reviews',
+        title: 'Types of Literature Reviews',
+        description: 'Understand the four main types of literature reviews and when each is used.',
+        duration: '8 min',
+        content: `## Types of Literature Reviews
 
 Not all literature reviews are built the same way. The type you use depends on your field, your research question, and the depth of analysis required.
 
@@ -1115,15 +1126,16 @@ Explores the **breadth of research** in a field — maps what has been done with
 
 For most academic research papers, a **narrative or structured narrative review** is used in the Related Work or Literature Review section.
 `,
-        },
+      },
 
-        // ── Module 2: Finding Literature ──────────────────────────────────
-        {
-            id: 'sources-of-academic-literature',
-            title: 'Sources of Academic Literature',
-            description: 'Learn where researchers find peer-reviewed academic work and how to access it.',
-            duration: '8 min',
-            content: `## Sources of Academic Literature
+      // ── Module 2: Finding Literature ──────────────────────────────────
+      {
+        id: 'sources-of-academic-literature',
+        title: 'Sources of Academic Literature',
+        description:
+          'Learn where researchers find peer-reviewed academic work and how to access it.',
+        duration: '8 min',
+        content: `## Sources of Academic Literature
 
 Knowing where to look is the first step. Researchers use a combination of search engines, databases, and repositories to find relevant work.
 
@@ -1175,13 +1187,14 @@ Many papers are behind paywalls. Free options:
 - Search on arXiv or Semantic Scholar
 - Use **Unpaywall** or **Open Access Button** browser extensions
 `,
-        },
-        {
-            id: 'effective-literature-search',
-            title: 'Effective Literature Search',
-            description: 'Learn keyword strategies, Boolean operators, and citation chasing to find all relevant papers efficiently.',
-            duration: '12 min',
-            content: `## Effective Literature Search
+      },
+      {
+        id: 'effective-literature-search',
+        title: 'Effective Literature Search',
+        description:
+          'Learn keyword strategies, Boolean operators, and citation chasing to find all relevant papers efficiently.',
+        duration: '12 min',
+        content: `## Effective Literature Search
 
 Searching broadly gives you too many irrelevant papers. Searching narrowly misses important work. Effective search is a skill — here is how to do it well.
 
@@ -1254,15 +1267,16 @@ Use a reference manager to organise papers as you find them:
 
 For each paper, record: title, year, authors, venue, key findings, and relevance to your work.
 `,
-        },
+      },
 
-        // ── Module 3: Reading Research Papers ────────────────────────────
-        {
-            id: 'anatomy-of-a-research-paper',
-            title: 'Anatomy of a Research Paper',
-            description: 'Understand the standard structure of a research paper so you always know where to look for what.',
-            duration: '10 min',
-            content: `## Anatomy of a Research Paper
+      // ── Module 3: Reading Research Papers ────────────────────────────
+      {
+        id: 'anatomy-of-a-research-paper',
+        title: 'Anatomy of a Research Paper',
+        description:
+          'Understand the standard structure of a research paper so you always know where to look for what.',
+        duration: '10 min',
+        content: `## Anatomy of a Research Paper
 
 Every research paper follows a recognisable structure. Once you know this map, you can navigate any paper quickly and extract the information you need.
 
@@ -1313,13 +1327,14 @@ A direct roadmap for new research problems.
 
 > You do not have to read a paper front to back to understand it. Knowing where each piece of information lives lets you extract what you need efficiently.
 `,
-        },
-        {
-            id: 'efficient-paper-reading',
-            title: 'Efficient Paper Reading Strategy',
-            description: 'Learn the three-pass reading method used by experienced researchers to process many papers quickly.',
-            duration: '10 min',
-            content: `## Efficient Paper Reading Strategy
+      },
+      {
+        id: 'efficient-paper-reading',
+        title: 'Efficient Paper Reading Strategy',
+        description:
+          'Learn the three-pass reading method used by experienced researchers to process many papers quickly.',
+        duration: '10 min',
+        content: `## Efficient Paper Reading Strategy
 
 Researchers often need to read dozens — sometimes hundreds — of papers during a literature review. Reading every paper fully is impossible. The **three-pass method** solves this problem.
 
@@ -1392,15 +1407,16 @@ For every paper you complete Pass 2 or 3 on, record:
 5. **Limitations:** What does it fail at?
 6. **Gap / Relevance:** What does this leave open for your research?
 `,
-        },
+      },
 
-        // ── Module 4: Analysing Literature ───────────────────────────────
-        {
-            id: 'identifying-research-gaps',
-            title: 'Identifying Research Gaps',
-            description: 'Learn the four types of research gaps and how to extract them systematically from literature.',
-            duration: '12 min',
-            content: `## Identifying Research Gaps
+      // ── Module 4: Analysing Literature ───────────────────────────────
+      {
+        id: 'identifying-research-gaps',
+        title: 'Identifying Research Gaps',
+        description:
+          'Learn the four types of research gaps and how to extract them systematically from literature.',
+        duration: '12 min',
+        content: `## Identifying Research Gaps
 
 Reading papers is not the goal. The goal is to find **what is missing** — the gaps that justify your research.
 
@@ -1465,13 +1481,14 @@ Evidence: [Quote or result that shows the gap]
 
 After reading 15–20 papers, patterns will emerge. The gaps that appear across multiple papers are the strongest candidates for your research problem.
 `,
-        },
-        {
-            id: 'synthesizing-literature',
-            title: 'Synthesizing Literature',
-            description: 'Learn how to connect and compare multiple studies rather than listing them one by one.',
-            duration: '12 min',
-            content: `## Synthesizing Literature
+      },
+      {
+        id: 'synthesizing-literature',
+        title: 'Synthesizing Literature',
+        description:
+          'Learn how to connect and compare multiple studies rather than listing them one by one.',
+        duration: '12 min',
+        content: `## Synthesizing Literature
 
 The difference between a weak literature review and a strong one is **synthesis**.
 
@@ -1538,15 +1555,16 @@ This indicates [the gap your research addresses].
 | Identify tension | "These findings conflict because…" |
 | Point to a gap | "However, none of these approaches…" |
 `,
-        },
+      },
 
-        // ── Module 5: Writing the Review ──────────────────────────────────
-        {
-            id: 'structure-of-literature-review',
-            title: 'Structure of a Literature Review',
-            description: 'Learn how to organise and write a complete literature review section for a research paper.',
-            duration: '12 min',
-            content: `## Structure of a Literature Review
+      // ── Module 5: Writing the Review ──────────────────────────────────
+      {
+        id: 'structure-of-literature-review',
+        title: 'Structure of a Literature Review',
+        description:
+          'Learn how to organise and write a complete literature review section for a research paper.',
+        duration: '12 min',
+        content: `## Structure of a Literature Review
 
 A well-structured literature review guides the reader from general background to your specific research gap. It has a clear flow like any good argument.
 
@@ -1620,13 +1638,14 @@ This is the most important paragraph — it is your justification.
 - Write in **present tense** for established facts, past tense for specific study findings
 - Cite continuously — every claim should be backed by a reference
 `,
-        },
-        {
-            id: 'common-mistakes-literature-review',
-            title: 'Common Mistakes in Literature Reviews',
-            description: 'Understand the four critical mistakes that weaken literature reviews and how to avoid each one.',
-            duration: '8 min',
-            content: `## Common Mistakes in Literature Reviews
+      },
+      {
+        id: 'common-mistakes-literature-review',
+        title: 'Common Mistakes in Literature Reviews',
+        description:
+          'Understand the four critical mistakes that weaken literature reviews and how to avoid each one.',
+        duration: '8 min',
+        content: `## Common Mistakes in Literature Reviews
 
 Even experienced researchers make these mistakes. Knowing them in advance will help you write a much stronger review.
 
@@ -1683,15 +1702,16 @@ Before submitting your literature review, ask:
 - [ ] Are my paragraphs analytical (comparing) rather than descriptive (summarising)?
 - [ ] Did I organise by theme rather than by paper?
 `,
-        },
+      },
 
-        // ── Final Lesson ──────────────────────────────────────────────────
-        {
-            id: 'literature-review-workflow',
-            title: 'The Literature Review Workflow',
-            description: 'A complete step-by-step workflow from defining your scope to writing the final review.',
-            duration: '15 min',
-            content: `## The Literature Review Workflow
+      // ── Final Lesson ──────────────────────────────────────────────────
+      {
+        id: 'literature-review-workflow',
+        title: 'The Literature Review Workflow',
+        description:
+          'A complete step-by-step workflow from defining your scope to writing the final review.',
+        duration: '15 min',
+        content: `## The Literature Review Workflow
 
 This is the complete, practical workflow researchers follow when conducting and writing a literature review.
 
@@ -1814,9 +1834,9 @@ Using the workflow above, complete a mini literature review:
 
 > **You can now conduct, analyse, and write a literature review. The most intimidating section of any research paper is no longer a mystery.**
 `,
-        },
+      },
     ],
-},
+  },
 ];
 
 /** Progress stored in Puter KV under this key */

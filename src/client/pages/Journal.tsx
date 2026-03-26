@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Plus, Save, Trash2, Edit2, X, FileText, Mic, Radio, Loader2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Edit2, FileText, Loader2, Mic, Plus, Radio, Save, Trash2, X } from 'lucide-react';
 import { format } from 'date-fns';
 import Markdown from 'react-markdown';
 import { parseEntryDate } from '../utils/dateUtils';
@@ -7,7 +7,8 @@ import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import Breadcrumbs from '../components/Breadcrumbs';
-import { journalService, JournalEntry } from '../lib/journal';
+import { type JournalEntry, journalService } from '../lib/journal';
+import { journalEntrySchema } from '../lib/schemas';
 
 import { kv } from '../lib/kv';
 
@@ -30,7 +31,7 @@ export default function Journal() {
     { label: 'Weekly Diary', value: 'weekly' },
     { label: 'Progress Notes', value: 'progress_note' },
     { label: 'Meeting Notes', value: 'meeting_note' },
-    { label: 'Other', value: 'other' }
+    { label: 'Other', value: 'other' },
   ];
 
   // Set up SpeechRecognition once
@@ -52,13 +53,15 @@ export default function Journal() {
       }
       if (final) {
         contentRef.current = contentRef.current + final;
-        setCurrentEntry(prev => ({ ...prev, content: contentRef.current }));
+        setCurrentEntry((prev) => ({ ...prev, content: contentRef.current }));
       }
     };
     rec.onerror = (event: any) => {
       setIsListening(false);
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        setMicError('Microphone access was denied. Please allow access in your browser settings and try again.');
+        setMicError(
+          'Microphone access was denied. Please allow access in your browser settings and try again.'
+        );
         setTimeout(() => setMicError(null), 6000);
       }
     };
@@ -81,12 +84,28 @@ export default function Journal() {
       return;
     }
     const data: any = await journalService.getEntries(activeProject.id);
-    setEntries(data.sort((a: JournalEntry, b: JournalEntry) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+    setEntries(
+      data.sort(
+        (a: JournalEntry, b: JournalEntry) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+    );
     setLoading(false);
   };
 
   const handleSave = async () => {
-    if (!currentEntry.content || !currentEntry.type) return;
+    const result = journalEntrySchema.safeParse({
+      type: currentEntry.type,
+      content: currentEntry.content,
+      date: currentEntry.date,
+      start_date: currentEntry.start_date,
+      end_date: currentEntry.end_date,
+    });
+    if (!result.success) {
+      const firstIssue = result.error.issues[0];
+      alert(firstIssue?.message ?? 'Validation failed');
+      return;
+    }
     setIsSaving(true);
 
     try {
@@ -102,8 +121,14 @@ export default function Journal() {
         date: finalDate,
         content: currentEntry.content,
         type: currentEntry.type,
-        start_date: currentEntry.type === 'weekly' ? currentEntry.start_date : (currentEntry.date || currentEntry.start_date),
-        end_date: currentEntry.type === 'weekly' ? currentEntry.end_date : (currentEntry.date || currentEntry.end_date)
+        start_date:
+          currentEntry.type === 'weekly'
+            ? currentEntry.start_date
+            : currentEntry.date || currentEntry.start_date,
+        end_date:
+          currentEntry.type === 'weekly'
+            ? currentEntry.end_date
+            : currentEntry.date || currentEntry.end_date,
       };
 
       if (isNew) {
@@ -124,7 +149,7 @@ export default function Journal() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this Entry?')) return;
-    const allEntries = await kv.get('research_entries') || [];
+    const allEntries = (await kv.get('research_entries')) || [];
     await journalService.deleteEntry(id);
     fetchEntries();
   };
@@ -143,7 +168,7 @@ export default function Journal() {
       setCurrentEntry({
         ...Entry,
         start_date: startDate || (isWeekly ? Entry.start_date : ''),
-        end_date: endDate || ''
+        end_date: endDate || '',
       });
     } else {
       const today = new Date().toISOString().split('T')[0];
@@ -151,7 +176,7 @@ export default function Journal() {
         type: 'daily',
         start_date: today,
         end_date: today,
-        date: today
+        date: today,
       });
     }
     // Stop any active recording when switching entries
@@ -177,7 +202,9 @@ export default function Journal() {
       if (navigator.permissions) {
         const status = await navigator.permissions.query({ name: 'microphone' as PermissionName });
         if (status.state === 'denied') {
-          setMicError('Microphone access is blocked. Click the 🔒 icon in your browser\'s address bar to allow it, then try again.');
+          setMicError(
+            "Microphone access is blocked. Click the 🔒 icon in your browser's address bar to allow it, then try again."
+          );
           setTimeout(() => setMicError(null), 8000);
           return;
         }
@@ -186,7 +213,7 @@ export default function Journal() {
       // Trigger the browser permission prompt via getUserMedia
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       // Stop the stream immediately — SpeechRecognition manages its own
-      stream.getTracks().forEach(t => t.stop());
+      stream.getTracks().forEach((t) => t.stop());
 
       // Permission granted — start recognition
       setMicError(null);
@@ -196,7 +223,9 @@ export default function Journal() {
     } catch (err: any) {
       setIsListening(false);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setMicError('Microphone access was denied. Please allow it in your browser settings and try again.');
+        setMicError(
+          'Microphone access was denied. Please allow it in your browser settings and try again.'
+        );
       } else {
         setMicError('Could not access the microphone. Please check your device settings.');
       }
@@ -222,7 +251,9 @@ export default function Journal() {
           <AlertCircle className="w-8 h-8 text-red-500" />
         </div>
         <h2 className="text-2xl font-bold mb-2">No Active Project</h2>
-        <p className="text-zinc-500 mb-8 max-w-sm">You must select or create a project before accessing the Research Journal.</p>
+        <p className="text-zinc-500 mb-8 max-w-sm">
+          You must select or create a project before accessing the Research Journal.
+        </p>
         <button
           onClick={() => navigate('/projects')}
           className="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-all"
@@ -241,7 +272,9 @@ export default function Journal() {
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
           <h1 className="text-2xl font-semibold">Research Journal</h1>
-          <p className="text-base text-zinc-400">Log your progress, meetings, and weekly diaries.</p>
+          <p className="text-base text-zinc-400">
+            Log your progress, meetings, and weekly diaries.
+          </p>
         </div>
         {!isEditing && (
           <button
@@ -260,7 +293,9 @@ export default function Journal() {
             <div className="text-center py-20 border border-dashed border-[var(--color-border)] rounded-xl bg-[var(--color-surface)]/20">
               <FileText className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-white mb-2">No entries yet</h3>
-              <p className="text-zinc-500 mb-6 max-w-sm mx-auto">Start documenting your research journey by creating your first journal Entry.</p>
+              <p className="text-zinc-500 mb-6 max-w-sm mx-auto">
+                Start documenting your research journey by creating your first journal Entry.
+              </p>
               <button
                 onClick={() => openEditor()}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
@@ -271,27 +306,37 @@ export default function Journal() {
             </div>
           ) : (
             entries.map((Entry) => (
-              <div key={Entry.id} className="bg-[var(--color-surface)]/40 border    border-[var(--color-border)] rounded-xl p-3 sm:p-6 hover:bg-[var(--color-surface)]/60 transition-colors group">
+              <div
+                key={Entry.id}
+                className="bg-[var(--color-surface)]/40 border    border-[var(--color-border)] rounded-xl p-3 sm:p-6 hover:bg-[var(--color-surface)]/60 transition-colors group"
+              >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-500 text-xs font-semibold tracking-wide uppercase border border-indigo-500/20">
                       {Entry.type}
                     </span>
                     <span className="text-sm text-zinc-500 font-medium">
-                      {Entry.type === 'weekly' ? Entry.date : format(parseEntryDate(Entry.date), 'MMMM d, yyyy')}
+                      {Entry.type === 'weekly'
+                        ? Entry.date
+                        : format(parseEntryDate(Entry.date), 'MMMM d, yyyy')}
                     </span>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEditor(Entry)} className="p-2 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-white/10 rounded-xl transition-colors">
+                    <button
+                      onClick={() => openEditor(Entry)}
+                      className="p-2 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-white/10 rounded-xl transition-colors"
+                    >
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(Entry.id)} className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors">
+                    <button
+                      onClick={() => handleDelete(Entry.id)}
+                      className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-                <div
-                  className="prose max-w-none prose-p:leading-relaxed prose-pre:bg-[var(--color-surface)] prose-pre:border prose-pre:border-[var(--color-border)] dark:prose-invert">
+                <div className="prose max-w-none prose-p:leading-relaxed prose-pre:bg-[var(--color-surface)] prose-pre:border prose-pre:border-[var(--color-border)] dark:prose-invert">
                   <Markdown>{Entry.content}</Markdown>
                 </div>
               </div>
@@ -301,13 +346,22 @@ export default function Journal() {
       )}
 
       {isEditing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={() => setIsEditing(false)}>
-          <div className="w-full max-w-4xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setIsEditing(false)}
+        >
+          <div
+            className="w-full max-w-4xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
               <h2 className="text-xl font-semibold">
                 {currentEntry.id ? 'Edit Entry' : 'New Entry'}
               </h2>
-              <button onClick={() => setIsEditing(false)} className="p-2 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-white/5 rounded-xl transition-colors">
+              <button
+                onClick={() => setIsEditing(false)}
+                className="p-2 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-white/5 rounded-xl transition-colors"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -321,27 +375,39 @@ export default function Journal() {
                       onChange={(e) => setCurrentEntry({ ...currentEntry, type: e.target.value })}
                       className="w-full bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-xl px-2 sm:px-4 py-1 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
                     >
-                      {entryTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                      {entryTypes.map((t) => (
+                        <option key={t.value} value={t.value}>
+                          {t.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   {currentEntry.type === 'weekly' ? (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-zinc-400 mb-2">Start Date</label>
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">
+                          Start Date
+                        </label>
                         <input
                           type="date"
                           value={currentEntry.start_date || ''}
-                          onChange={(e) => setCurrentEntry({ ...currentEntry, start_date: e.target.value })}
+                          onChange={(e) =>
+                            setCurrentEntry({ ...currentEntry, start_date: e.target.value })
+                          }
                           className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-zinc-400 mb-2">End Date</label>
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">
+                          End Date
+                        </label>
                         <input
                           type="date"
                           value={currentEntry.end_date || ''}
-                          onChange={(e) => setCurrentEntry({ ...currentEntry, end_date: e.target.value })}
+                          onChange={(e) =>
+                            setCurrentEntry({ ...currentEntry, end_date: e.target.value })
+                          }
                           className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                         />
                       </div>
@@ -354,7 +420,7 @@ export default function Journal() {
                         value={currentEntry.date || ''}
                         onChange={(e) => setCurrentEntry({ ...currentEntry, date: e.target.value })}
                         className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                        />
+                      />
                     </div>
                   )}
                 </div>
@@ -362,21 +428,28 @@ export default function Journal() {
                 <div>
                   <label className="block text-sm font-medium text-zinc-400 mb-2">
                     <div className="flex items-center justify-between">
-                      <span>Content <span className="text-zinc-600">(Markdown supported)</span></span>
+                      <span>
+                        Content <span className="text-zinc-600">(Markdown supported)</span>
+                      </span>
                       {voiceSupported && (
                         <button
                           type="button"
                           onClick={toggleListening}
                           title={isListening ? 'Stop recording' : 'Start voice dictation'}
-                          className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold transition-all ${isListening
-                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse'
-                            : 'bg-zinc-800 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-zinc-700 border border-[var(--color-border)]'
-                            }`}
+                          className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold transition-all ${
+                            isListening
+                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse'
+                              : 'bg-zinc-800 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-zinc-700 border border-[var(--color-border)]'
+                          }`}
                         >
                           {isListening ? (
-                            <><Radio className="w-3.5 h-3.5" /> Recording… click to stop</>
+                            <>
+                              <Radio className="w-3.5 h-3.5" /> Recording… click to stop
+                            </>
                           ) : (
-                            <><Mic className="w-3.5 h-3.5" /> Voice Mode</>
+                            <>
+                              <Mic className="w-3.5 h-3.5" /> Voice Mode
+                            </>
                           )}
                         </button>
                       )}
@@ -393,18 +466,25 @@ export default function Journal() {
                   {isListening && (
                     <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-rose-500/10 border border-rose-500/20 rounded-xl">
                       <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse flex-shrink-0" />
-                      <span className="text-xs text-rose-300 font-medium">Listening… speak clearly. Text will appear here automatically.</span>
+                      <span className="text-xs text-rose-300 font-medium">
+                        Listening… speak clearly. Text will appear here automatically.
+                      </span>
                     </div>
                   )}
 
                   <textarea
                     value={currentEntry.content || ''}
                     onChange={(e) => setCurrentEntry({ ...currentEntry, content: e.target.value })}
-                    placeholder={isListening ? '🎙️ Speak now — your words will appear here…' : 'Write your research notes here…'}
-                    className={`w-full h-64 bg-[var(--color-surface)] border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 font-mono text-sm resize-y transition-colors ${isListening
-                      ? 'border-rose-500/40 focus:ring-rose-500/30'
-                      : 'border-[var(--color-border)] focus:ring-indigo-500/50'
-                      }`}
+                    placeholder={
+                      isListening
+                        ? '🎙️ Speak now — your words will appear here…'
+                        : 'Write your research notes here…'
+                    }
+                    className={`w-full h-64 bg-[var(--color-surface)] border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 font-mono text-sm resize-y transition-colors ${
+                      isListening
+                        ? 'border-rose-500/40 focus:ring-rose-500/30'
+                        : 'border-[var(--color-border)] focus:ring-indigo-500/50'
+                    }`}
                   />
                 </div>
 
@@ -420,7 +500,11 @@ export default function Journal() {
                     disabled={!currentEntry.content || isSaving}
                     className="flex items-center gap-2 px-6 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors  "
                   >
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {isSaving ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
                     {isSaving ? 'Saving...' : 'Save Entry'}
                   </button>
                 </div>

@@ -1,5 +1,24 @@
-import { useState, useEffect, useRef } from 'react';
-import { Upload, FileText, Image as ImageIcon, File, Trash2, Search, FolderOpen, Quote, MessagesSquare, ExternalLink, Database, BookMarked, Library, Folder, CheckCircle2, Download, Book, Globe } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Book,
+  BookMarked,
+  CheckCircle2,
+  Database,
+  Download,
+  ExternalLink,
+  File,
+  FileText,
+  Folder,
+  FolderOpen,
+  Globe,
+  Image as ImageIcon,
+  Library,
+  MessagesSquare,
+  Quote,
+  Search,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { storage } from '../lib/storage';
 import CitationModal from '../components/CitationModal';
@@ -7,7 +26,7 @@ import FileChatModal from '../components/FileChatModal';
 import { useProject } from '../contexts/ProjectContext';
 import Breadcrumbs from '../components/Breadcrumbs';
 import ZoteroImportModal from '../components/ZoteroImportModal';
-import { resourcesService, type Resource } from '../lib/resources';
+import { type Resource, resourcesService } from '../lib/resources';
 
 export default function Resources() {
   const { activeProject } = useProject();
@@ -20,7 +39,6 @@ export default function Resources() {
   const [chattingWith, setChattingWith] = useState<Resource | null>(null);
   const [showZoteroModal, setShowZoteroModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
 
   const UPLOADS_DIR = 'resources/uploads';
 
@@ -41,10 +59,12 @@ export default function Resources() {
       console.error('Failed to fetch resources', err);
     }
 
-    setResources(projectResources.sort((a: Resource, b: Resource) =>
-      new Date(b.created_at || 0).getTime() -
-      new Date(a.created_at || 0).getTime()
-    ));
+    setResources(
+      projectResources.sort(
+        (a: Resource, b: Resource) =>
+          new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+      )
+    );
 
     // Get download URLs for only project resources
     const urls: Record<string, string> = {};
@@ -81,7 +101,7 @@ export default function Resources() {
         // source_id: id,
         type: file.type,
         path,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
 
       await resourcesService.create(resource);
@@ -113,7 +133,7 @@ export default function Resources() {
   };
 
   const getIcon = (type: string) => {
-    const classes = "w-4 h-4 text-indigo-400";
+    const classes = 'w-4 h-4 text-indigo-400';
     if (type.includes('book')) return <Book className={classes} />;
     if (type.includes('webpage')) return <Globe className={classes} />;
     if (type.includes('pdf')) return <FileText className={classes} />;
@@ -122,7 +142,7 @@ export default function Resources() {
     return <File className="w-4 h-4 text-zinc-400" />;
   };
 
-  const filteredResources = resources.filter(r =>
+  const filteredResources = resources.filter((r) =>
     r.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -188,7 +208,9 @@ export default function Resources() {
           <div className="col-span-full text-center py-10 sm:py-20 border border-dashed border-[var(--color-border)] rounded-xl bg-[var(--color-surface)]/20">
             <FolderOpen className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">No resources found</h3>
-            <p className="text-zinc-500 mb-6 max-w-sm mx-auto">Upload your first research paper, dataset, or image to get started.</p>
+            <p className="text-zinc-500 mb-6 max-w-sm mx-auto">
+              Upload your first research paper, dataset, or image to get started.
+            </p>
             <button
               onClick={() => fileInputRef.current?.click()}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-xl font-medium transition-colors hover:cursor-pointer"
@@ -202,16 +224,26 @@ export default function Resources() {
             <table className="w-full min-w-[320px] text-left">
               <thead>
                 <tr className="border-b border-[var(--color-border)]">
-                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Resource</th>
-                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider hidden sm:table-cell">Type</th>
-                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider hidden md:table-cell">Added</th>
-                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Resource
+                  </th>
+                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider hidden sm:table-cell">
+                    Type
+                  </th>
+                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider hidden md:table-cell">
+                    Added
+                  </th>
+                  <th className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredResources.map(resource => (
-                  <tr key={resource.id} className="group border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface)]/50 transition-colors">
-
+                {filteredResources.map((resource) => (
+                  <tr
+                    key={resource.id}
+                    className="group border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface)]/50 transition-colors"
+                  >
                     {/* Icon + Name */}
                     <td className="px-4 py-3 max-w-[140px] sm:max-w-[200px]">
                       <div className="flex items-center gap-3">
@@ -229,16 +261,22 @@ export default function Resources() {
 
                     {/* Date Added — hidden on mobile + tablet */}
                     <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap hidden md:table-cell">
-                      {formatDistanceToNow(new Date(resource.created_at || new Date()), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(resource.created_at || new Date()), {
+                        addSuffix: true,
+                      })}
                     </td>
 
                     {/* Actions */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-
                         {/* Open */}
                         <a
-                          href={resource?.url || resource.metadata?.openUrl || downloadUrls[resource.id] || '#'}
+                          href={
+                            resource?.url ||
+                            resource.metadata?.openUrl ||
+                            downloadUrls[resource.id] ||
+                            '#'
+                          }
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Open"
@@ -281,7 +319,6 @@ export default function Resources() {
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
-
                       </div>
                     </td>
                   </tr>
@@ -292,35 +329,26 @@ export default function Resources() {
         )}
       </div>
 
-      {
-        citingResource && (
-          <CitationModal
-            resource={citingResource}
-            downloadUrl={downloadUrls[citingResource.id] || ''}
-            onClose={() => setCitingResource(null)}
-          />
-        )
-      }
+      {citingResource && (
+        <CitationModal
+          resource={citingResource}
+          downloadUrl={downloadUrls[citingResource.id] || ''}
+          onClose={() => setCitingResource(null)}
+        />
+      )}
 
-      {
-        chattingWith && (
-          <FileChatModal
-            resource={chattingWith}
-            onClose={() => setChattingWith(null)}
-          />
-        )
-      }
+      {chattingWith && (
+        <FileChatModal resource={chattingWith} onClose={() => setChattingWith(null)} />
+      )}
 
-      {
-        showZoteroModal && (
-          <ZoteroImportModal
-            onClose={() => setShowZoteroModal(false)}
-            onImport={() => {
-              fetchResources();
-            }}
-          />
-        )
-      }
-    </div >
+      {showZoteroModal && (
+        <ZoteroImportModal
+          onClose={() => setShowZoteroModal(false)}
+          onImport={() => {
+            fetchResources();
+          }}
+        />
+      )}
+    </div>
   );
 }

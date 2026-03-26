@@ -4,16 +4,15 @@
  * `session-expired` event so the app can redirect the user to login.
  */
 export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-    const res = await fetch(input, init);
+  const res = await fetch(input, init);
 
-    if (res.status === 401) {
-        // Clear stored credentials
-        // localStorage.removeItem('supabase_token');
-        // localStorage.removeItem('supabase_user');
+  if (res.status === 401) {
+    // Clear stored credentials
+    // localStorage.removeItem('supabase_token');
+    // localStorage.removeItem('supabase_user');
+    // Notify the rest of the app
+    // window.dispatchEvent(new CustomEvent('session-expired'));
+  }
 
-        // Notify the rest of the app
-        // window.dispatchEvent(new CustomEvent('session-expired'));
-    }
-
-    return res;
+  return res;
 }

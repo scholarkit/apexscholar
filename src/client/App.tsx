@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
@@ -13,9 +13,10 @@ import Resources from './pages/Resources';
 import Insights from './pages/Insights';
 import Composr from './pages/Composr';
 import Login from './components/Login';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import OnboardingModal from './components/OnboardingModal';
 import { auth } from './lib/auth';
-import { initE2EE, isE2EEEnabled, unlockE2EE, getE2EEConfig } from './lib/e2ee';
+import { getE2EEConfig, initE2EE, isE2EEEnabled, unlockE2EE } from './lib/e2ee';
 import Explore from './pages/Explore';
 import Kanban from './pages/Kanban';
 import Funding from './pages/Funding';
@@ -27,7 +28,7 @@ import LessonView from './pages/LessonView';
 import ProjectSettings from './pages/ProjectSettings';
 import { ProjectProvider } from './contexts/ProjectContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { Lock, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Lock } from 'lucide-react';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -93,7 +94,7 @@ export default function App() {
       if (!ok) throw new Error('Incorrect passphrase');
       setE2eeUnlocked(true);
       setE2eePassphrase('');
-      
+
       // Check onboarding after successful unlock
       const completed = localStorage.getItem('apexscholar_onboarding_complete');
       if (!completed) {
@@ -124,10 +125,20 @@ export default function App() {
           <div className="fixed top-0 inset-x-0 z-50 flex items-center justify-center gap-3 bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 text-sm text-amber-300">
             <span>⚠️</span>
             <span>Your session has expired. Please sign in again to continue.</span>
-            <button onClick={() => setSessionExpired(false)} className="ml-auto text-amber-400 hover:text-amber-200 transition-colors">✕</button>
+            <button
+              onClick={() => setSessionExpired(false)}
+              className="ml-auto text-amber-400 hover:text-amber-200 transition-colors"
+            >
+              ✕
+            </button>
           </div>
         )}
-        <Login onLoginSuccess={() => { setIsAuthenticated(true); setSessionExpired(false); }} />
+        <Login
+          onLoginSuccess={() => {
+            setIsAuthenticated(true);
+            setSessionExpired(false);
+          }}
+        />
       </ThemeProvider>
     );
   }
@@ -143,7 +154,9 @@ export default function App() {
                 <Lock className="w-7 h-7 text-indigo-400" />
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">Vault Locked</h2>
-              <p className="text-sm text-zinc-400">Enter your encryption passphrase to access your research data.</p>
+              <p className="text-sm text-zinc-400">
+                Enter your encryption passphrase to access your research data.
+              </p>
             </div>
 
             <div className="space-y-4">
@@ -151,12 +164,12 @@ export default function App() {
                 <label className="block text-xs font-medium text-zinc-400 mb-1">Passphrase</label>
                 <div className="relative">
                   <input
-                    type={showPassphrase ? "text" : "password"}
+                    type={showPassphrase ? 'text' : 'password'}
                     value={e2eePassphrase}
-                    onChange={e => setE2eePassphrase(e.target.value)}
+                    onChange={(e) => setE2eePassphrase(e.target.value)}
                     placeholder="Your encryption passphrase"
                     className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    onKeyDown={e => e.key === 'Enter' && handleUnlock()}
+                    onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
                     autoFocus
                   />
                   <button
@@ -180,7 +193,11 @@ export default function App() {
                 disabled={unlocking}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-600 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
               >
-                {unlocking ? <Loader2 className="w-5 h-5 animate-spin" /> : <Lock className="w-5 h-5" />}
+                {unlocking ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Lock className="w-5 h-5" />
+                )}
                 {unlocking ? 'Unlocking...' : 'Unlock Vault'}
               </button>
 
@@ -200,24 +217,26 @@ export default function App() {
       <ProjectProvider>
         <Router>
           <Layout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/projects/settings" element={<ProjectSettings />} />
-              <Route path="/journal" element={<Journal />} />
-              <Route path="/resources" element={<Resources />} />
-              <Route path="/explore" element={<Explore />} />
-              <Route path="/kanban" element={<Kanban />} />
-              <Route path="/funding" element={<Funding />} />
-              <Route path="/insights" element={<Insights />} />
-              <Route path="/composr" element={<Composr />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/learn" element={<Learn />} />
-              <Route path="/learn/:courseId" element={<CourseView />} />
-              <Route path="/learn/:courseId/:lessonId" element={<LessonView />} />
-              <Route path="/about" element={<About />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/projects/settings" element={<ProjectSettings />} />
+                <Route path="/journal" element={<Journal />} />
+                <Route path="/resources" element={<Resources />} />
+                <Route path="/explore" element={<Explore />} />
+                <Route path="/kanban" element={<Kanban />} />
+                <Route path="/funding" element={<Funding />} />
+                <Route path="/insights" element={<Insights />} />
+                <Route path="/composr" element={<Composr />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/learn" element={<Learn />} />
+                <Route path="/learn/:courseId" element={<CourseView />} />
+                <Route path="/learn/:courseId/:lessonId" element={<LessonView />} />
+                <Route path="/about" element={<About />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </ErrorBoundary>
           </Layout>
         </Router>
       </ProjectProvider>

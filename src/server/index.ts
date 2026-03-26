@@ -48,30 +48,30 @@ app.use('/api/brain', brainRouter);
 app.use(errorHandler);
 
 if (!process.env.VERCEL) {
-    if (process.env.NODE_ENV !== 'production') {
-        import('vite').then(async ({ createServer: createViteServer }) => {
-            const vite = await createViteServer({
-                server: { middlewareMode: true },
-                appType: 'spa',
-            });
-            // This must come AFTER your API routes
-            app.use(vite.middlewares);
+  if (process.env.NODE_ENV !== 'production') {
+    import('vite').then(async ({ createServer: createViteServer }) => {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      // This must come AFTER your API routes
+      app.use(vite.middlewares);
 
-            app.listen(PORT, '0.0.0.0', () => {
-                console.log(`Server running on http://localhost:${PORT}`);
-            });
-        });
-    } else {
-        app.use(express.static('dist'));
-        // The wildcard '*' MUST be the very last route
-        app.get('*', (_req, res) => {
-            res.sendFile(path.resolve('dist/index.html'));
-        });
+      app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
+    });
+  } else {
+    app.use(express.static('dist'));
+    // The wildcard '*' MUST be the very last route
+    app.get('*', (_req, res) => {
+      res.sendFile(path.resolve('dist/index.html'));
+    });
 
-        app.listen(PORT, '0.0.0.0', () => {
-            console.log(`Server running on http://localhost:${PORT}`);
-        });
-    }
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
 }
 
 export default app;

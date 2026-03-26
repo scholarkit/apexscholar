@@ -4,11 +4,11 @@ import { supabaseAdmin } from './supabase.ts';
 
 export const documentsRouter = Router();
 
-documentsRouter.get("/", requireAuth, async (req, res) => {
+documentsRouter.get('/', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     const { project_id } = req.query;
-    if (!project_id) return res.status(400).json({ error: "Missing project_id" });
+    if (!project_id) return res.status(400).json({ error: 'Missing project_id' });
 
     const { data, error } = await supabaseAdmin
       .from('documents')
@@ -24,11 +24,12 @@ documentsRouter.get("/", requireAuth, async (req, res) => {
   }
 });
 
-documentsRouter.post("/", requireAuth, async (req, res) => {
+documentsRouter.post('/', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     const { project_id, title, type } = req.body;
-    if (!project_id || !title) return res.status(400).json({ error: "Missing project_id or title" });
+    if (!project_id || !title)
+      return res.status(400).json({ error: 'Missing project_id or title' });
 
     const { data, error } = await supabaseAdmin
       .from('documents')
@@ -43,7 +44,7 @@ documentsRouter.post("/", requireAuth, async (req, res) => {
   }
 });
 
-documentsRouter.put("/:id", requireAuth, async (req, res) => {
+documentsRouter.put('/:id', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     const { id } = req.params;
@@ -68,7 +69,7 @@ documentsRouter.put("/:id", requireAuth, async (req, res) => {
   }
 });
 
-documentsRouter.delete("/:id", requireAuth, async (req, res) => {
+documentsRouter.delete('/:id', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     const { id } = req.params;
@@ -80,7 +81,7 @@ documentsRouter.delete("/:id", requireAuth, async (req, res) => {
       .eq('user_id', user.id);
 
     if (error) throw error;
-    res.json({ success: true, message: "Document deleted" });
+    res.json({ success: true, message: 'Document deleted' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

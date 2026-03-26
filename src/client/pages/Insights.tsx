@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { Lightbulb, Sparkles, RefreshCw, FileText, AlertCircle, ArrowLeft } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { AlertCircle, ArrowLeft, FileText, Lightbulb, RefreshCw, Sparkles } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useProject } from '../contexts/ProjectContext';
@@ -25,11 +25,13 @@ export default function Insights() {
     const fetchLatestInsight = async () => {
       if (!activeProject) return;
       try {
-        const insights: Insight[] = await kv.get('research_insights') || [];
-        const projectInsights = insights.filter(i => i.projectId === activeProject.id);
+        const insights: Insight[] = (await kv.get('research_insights')) || [];
+        const projectInsights = insights.filter((i) => i.projectId === activeProject.id);
         if (projectInsights.length > 0) {
           // Sort by creation date and get the latest
-          const latest = projectInsights.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+          const latest = projectInsights.sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          )[0];
           setSummary(latest.content);
         } else {
           setSummary(null);
@@ -46,18 +48,18 @@ export default function Insights() {
     setError(null);
     try {
       // 1. Fetch entries from Puter KV for context, filtered by active project
-      const allEntries: Entry[] = await kv.get('research_entries') || [];
-      const entries = allEntries.filter(e => e.project_id === activeProject?.id);
+      const allEntries: Entry[] = (await kv.get('research_entries')) || [];
+      const entries = allEntries.filter((e) => e.project_id === activeProject?.id);
 
       if (entries.length === 0) {
-        setSummary("No research entries found for this project yet. Start journaling and selecting this project to generate insights!");
+        setSummary(
+          'No research entries found for this project yet. Start journaling and selecting this project to generate insights!'
+        );
         setLoading(false);
         return;
       }
 
-      const context = entries
-        .map((e: Entry) => `[${e.date}] ${e.type}: ${e.content}`)
-        .join('\n\n');
+      const context = entries.map((e: Entry) => `[${e.date}] ${e.type}: ${e.content}`).join('\n\n');
 
       const prompt = `You are a research assistant. Based on the following research journal entries, provide a concise summary of recent progress, identified patterns, and potential next steps. Use markdown for formatting, including tables for structured data if helpful. Ensure the output is professional and insightful.
 
@@ -69,19 +71,20 @@ SUMMARY:`;
       // 2. Generate with ai abstraction
       const { ai } = await import('../lib/ai');
       const response = await ai.chat([prompt]);
-      const generatedSummary = typeof response === 'string'
-        ? response  // OpenRouter via ai.ts returns a string by default
-        : (response as any).message?.content || response.toString(); // Fallback for Puter
+      const generatedSummary =
+        typeof response === 'string'
+          ? response // OpenRouter via ai.ts returns a string by default
+          : (response as any).message?.content || response.toString(); // Fallback for Puter
 
       // 3. Save to Puter KV
       const newInsight: Insight = {
         id: Math.random().toString(36).substring(2, 11),
         projectId: activeProject?.id,
         content: generatedSummary,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
 
-      const existingInsights: Insight[] = await kv.get('research_insights') || [];
+      const existingInsights: Insight[] = (await kv.get('research_insights')) || [];
       await kv.set('research_insights', [newInsight, ...existingInsights]);
 
       // Track insight generation in memory
@@ -89,7 +92,7 @@ SUMMARY:`;
       trackEvent('insights', 'generate', {
         projectId: activeProject?.id,
         summaryLength: generatedSummary.length,
-        entriesCount: context.length
+        entriesCount: context.length,
       });
 
       setSummary(generatedSummary);
@@ -158,13 +161,13 @@ SUMMARY:`;
     `;
     element.appendChild(proseContainer);
 
-    // We can't easily use React Components in a detached DOM and keep them "alive", 
-    // so we'll use a simple approach: just the text if it's complex, or we can use 
+    // We can't easily use React Components in a detached DOM and keep them "alive",
+    // so we'll use a simple approach: just the text if it's complex, or we can use
     // a separate hidden instance of Markdown if we want.
     // For simplicity and to GUARANTEE NO ERRORS, we'll use a temporary hidden div in the document.
     document.body.appendChild(element);
 
-    // Instead of innerHTML for markdown (dangerous/hard), we use a hidden visible element 
+    // Instead of innerHTML for markdown (dangerous/hard), we use a hidden visible element
     // that we then capture.
 
     // Use the innerHTML from the rendered markdown in the UI
@@ -182,19 +185,24 @@ SUMMARY:`;
         useCORS: true,
         backgroundColor: '#ffffff',
         // This is the key: only process the detached element
-        logging: false
+        logging: false,
       },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
     };
 
-    html2pdf().set(opt).from(element).save().then(() => {
-      document.body.removeChild(element);
-      setExporting(false);
-    }).catch((err: any) => {
-      console.error('PDF Export Error:', err);
-      if (document.body.contains(element)) document.body.removeChild(element);
-      setExporting(false);
-    });
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .save()
+      .then(() => {
+        document.body.removeChild(element);
+        setExporting(false);
+      })
+      .catch((err: any) => {
+        console.error('PDF Export Error:', err);
+        if (document.body.contains(element)) document.body.removeChild(element);
+        setExporting(false);
+      });
   };
 
   if (!activeProject) {
@@ -204,7 +212,9 @@ SUMMARY:`;
           <AlertCircle className="w-8 h-8 text-red-500" />
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">No Active Project</h2>
-        <p className="text-zinc-500 mb-8 max-w-sm">You must select or create a project before accessing AI Insights.</p>
+        <p className="text-zinc-500 mb-8 max-w-sm">
+          You must select or create a project before accessing AI Insights.
+        </p>
         <button
           onClick={() => navigate('/projects')}
           className="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-all"
@@ -223,7 +233,9 @@ SUMMARY:`;
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <div>
           <h1 className="text-2xl font-semibold text-white">AI Insights Engine</h1>
-          <p className="text-base text-zinc-400">Generate intelligent summaries from your recent research entries.</p>
+          <p className="text-base text-zinc-400">
+            Generate intelligent summaries from your recent research entries.
+          </p>
         </div>
         <button
           onClick={generateInsights}
@@ -250,7 +262,9 @@ SUMMARY:`;
               <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin absolute inset-0" />
               <Sparkles className="w-6 h-6 text-indigo-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
-            <p className="text-zinc-400 font-medium animate-pulse">Reading recent journal entries...</p>
+            <p className="text-zinc-400 font-medium animate-pulse">
+              Reading recent journal entries...
+            </p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-full py-20 text-center">
@@ -303,7 +317,8 @@ SUMMARY:`;
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">Ready to Analyze</h3>
             <p className="text-zinc-500 max-w-md mb-8">
-              The AI engine will read your recent journal entries and synthesize the key findings, progress, and next steps into a professional report.
+              The AI engine will read your recent journal entries and synthesize the key findings,
+              progress, and next steps into a professional report.
             </p>
             <button
               onClick={generateInsights}

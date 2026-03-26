@@ -1,16 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;700;800&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
 /* ── Dark theme (default) ──────────────────────────────── */
 :root,
-[data-theme="dark"] {
+[data-theme='dark'] {
   --color-bg: #09090b;
   --color-surface: #0f0f11;
   --color-surface-2: #18181b;
@@ -30,15 +30,15 @@
   --bg-surface-hover: #141414;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
-  --border-color: #393E46;
+  --border-color: #393e46;
   --border-hover: #374151;
-  --accent-blue: #00ADB5;
+  --accent-blue: #00adb5;
   --accent-glow: rgba(59, 130, 246, 0.15);
   --success: #10b981;
 }
 
 /* ── Light theme ─────────────────────────────────────────── */
-[data-theme="light"] {
+[data-theme='light'] {
   --color-bg: #f8f8f9;
   --color-surface: #ffffff;
   --color-surface-2: #f1f1f3;
@@ -70,7 +70,9 @@
     background-color: var(--color-bg);
     color: var(--color-text);
     @apply selection:bg-indigo-500/30;
-    transition: background-color 200ms ease, color 200ms ease;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
   }
 
   h1,
@@ -89,7 +91,7 @@
     @apply backdrop-blur-xl border border-[var(--color-border)];
   }
 
-  [data-theme="light"] .glass {
+  [data-theme='light'] .glass {
     @apply border-black/10;
   }
 
@@ -129,7 +131,7 @@
     @apply bg-white/10 px-1.5 py-0.5 rounded text-indigo-300 font-mono text-sm before:content-none after:content-none;
   }
 
-  [data-theme="light"] .prose code {
+  [data-theme='light'] .prose code {
     @apply bg-black/5 text-indigo-600;
   }
 

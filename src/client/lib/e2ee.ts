@@ -16,10 +16,10 @@ import { kv } from './kv';
 
 // Type for encrypted payload stored in KV
 export interface EncryptedPayload {
-  version: number;      // encryption format version
-  iv: string;          // base64-encoded initialization vector
-  salt: string;        // base64-encoded salt used for key derivation
-  ciphertext: string;  // base64-encoded encrypted data
+  version: number; // encryption format version
+  iv: string; // base64-encoded initialization vector
+  salt: string; // base64-encoded salt used for key derivation
+  ciphertext: string; // base64-encoded encrypted data
 }
 
 export interface E2EEConfig {
@@ -42,7 +42,7 @@ class E2EEService {
   private config: E2EEConfig = {
     enabled: false,
     isInitialized: false,
-    salt: null
+    salt: null,
   };
 
   /**
@@ -109,7 +109,7 @@ class E2EEService {
         name: 'PBKDF2',
         salt: salt as any,
         iterations: PBKDF2_ITERATIONS,
-        hash: 'SHA-256'
+        hash: 'SHA-256',
       },
       keyMaterial,
       { name: 'AES-GCM', length: KEY_LENGTH },
@@ -134,7 +134,7 @@ class E2EEService {
       this.config = {
         enabled: true,
         isInitialized: true,
-        salt: this.arrayBufferToBase64(salt.buffer)
+        salt: this.arrayBufferToBase64(salt.buffer),
       };
 
       this.saveConfig();
@@ -173,7 +173,7 @@ class E2EEService {
     this.config = {
       enabled: false,
       isInitialized: false,
-      salt: null
+      salt: null,
     };
     this.saveConfig();
   }
@@ -200,7 +200,7 @@ class E2EEService {
       version: E2EE_VERSION,
       iv: this.arrayBufferToBase64(iv.buffer),
       salt: this.config.salt!, // already stored in config
-      ciphertext: this.arrayBufferToBase64(ciphertext)
+      ciphertext: this.arrayBufferToBase64(ciphertext),
     };
   }
 
@@ -302,7 +302,7 @@ class E2EEService {
    */
   async changePassphrase(oldPassphrase: string, newPassphrase: string): Promise<boolean> {
     // First, unlock with old passphrase
-    if (!await this.promptForPassphrase(oldPassphrase)) {
+    if (!(await this.promptForPassphrase(oldPassphrase))) {
       return false;
     }
 
@@ -367,7 +367,10 @@ export function getE2EEConfig() {
 /**
  * Change E2EE passphrase (caller must re-encrypt all stored data after)
  */
-export async function changeE2EEPassphrase(oldPassphrase: string, newPassphrase: string): Promise<boolean> {
+export async function changeE2EEPassphrase(
+  oldPassphrase: string,
+  newPassphrase: string
+): Promise<boolean> {
   return await e2eeService.changePassphrase(oldPassphrase, newPassphrase);
 }
 
@@ -376,7 +379,11 @@ export async function changeE2EEPassphrase(oldPassphrase: string, newPassphrase:
  * Call after enabling E2EE to secure previously unencrypted data.
  * Returns counts of success/failure.
  */
-export async function migrateDataToE2EE(): Promise<{success: number; failed: number; skipped: number}> {
+export async function migrateDataToE2EE(): Promise<{
+  success: number;
+  failed: number;
+  skipped: number;
+}> {
   if (!isE2EEEnabled()) {
     throw new Error('E2EE must be enabled before migrating data');
   }
@@ -399,8 +406,8 @@ export async function migrateDataToE2EE(): Promise<{success: number; failed: num
   for (const key of KNOWN_KEYS) {
     try {
       // Read raw value directly from Puter (bypassing decryption layer).
-      // Since kv.ts now auto-decrypts if E2EE is enabled, 
-      // we must retrieve raw from the window.puter object directly to avoid double processing, 
+      // Since kv.ts now auto-decrypts if E2EE is enabled,
+      // we must retrieve raw from the window.puter object directly to avoid double processing,
       // OR we just use kvGet if it handles plain values gracefully. But to be safe:
       const rawValue = await window.puter.kv.get(key);
       if (rawValue === null) {
@@ -412,7 +419,13 @@ export async function migrateDataToE2EE(): Promise<{success: number; failed: num
       try {
         const parsed = JSON.parse(rawValue);
         // Check if parsed object has encryption fields
-        if (parsed && typeof parsed === 'object' && parsed.version && parsed.iv && parsed.ciphertext) {
+        if (
+          parsed &&
+          typeof parsed === 'object' &&
+          parsed.version &&
+          parsed.iv &&
+          parsed.ciphertext
+        ) {
           // Already encrypted, skip
           skipped++;
           continue;

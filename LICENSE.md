@@ -1,6 +1,4 @@
-# License
-
-## MIT License
+The MIT License
 
 Copyright (c) 2026 Apex Scholar
 

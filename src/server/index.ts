@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 import express from 'express';
 import path from 'path';
+import cors from 'cors';
 import { zoteroRouter } from './zotero.ts';
 import { sourcesRouter } from './sources.ts';
 import { latexRouter } from './latex.ts';
@@ -24,6 +25,15 @@ const PORT = 3000;
 // Global middlewares
 const app = express();
 app.use(express.json());
+
+// CORS
+app.use(cors({
+  origin: [
+    'http://localhost:3000',   // Vite dev
+    'tauri://localhost',        // Tauri on macOS/Linux
+    'https://tauri.localhost',  // Tauri on Windows
+  ]
+}))
 
 // Auth route
 app.use('/api/auth', authRouter);

@@ -42,6 +42,7 @@
     "adm-zip": "^0.5.16",
     "clsx": "^2.1.1",
     "codemirror-lang-latex": "^0.2.0",
+    "cors": "^2.8.6",
     "crypto-js": "^4.2.0",
     "d3-force": "^3.0.0",
     "date-fns": "^4.1.0",

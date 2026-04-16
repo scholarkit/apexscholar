@@ -4,6 +4,16 @@ import { requireAuth } from './middleware.ts';
 
 export const journalRouter = Router();
 
+/** Pick only the columns that exist in the journal_entries table. */
+function sanitizeEntry(body: Record<string, unknown>) {
+  const allowed = ['project_id', 'date', 'content', 'type'] as const;
+  const clean: Record<string, unknown> = {};
+  for (const key of allowed) {
+    if (body[key] !== undefined) clean[key] = body[key];
+  }
+  return clean;
+}
+
 journalRouter.get('/', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
@@ -55,12 +65,11 @@ journalRouter.get('/:id', requireAuth, async (req, res) => {
 journalRouter.post('/', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
-    console.log(req.body);
     const { data, error } = await supabaseAdmin
       .from('journal_entries')
       .insert({
         author_id: user.id,
-        ...req.body,
+        ...sanitizeEntry(req.body),
       })
       .select()
       .single();
@@ -77,7 +86,7 @@ journalRouter.put('/:id', requireAuth, async (req, res) => {
     const user = (req as any).user;
     const { data, error } = await supabaseAdmin
       .from('journal_entries')
-      .update(req.body)
+      .update(sanitizeEntry(req.body))
       .eq('id', req.params.id)
       .eq('author_id', user.id)
       .select('*')

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Activity,
   BookOpen,
@@ -14,10 +14,35 @@ import { eachDayOfInterval, format, formatDistanceToNow, subDays } from 'date-fn
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { parseEntryDate } from '../utils/dateUtils';
 import { useDashboardData } from '../hooks/queries/useDashboardData';
+import { useProject } from '../contexts/ProjectContext';
 
 export default function Dashboard() {
-  const { entries, resourcesCount, projectsCount, isLoading } = useDashboardData();
+  const { entries, resourcesCount, projectsCount, projectMap, projects, isLoading } = useDashboardData();
+  const { setActiveProject } = useProject();
+  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '3m' | 'all'>('30d');
+
+  // Switch to the entry's project and navigate to journal
+  const handleViewEntry = useCallback(
+    (projectId?: string) => {
+      if (projectId) {
+        const project = projects.find((p) => p.id === projectId);
+        if (project) setActiveProject(project);
+      }
+      navigate('/journal');
+    },
+    [projects, setActiveProject, navigate]
+  );
+
+  // Sort entries by date descending (most recent first)
+  // Must be above the loading guard to satisfy Rules of Hooks
+  const sortedEntries = useMemo(
+    () =>
+      [...entries].sort(
+        (a, b) => parseEntryDate(b.date).getTime() - parseEntryDate(a.date).getTime()
+      ),
+    [entries]
+  );
 
   if (isLoading) {
     return (
@@ -30,7 +55,7 @@ export default function Dashboard() {
     );
   }
 
-  const lastActivity = entries.length > 0 ? entries[0]!.date : null; // Analytics logic
+  const lastActivity = sortedEntries.length > 0 ? sortedEntries[0]!.date : null; // Analytics logic
   const today = new Date();
   let startDate: Date;
 
@@ -241,7 +266,7 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold">Recent Milestones</h2>
           </div>
           <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-[var(--color-border)]">
-            {entries.slice(0, 5).map((entry, i) => (
+            {sortedEntries.slice(0, 5).map((entry, i) => (
               <div
                 key={entry.id}
                 className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
@@ -250,17 +275,24 @@ export default function Dashboard() {
                   <GitCommit className="w-4 h-4" />
                 </div>
                 <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] shadow">
-                  <div className="flex items-center justify-between space-x-2 mb-1">
-                    <div className="font-bold text-xs sm:text-sm">{entry.type}</div>
-                    <time className="font-mono text-xs text-zinc-500">
-                      {format(parseEntryDate(entry.date), 'MMM d')}
-                    </time>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="px-2 py-0.5 rounded-lg bg-indigo-500/10 text-xs font-semibold text-indigo-400 border border-indigo-500/20">
+                      {entry.type}
+                    </span>
+                    {entry.project_id && projectMap.get(entry.project_id) && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-violet-500/10 text-[10px] font-medium text-violet-400 border border-violet-500/20 truncate max-w-[140px]">
+                        {projectMap.get(entry.project_id)}
+                      </span>
+                    )}
                   </div>
-                  <div className="text-zinc-400 text-sm line-clamp-2">{entry.content}</div>
+                  <p className="text-[var(--color-text)] text-sm line-clamp-2 mb-2 leading-relaxed">{entry.content}</p>
+                  <time className="block font-mono text-[11px] text-zinc-500">
+                    {format(parseEntryDate(entry.date), 'MMM d, yyyy')}
+                  </time>
                 </div>
               </div>
             ))}
-            {entries.length === 0 && (
+            {sortedEntries.length === 0 && (
               <p className="text-zinc-500 text-center py-8 relative z-10">No milestones yet</p>
             )}
           </div>
@@ -275,32 +307,39 @@ export default function Dashboard() {
         </h2>
 
         <div className="space-y-4">
-          {entries.slice(0, 5).map((entry) => (
+          {sortedEntries.slice(0, 5).map((entry) => (
             <div
               key={entry.id}
               className="p-5 rounded-xl bg-[var(--bg-surface-2)] border border-[var(--color-border)] transition-colors group"
             >
               <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <span className="px-1 sm:px-2.5 py-1 rounded-xl bg-[var(--color-surface-2)] text-xs font-medium text-[var(--color-text-muted)] border border-[var(--color-accent-glow)]">
                     {entry.type}
                   </span>
+                  {entry.project_id && projectMap.get(entry.project_id) && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-violet-500/10 text-xs font-medium text-violet-400 border border-violet-500/20">
+                      <Layers className="w-3 h-3" />
+                      {projectMap.get(entry.project_id)}
+                    </span>
+                  )}
                   <span className="text-xs sm:text-sm text-zinc-500">
                     {formatDistanceToNow(parseEntryDate(entry.date), { addSuffix: true })}
                   </span>
                 </div>
               </div>
               <p className="line-clamp-2 mt-2 leading-relaxed">{entry.content}</p>
-              <Link
-                to="/journal"
+              <button
+                type="button"
+                onClick={() => handleViewEntry(entry.project_id)}
                 className="inline-flex items-center text-sm text-indigo-500 hover:text-indigo-300 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 View full entry &rarr;
-              </Link>
+              </button>
             </div>
           ))}
 
-          {entries.length === 0 && (
+          {sortedEntries.length === 0 && (
             <div className="text-center py-12 bg-[var(--color-surface)]/20 border border-dashed border-[var(--color-border)] rounded-xl">
               <BookOpen className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
               <p className="text-white font-medium mb-1">No recent activity</p>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   closestCorners,
@@ -25,10 +25,12 @@ import {
   AlertCircle,
   ArrowLeft,
   Calendar,
+  Clock,
   GripVertical,
   Plus,
   SquareKanban,
   Trash2,
+  X,
 } from 'lucide-react';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
@@ -37,24 +39,58 @@ import { kv } from '../lib/kv';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ColumnId = 'Literature review' | 'Data collection' | 'Analysis' | 'Peer Review';
+type ColumnId = 'pending' | 'in_progress' | 'completed';
 
 interface Task {
   id: string;
   projectId?: string;
   columnId: ColumnId;
   content: string;
+  deadline?: string; // optional ISO date string (YYYY-MM-DD)
   createdAt: string;
 }
 
-const COLUMNS: { id: ColumnId; title: string }[] = [
-  { id: 'Literature review', title: 'Literature Review' },
-  { id: 'Data collection', title: 'Data Collection' },
-  { id: 'Analysis', title: 'Analysis' },
-  { id: 'Peer Review', title: 'Peer Review' },
+const COLUMNS: { id: ColumnId; title: string; color: string }[] = [
+  { id: 'pending', title: 'Pending', color: 'amber' },
+  { id: 'in_progress', title: 'In Progress', color: 'blue' },
+  { id: 'completed', title: 'Completed', color: 'emerald' },
 ];
 
+/** Map old column IDs to new ones so existing data isn't lost */
+const COLUMN_MIGRATION: Record<string, ColumnId> = {
+  'Literature review': 'pending',
+  'Data collection': 'in_progress',
+  Analysis: 'in_progress',
+  'Peer Review': 'completed',
+  // new IDs map to themselves
+  pending: 'pending',
+  in_progress: 'in_progress',
+  completed: 'completed',
+};
+
 const KV_KEY = 'research_kanban';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function formatDeadline(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function isOverdue(dateStr: string): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const deadline = new Date(dateStr + 'T00:00:00');
+  return deadline < today;
+}
+
+function isDueSoon(dateStr: string): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const deadline = new Date(dateStr + 'T00:00:00');
+  const diffDays = (deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+  return diffDays >= 0 && diffDays <= 2;
+}
 
 // ─── Components ──────────────────────────────────────────────────────────────
 
@@ -79,11 +115,14 @@ function TaskCard({ task, deleteIdea }: { task: Task; deleteIdea?: (id: string) 
     );
   }
 
+  const overdue = task.deadline && task.columnId !== 'completed' && isOverdue(task.deadline);
+  const dueSoon = task.deadline && task.columnId !== 'completed' && !overdue && isDueSoon(task.deadline);
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="group relative bg-[var(--color-surface)] border    border-[var(--color-border)] hover:border-[var(--color-border)] p-3 rounded-xl shadow-sm text-sm text-zinc-300 transition-colors flex flex-col gap-2"
+      className="group relative bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-border)] p-3 rounded-xl shadow-sm text-sm text-zinc-300 transition-colors flex flex-col gap-2"
     >
       <div className="flex gap-2 w-full">
         <div
@@ -98,9 +137,26 @@ function TaskCard({ task, deleteIdea }: { task: Task; deleteIdea?: (id: string) 
         </p>
       </div>
       <div className="flex items-center justify-between text-xs text-zinc-600 pl-6">
-        <span className="flex items-center gap-1">
-          <Calendar className="w-3 h-3" /> {new Date(task.createdAt).toLocaleDateString()}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1">
+            <Calendar className="w-3 h-3" /> {new Date(task.createdAt).toLocaleDateString()}
+          </span>
+          {task.deadline && (
+            <span
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium ${
+                overdue
+                  ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                  : dueSoon
+                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                    : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
+              }`}
+            >
+              <Clock className="w-3 h-3" />
+              {overdue ? 'Overdue · ' : dueSoon ? 'Due soon · ' : ''}
+              {formatDeadline(task.deadline)}
+            </span>
+          )}
+        </div>
         {deleteIdea && (
           <button
             onClick={() => deleteIdea(task.id)}
@@ -109,6 +165,76 @@ function TaskCard({ task, deleteIdea }: { task: Task; deleteIdea?: (id: string) 
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Inline Add Task Form ────────────────────────────────────────────────────
+
+function AddTaskForm({
+  onAdd,
+  onCancel,
+}: {
+  onAdd: (content: string, deadline?: string) => void;
+  onCancel: () => void;
+}) {
+  const [content, setContent] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const handleSubmit = () => {
+    if (!content.trim()) return;
+    onAdd(content.trim(), deadline || undefined);
+    setContent('');
+    setDeadline('');
+  };
+
+  return (
+    <div className="bg-[var(--color-surface)] border border-indigo-500/30 rounded-xl p-3 space-y-2">
+      <textarea
+        ref={inputRef}
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="Task description..."
+        rows={2}
+        className="w-full bg-transparent text-sm text-white placeholder-zinc-600 resize-none focus:outline-none leading-relaxed"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit();
+          }
+          if (e.key === 'Escape') onCancel();
+        }}
+      />
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-1">
+          <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+          <input
+            type="date"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            className="bg-transparent text-xs text-zinc-400 focus:outline-none [color-scheme:dark]"
+            placeholder="Deadline (optional)"
+          />
+        </div>
+        <button
+          onClick={onCancel}
+          className="p-1.5 text-zinc-500 hover:text-white rounded transition-colors"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={handleSubmit}
+          disabled={!content.trim()}
+          className="px-3 py-1 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium rounded-lg transition-colors"
+        >
+          Add
+        </button>
       </div>
     </div>
   );
@@ -123,7 +249,7 @@ export default function Kanban() {
   const [loading, setLoading] = useState(true);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
-  // Load from Puter JS
+  // Load from KV
   useEffect(() => {
     if (!activeProject) {
       setLoading(false);
@@ -131,13 +257,19 @@ export default function Kanban() {
     }
     kv.get(KV_KEY).then((data: Task[] | null) => {
       const allTasks = data || [];
-      const projectTasks = allTasks.filter((t) => t.projectId === activeProject.id);
+      // Filter for this project and migrate old column IDs
+      const projectTasks = allTasks
+        .filter((t) => t.projectId === activeProject.id)
+        .map((t) => ({
+          ...t,
+          columnId: COLUMN_MIGRATION[t.columnId] || 'pending',
+        })) as Task[];
       setTasks(projectTasks);
       setLoading(false);
     });
   }, [activeProject]);
 
-  // Auto-save whenever tasks changes
+  // Auto-save whenever tasks change
   useEffect(() => {
     if (loading || !activeProject) return;
     const save = async () => {
@@ -155,15 +287,13 @@ export default function Kanban() {
     return () => clearTimeout(t);
   }, [tasks, loading, activeProject]);
 
-  const addTask = (columnId: ColumnId) => {
-    const content = window.prompt('Enter task description:');
-    if (!content?.trim()) return;
-
+  const addTask = (columnId: ColumnId, content: string, deadline?: string) => {
     const newTask: Task = {
       id: crypto.randomUUID(),
       projectId: activeProject?.id,
       columnId,
       content,
+      deadline,
       createdAt: new Date().toISOString(),
     };
     setTasks([...tasks, newTask]);
@@ -216,7 +346,7 @@ export default function Kanban() {
       });
     }
 
-    // Dropping a Task over a empty Column
+    // Dropping a Task over an empty Column
     if (isActiveTask && isOverColumn) {
       setTasks((tasks) => {
         const activeIndex = tasks.findIndex((t) => t.id === activeId);
@@ -293,7 +423,7 @@ export default function Kanban() {
     );
   }
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full pb-32 lg:pb-8">
       <Breadcrumbs />
       <header className="mb-6 shrink-0">
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
@@ -313,7 +443,7 @@ export default function Kanban() {
               progress.
             </p>
             <button
-              onClick={() => addTask(COLUMNS[0].id)}
+              onClick={() => addTask(COLUMNS[0].id, 'My first task')}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
             >
               <Plus className="w-4 h-4" /> Add First Task
@@ -333,7 +463,7 @@ export default function Kanban() {
                   key={col.id}
                   column={col}
                   tasks={columns[col.id]}
-                  onAddTask={() => addTask(col.id)}
+                  onAddTask={(content, deadline) => addTask(col.id, content, deadline)}
                   onDeleteTask={deleteTask}
                 />
               ))}
@@ -362,17 +492,24 @@ export default function Kanban() {
 
 import { useDroppable } from '@dnd-kit/core';
 
+const COLUMN_DOT_COLORS: Record<string, string> = {
+  amber: 'bg-amber-400',
+  blue: 'bg-blue-400',
+  emerald: 'bg-emerald-400',
+};
+
 function Column({
   column,
   tasks,
   onAddTask,
   onDeleteTask,
 }: {
-  column: { id: ColumnId; title: string };
+  column: { id: ColumnId; title: string; color: string };
   tasks: Task[];
-  onAddTask: () => void;
+  onAddTask: (content: string, deadline?: string) => void;
   onDeleteTask: (id: string) => void;
 }) {
+  const [showForm, setShowForm] = useState(false);
   const { setNodeRef } = useDroppable({
     id: column.id,
     data: { type: 'Column', column },
@@ -381,9 +518,12 @@ function Column({
   return (
     <div className="flex flex-col w-[300px] h-full max-h-full shrink-0">
       <div className="flex items-center justify-between pb-3 px-1">
-        <h3 className="text-sm font-semibold text-white/90 uppercase tracking-wider">
-          {column.title}
-        </h3>
+        <div className="flex items-center gap-2">
+          <div className={`w-2.5 h-2.5 rounded-full ${COLUMN_DOT_COLORS[column.color] || 'bg-zinc-400'}`} />
+          <h3 className="text-sm font-semibold text-white/90 uppercase tracking-wider">
+            {column.title}
+          </h3>
+        </div>
         <span className="text-xs font-semibold bg-white/10 text-zinc-300 py-0.5 px-2 rounded-full">
           {tasks.length}
         </span>
@@ -391,7 +531,7 @@ function Column({
 
       <div
         ref={setNodeRef}
-        className="flex-1 bg-[var(--color-surface)]/40 border    border-[var(--color-border)] rounded-xl p-2 flex flex-col gap-2 overflow-y-auto custom-scrollbar"
+        className="flex-1 bg-[var(--color-surface)]/40 border border-[var(--color-border)] rounded-xl p-2 flex flex-col gap-2 overflow-y-auto custom-scrollbar"
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
@@ -399,13 +539,23 @@ function Column({
           ))}
         </SortableContext>
 
-        <button
-          onClick={onAddTask}
-          className="mt-1 flex items-center justify-center gap-2 py-3 border border-dashed border-[var(--color-border)] rounded-xl hover:bg-white/5 hover:border-white/20 hover:text-white transition-all text-xs font-medium text-zinc-400 group"
-        >
-          <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-          Add Task
-        </button>
+        {showForm ? (
+          <AddTaskForm
+            onAdd={(content, deadline) => {
+              onAddTask(content, deadline);
+              setShowForm(false);
+            }}
+            onCancel={() => setShowForm(false)}
+          />
+        ) : (
+          <button
+            onClick={() => setShowForm(true)}
+            className="mt-1 flex items-center justify-center gap-2 py-3 border border-dashed border-[var(--color-border)] rounded-xl hover:bg-white/5 hover:border-white/20 hover:text-white transition-all text-xs font-medium text-zinc-400 group"
+          >
+            <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+            Add Task
+          </button>
+        )}
       </div>
     </div>
   );

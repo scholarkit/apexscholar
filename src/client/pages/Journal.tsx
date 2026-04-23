@@ -134,7 +134,7 @@ export default function Journal() {
       if (isNew) {
         await journalService.createEntry(newEntry);
       } else {
-        await journalService.updateEntry(activeProject.id, { ...newEntry, id: currentEntry.id });
+        await journalService.updateEntry(currentEntry.id!, newEntry);
       }
 
       setIsEditing(false);

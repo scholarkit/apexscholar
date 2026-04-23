@@ -6,7 +6,7 @@ export const journalRouter = Router();
 
 /** Pick only the columns that exist in the journal_entries table. */
 function sanitizeEntry(body: Record<string, unknown>) {
-  const allowed = ['project_id', 'date', 'content', 'type'] as const;
+  const allowed = ['project_id', 'date', 'content', 'type', 'start_date', 'end_date'] as const;
   const clean: Record<string, unknown> = {};
   for (const key of allowed) {
     if (body[key] !== undefined) clean[key] = body[key];

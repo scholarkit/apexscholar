@@ -40,6 +40,10 @@ import { kv } from '../lib/kv';
 import { storage } from '../lib/storage';
 import { type Theme, useTheme } from '../contexts/ThemeContext';
 import { changePassphraseSchema, enableE2EESchema } from '../lib/schemas';
+import { journalService } from '../lib/journal';
+import { resourcesService } from '../lib/resources';
+import { projectService } from '../lib/projects';
+import { brainService } from '../lib/brain';
 
 interface FolderStat {
   name: string;
@@ -197,19 +201,34 @@ export default function Settings() {
 
   const handleBackup = async () => {
     try {
-      const [entries, resources, insights, knowledgebase, kanban] = await Promise.all([
-        kv.get('research_entries'),
-        kv.get('research_resources'),
+      const [entries, resources, projects, insights, kanban, chats] = await Promise.all([
+        journalService.getEntries(),
+        resourcesService.listAll(),
+        projectService.getProjects(),
         kv.get('research_insights'),
-        kv.get('research_knowledgebase'),
         kv.get('research_kanban'),
+        brainService.listChats().catch(() => []),
       ]);
+
+      // Fetch messages for each brain chat
+      const brainChats = await Promise.all(
+        (chats || []).map(async (chat) => {
+          try {
+            const messages = await brainService.listMessages(chat.id);
+            return { ...chat, messages: messages || [] };
+          } catch {
+            return { ...chat, messages: [] };
+          }
+        })
+      );
+
       const backup = {
         entries: entries || [],
         resources: resources || [],
+        projects: projects || [],
         insights: insights || [],
-        knowledgebase: knowledgebase || [],
         kanban: kanban || [],
+        brain: brainChats,
         exportedAt: new Date().toISOString(),
       };
       const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
@@ -225,49 +244,154 @@ export default function Settings() {
     }
   };
 
+  const [restoring, setRestoring] = useState(false);
+
   const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!confirm('Restore this backup? This will overwrite your current data.')) {
+    if (
+      !confirm(
+        'Restore this backup? This will import all data from the backup. Duplicate entries may be created if data already exists.'
+      )
+    ) {
       e.target.value = '';
       return;
     }
+    setRestoring(true);
     try {
       const text = await file.text();
       const backup = JSON.parse(text);
+      const errors: string[] = [];
+
+      // 1. Restore projects first to build old→new ID mapping
+      const projectIdMap = new Map<string, string>();
+      if (backup.projects?.length) {
+        for (const proj of backup.projects) {
+          try {
+            const { id: oldId, owner_id, created_at, ...rest } = proj;
+            const created = await projectService.createProject({
+              name: rest.name,
+              description: rest.description,
+              tags: rest.tags,
+              startDate: rest.start_date,
+            });
+            if (oldId && created.id) {
+              projectIdMap.set(oldId, created.id);
+            }
+          } catch {
+            errors.push(`Project: ${proj.name}`);
+          }
+        }
+      }
+
+      // Helper to remap a project_id
+      const remap = (oldId?: string) =>
+        oldId ? projectIdMap.get(oldId) || oldId : undefined;
+
+      // 2. Restore journal entries with remapped project_ids
+      if (backup.entries?.length) {
+        for (const entry of backup.entries) {
+          try {
+            const { id, author_id, created_at, updated_at, ...rest } = entry;
+            await journalService.createEntry({
+              ...rest,
+              project_id: remap(rest.project_id),
+            });
+          } catch {
+            errors.push(`Entry: ${entry.type} - ${(entry.content || '').substring(0, 40)}`);
+          }
+        }
+      }
+
+      // 3. Restore resources with remapped project_ids
+      if (backup.resources?.length) {
+        for (const resource of backup.resources) {
+          try {
+            const { id, user_id, created_at, updated_at, ...rest } = resource;
+            await resourcesService.create({
+              ...rest,
+              project_id: remap(rest.project_id),
+            });
+          } catch {
+            errors.push(`Resource: ${resource.name}`);
+          }
+        }
+      }
+
+      // 4. Restore brain conversations
+      if (backup.brain?.length) {
+        for (const chat of backup.brain) {
+          try {
+            const created = await brainService.createChat(chat.title);
+            if (chat.messages?.length) {
+              for (const msg of chat.messages) {
+                await brainService.addMessage(created.id, msg.role, msg.content);
+              }
+            }
+          } catch {
+            errors.push(`Brain chat: ${chat.title}`);
+          }
+        }
+      }
+
+      // 5. Restore KV-only data (insights + kanban) with project_id remapping
       await Promise.all([
-        backup.entries && kv.set('research_entries', backup.entries),
-        backup.resources && kv.set('research_resources', backup.resources),
         backup.insights && kv.set('research_insights', backup.insights),
+        backup.kanban &&
+          kv.set(
+            'research_kanban',
+            backup.kanban.map((t: any) => ({
+              ...t,
+              projectId: t.projectId ? projectIdMap.get(t.projectId) || t.projectId : t.projectId,
+            }))
+          ),
+        // Legacy KV keys for backward compatibility with old backups
         backup.knowledgebase && kv.set('research_knowledgebase', backup.knowledgebase),
-        backup.kanban && kv.set('research_kanban', backup.kanban),
       ]);
-      alert('Backup restored! Reloading...');
+
+      if (errors.length > 0) {
+        alert(
+          `Backup restored with ${errors.length} skipped item(s):\n${errors.slice(0, 10).join('\n')}${errors.length > 10 ? `\n...and ${errors.length - 10} more` : ''}\n\nReloading...`
+        );
+      } else {
+        alert('Backup restored successfully! Reloading...');
+      }
       window.location.reload();
     } catch (err) {
       console.error('Restore failed', err);
       alert('Failed to restore backup. Make sure the file is a valid Apex Scholar backup.');
     } finally {
       e.target.value = '';
+      setRestoring(false);
     }
   };
 
   const handleReset = async () => {
     setResetting(true);
     try {
-      const ALL_KEYS = [
-        'research_entries',
-        'research_resources',
-        'research_insights',
-        'research_knowledgebase',
-        'research_kanban',
-        'research_funding',
-        'research_projects',
-      ];
-      await Promise.all(ALL_KEYS.map((key) => kv.set(key, [])));
+      const token = localStorage.getItem('supabase_token');
+      const res = await fetch('/api/reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Reset failed');
+      }
+
+      const result = await res.json();
+      if (result.partial) {
+        alert(`Reset completed with some errors. ${result.message}`);
+      }
+
       window.location.reload();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Reset failed', err);
+      alert('Failed to reset data: ' + (err.message || 'Unknown error'));
       setResetting(false);
       setResetConfirm(false);
     }
@@ -736,8 +860,8 @@ export default function Settings() {
         <div>
           <h3 className="text-sm font-medium mb-1">Export Backup</h3>
           <p className="text-xs text-zinc-400">
-            Download a JSON file containing all your entries, resources, insights, kanban, and
-            knowledgebase.
+            Download a JSON file containing all your entries, resources, projects, brain
+            conversations, insights, and kanban tasks.
           </p>
         </div>
         <button
@@ -751,8 +875,8 @@ export default function Settings() {
         <div>
           <h3 className="text-sm font-medium mb-1">Import Backup</h3>
           <p className="text-xs text-zinc-400">
-            Restore your data from a previously exported JSON backup file. This will overwrite
-            current data.
+            Import data from a previously exported JSON backup file. Projects will be re-created
+            with entries and resources mapped to them.
           </p>
         </div>
         <input
@@ -764,9 +888,15 @@ export default function Settings() {
         />
         <button
           onClick={() => restoreInputRef.current?.click()}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-600/20 border border-indigo-500/20 text-indigo-500 hover:text-indigo-300 rounded-xl text-sm font-medium transition-colors flex-shrink-0"
+          disabled={restoring}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-600/20 border border-indigo-500/20 text-indigo-500 hover:text-indigo-300 rounded-xl text-sm font-medium transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Upload className="w-4 h-4" /> Import Backup
+          {restoring ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Upload className="w-4 h-4" />
+          )}
+          {restoring ? 'Restoring...' : 'Import Backup'}
         </button>
       </div>
     </div>

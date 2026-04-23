@@ -28,6 +28,7 @@ import LessonView from './pages/LessonView';
 import ProjectSettings from './pages/ProjectSettings';
 import { ProjectProvider } from './contexts/ProjectContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { Eye, EyeOff, Loader2, Lock } from 'lucide-react';
 
 export default function App() {
@@ -214,32 +215,34 @@ export default function App() {
   return (
     <ThemeProvider>
       <OnboardingModal />
-      <ProjectProvider>
-        <Router>
-          <Layout>
-            <ErrorBoundary>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/projects/settings" element={<ProjectSettings />} />
-                <Route path="/journal" element={<Journal />} />
-                <Route path="/resources" element={<Resources />} />
-                <Route path="/explore" element={<Explore />} />
-                <Route path="/kanban" element={<Kanban />} />
-                <Route path="/funding" element={<Funding />} />
-                <Route path="/insights" element={<Insights />} />
-                <Route path="/composr" element={<Composr />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/learn" element={<Learn />} />
-                <Route path="/learn/:courseId" element={<CourseView />} />
-                <Route path="/learn/:courseId/:lessonId" element={<LessonView />} />
-                <Route path="/about" element={<About />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </ErrorBoundary>
-          </Layout>
-        </Router>
-      </ProjectProvider>
+      <NotificationProvider>
+        <ProjectProvider>
+          <Router>
+            <Layout>
+              <ErrorBoundary>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/projects" element={<Projects />} />
+                  <Route path="/projects/settings" element={<ProjectSettings />} />
+                  <Route path="/journal" element={<Journal />} />
+                  <Route path="/resources" element={<Resources />} />
+                  <Route path="/explore" element={<Explore />} />
+                  <Route path="/kanban" element={<Kanban />} />
+                  <Route path="/funding" element={<Funding />} />
+                  <Route path="/insights" element={<Insights />} />
+                  <Route path="/composr" element={<Composr />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/learn" element={<Learn />} />
+                  <Route path="/learn/:courseId" element={<CourseView />} />
+                  <Route path="/learn/:courseId/:lessonId" element={<LessonView />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </ErrorBoundary>
+            </Layout>
+          </Router>
+        </ProjectProvider>
+      </NotificationProvider>
     </ThemeProvider>
   );
 }

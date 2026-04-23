@@ -12,6 +12,10 @@ export interface Project {
   start_date?: string | null;
   end_date?: string | null;
   created_at: string;
+  /** Injected by backend: the current user's role on this project */
+  _role?: 'owner' | 'editor' | 'viewer';
+  /** True if the project is shared with the current user (not owned) */
+  _shared?: boolean;
 }
 
 export type CreateProjectInput = {

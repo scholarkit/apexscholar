@@ -94,10 +94,11 @@ function isDueSoon(dateStr: string): boolean {
 
 // ─── Components ──────────────────────────────────────────────────────────────
 
-function TaskCard({ task, deleteIdea }: { task: Task; deleteIdea?: (id: string) => void }) {
+function TaskCard({ task, deleteIdea, isViewer }: { task: Task; deleteIdea?: (id: string) => void; isViewer?: boolean }) {
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { type: 'Task', task },
+    disabled: isViewer,
   });
 
   const style = {
@@ -143,13 +144,12 @@ function TaskCard({ task, deleteIdea }: { task: Task; deleteIdea?: (id: string) 
           </span>
           {task.deadline && (
             <span
-              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium ${
-                overdue
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium ${overdue
                   ? 'bg-red-500/10 text-red-400 border border-red-500/20'
                   : dueSoon
                     ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                     : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
-              }`}
+                }`}
             >
               <Clock className="w-3 h-3" />
               {overdue ? 'Overdue · ' : dueSoon ? 'Due soon · ' : ''}
@@ -157,7 +157,7 @@ function TaskCard({ task, deleteIdea }: { task: Task; deleteIdea?: (id: string) 
             </span>
           )}
         </div>
-        {deleteIdea && (
+        {!isViewer && deleteIdea && (
           <button
             onClick={() => deleteIdea(task.id)}
             className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 hover:bg-red-500/10 rounded transition-all"
@@ -243,7 +243,7 @@ function AddTaskForm({
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function Kanban() {
-  const { activeProject } = useProject();
+  const { activeProject, isViewer } = useProject();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -442,12 +442,14 @@ export default function Kanban() {
               Create your first task to start organizing your research pipeline and tracking
               progress.
             </p>
-            <button
-              onClick={() => addTask(COLUMNS[0].id, 'My first task')}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
-            >
-              <Plus className="w-4 h-4" /> Add First Task
-            </button>
+            {!isViewer && (
+              <button
+                onClick={() => addTask(COLUMNS[0].id, 'My first task')}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
+              >
+                <Plus className="w-4 h-4" /> Add First Task
+              </button>
+            )}
           </div>
         ) : (
           <div className="flex gap-4 h-full min-w-max items-start">
@@ -465,6 +467,7 @@ export default function Kanban() {
                   tasks={columns[col.id]}
                   onAddTask={(content, deadline) => addTask(col.id, content, deadline)}
                   onDeleteTask={deleteTask}
+                  isViewer={isViewer}
                 />
               ))}
               {typeof window !== 'undefined' &&
@@ -508,6 +511,7 @@ function Column({
   tasks: Task[];
   onAddTask: (content: string, deadline?: string) => void;
   onDeleteTask: (id: string) => void;
+  isViewer?: boolean;
 }) {
   const [showForm, setShowForm] = useState(false);
   const { setNodeRef } = useDroppable({
@@ -535,26 +539,28 @@ function Column({
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} deleteIdea={onDeleteTask} />
+            <TaskCard key={task.id} task={task} deleteIdea={onDeleteTask} isViewer={isViewer} />
           ))}
         </SortableContext>
 
-        {showForm ? (
-          <AddTaskForm
-            onAdd={(content, deadline) => {
-              onAddTask(content, deadline);
-              setShowForm(false);
-            }}
-            onCancel={() => setShowForm(false)}
-          />
-        ) : (
-          <button
-            onClick={() => setShowForm(true)}
-            className="mt-1 flex items-center justify-center gap-2 py-3 border border-dashed border-[var(--color-border)] rounded-xl hover:bg-white/5 hover:border-white/20 hover:text-white transition-all text-xs font-medium text-zinc-400 group"
-          >
-            <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-            Add Task
-          </button>
+        {!isViewer && (
+          showForm ? (
+            <AddTaskForm
+              onAdd={(content, deadline) => {
+                onAddTask(content, deadline);
+                setShowForm(false);
+              }}
+              onCancel={() => setShowForm(false)}
+            />
+          ) : (
+            <button
+              onClick={() => setShowForm(true)}
+              className="mt-1 flex items-center justify-center gap-2 py-3 border border-dashed border-[var(--color-border)] rounded-xl hover:bg-white/5 hover:border-white/20 hover:text-white transition-all text-xs font-medium text-zinc-400 group"
+            >
+              <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+              Add Task
+            </button>
+          )
         )}
       </div>
     </div>

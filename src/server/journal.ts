@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { supabaseAdmin } from './supabase.ts';
 import { requireAuth } from './middleware.ts';
+import { checkProjectAccess } from './collaborators.ts';
 
 export const journalRouter = Router();
 
@@ -48,10 +49,15 @@ journalRouter.get('/:id', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     const projectId = req.params.id;
+
+    // Check project access (owner or collaborator)
+    const { hasAccess } = await checkProjectAccess(projectId, user.id);
+    if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+
+    // Query by project_id only — collaborators see the owner's entries
     const { data, error } = await supabaseAdmin
       .from('journal_entries')
       .select('*')
-      .eq('author_id', user.id)
       .eq('project_id', projectId);
 
     if (error) throw error;
@@ -65,6 +71,14 @@ journalRouter.get('/:id', requireAuth, async (req, res) => {
 journalRouter.post('/', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
+
+    // Editors can create entries; viewers cannot
+    if (req.body.project_id) {
+      const { hasAccess, role } = await checkProjectAccess(req.body.project_id, user.id);
+      if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+      if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot create entries' });
+    }
+
     const { data, error } = await supabaseAdmin
       .from('journal_entries')
       .insert({
@@ -84,11 +98,24 @@ journalRouter.post('/', requireAuth, async (req, res) => {
 journalRouter.put('/:id', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
+
+    // Look up the entry to find its project and check access
+    const { data: entry } = await supabaseAdmin
+      .from('journal_entries')
+      .select('project_id')
+      .eq('id', req.params.id)
+      .single();
+
+    if (entry?.project_id) {
+      const { hasAccess, role } = await checkProjectAccess(entry.project_id, user.id);
+      if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+      if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot edit entries' });
+    }
+
     const { data, error } = await supabaseAdmin
       .from('journal_entries')
       .update(sanitizeEntry(req.body))
       .eq('id', req.params.id)
-      .eq('author_id', user.id)
       .select('*')
       .single();
     if (error) throw error;
@@ -102,11 +129,23 @@ journalRouter.put('/:id', requireAuth, async (req, res) => {
 journalRouter.delete('/:id', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
+
+    const { data: entry } = await supabaseAdmin
+      .from('journal_entries')
+      .select('project_id')
+      .eq('id', req.params.id)
+      .single();
+
+    if (entry?.project_id) {
+      const { hasAccess, role } = await checkProjectAccess(entry.project_id, user.id);
+      if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+      if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot delete entries' });
+    }
+
     const { data, error } = await supabaseAdmin
       .from('journal_entries')
       .delete()
       .eq('id', req.params.id)
-      .eq('author_id', user.id)
       .select('*')
       .single();
     if (error) throw error;

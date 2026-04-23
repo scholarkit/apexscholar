@@ -17,6 +17,7 @@ import {
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import type { Project } from '../lib/projects';
+import ShareProjectModal from '../components/ShareProjectModal';
 
 function ComingSoonBadge() {
   return (
@@ -89,7 +90,7 @@ const STATUS_OPTIONS: { value: Project['status']; label: string; dot: string }[]
 ];
 
 export default function ProjectSettings() {
-  const { activeProject, updateProject, deleteProject } = useProject();
+  const { activeProject, updateProject, deleteProject, isViewer } = useProject();
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
@@ -102,6 +103,7 @@ export default function ProjectSettings() {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState('');
+  const [showShare, setShowShare] = useState(false);
 
   // Tags state
   const [tags, setTags] = useState<string[]>([]);
@@ -127,6 +129,27 @@ export default function ProjectSettings() {
         <h2 className="text-xl font-semibold text-white mb-2">No Project Selected</h2>
         <p className="text-zinc-500 mb-6 text-sm">
           Go back to Projects and select a workspace first.
+        </p>
+        <button
+          onClick={() => navigate('/projects')}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-sm font-medium transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Projects
+        </button>
+      </div>
+    );
+  }
+
+  // Viewers cannot access project settings
+  if (isViewer) {
+    return (
+      <div className="h-[60vh] flex flex-col items-center justify-center text-center p-6">
+        <Users className="w-12 h-12 text-indigo-500/40 mb-4" />
+        <h2 className="text-xl font-semibold text-white mb-2">Viewer Access Only</h2>
+        <p className="text-zinc-500 mb-6 text-sm max-w-md">
+          You have viewer access to <span className="text-indigo-400 font-medium">"{activeProject.name}"</span>.
+          Only the project owner can modify settings.
         </p>
         <button
           onClick={() => navigate('/projects')}
@@ -367,13 +390,36 @@ export default function ProjectSettings() {
         </div>
       </SectionCard>
 
-      {/* Coming Soon: Collaboration */}
+      {/* Collaboration */}
       <SectionCard
         title="Collaboration"
         description="Invite team members and manage permissions."
         icon={<Users className="w-4 h-4" />}
-        comingSoon
-      />
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-zinc-400">
+            Share this project with collaborators. Editors can modify content; viewers have read-only access.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowShare(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold text-sm transition-colors"
+          >
+            <Users className="w-4 h-4" />
+            Manage Collaborators
+          </button>
+        </div>
+      </SectionCard>
+
+      {/* Share Modal */}
+      {showShare && activeProject && (
+        <ShareProjectModal
+          isOpen={showShare}
+          onClose={() => setShowShare(false)}
+          projectId={activeProject.id}
+          projectName={activeProject.name}
+        />
+      )}
 
       {/* Coming Soon: Export / Backup */}
       <SectionCard

@@ -29,7 +29,7 @@ import ZoteroImportModal from '../components/ZoteroImportModal';
 import { type Resource, resourcesService } from '../lib/resources';
 
 export default function Resources() {
-  const { activeProject } = useProject();
+  const { activeProject, isViewer } = useProject();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -177,29 +177,33 @@ export default function Resources() {
               className="pl-9 pr-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 w-full sm:w-64"
             />
           </div>
-          <button
-            onClick={() => setShowZoteroModal(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl font-medium transition-colors"
-          >
-            <BookMarked className="w-4 h-4" />
-            Import from Zotero
-          </button>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl font-medium transition-colors"
-          >
-            <Upload className="w-4 h-4" />
-            {uploading ? 'Uploading...' : 'Upload File'}
-          </button>
+          {!isViewer && (
+            <>
+              <button
+                onClick={() => setShowZoteroModal(true)}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl font-medium transition-colors"
+              >
+                <BookMarked className="w-4 h-4" />
+                Import from Zotero
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl font-medium transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                {uploading ? 'Uploading...' : 'Upload File'}
+              </button>
 
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleUpload}
-            className="hidden"
-            accept=".pdf,.txt,.png,.jpg,.jpeg,.md"
-          />
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleUpload}
+                className="hidden"
+                accept=".pdf,.txt,.png,.jpg,.jpeg,.md"
+              />
+            </>
+          )}
         </div>
       </header>
 
@@ -211,13 +215,15 @@ export default function Resources() {
             <p className="text-zinc-500 mb-6 max-w-sm mx-auto">
               Upload your first research paper, dataset, or image to get started.
             </p>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-xl font-medium transition-colors hover:cursor-pointer"
-            >
-              <Upload className="w-4 h-4" />
-              Upload File
-            </button>
+            {!isViewer && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-xl font-medium transition-colors hover:cursor-pointer"
+              >
+                <Upload className="w-4 h-4" />
+                Upload File
+              </button>
+            )}
           </div>
         ) : (
           <div className="col-span-full w-full overflow-x-auto rounded-lg">
@@ -312,13 +318,15 @@ export default function Resources() {
                         </button>
 
                         {/* Delete */}
-                        <button
-                          onClick={() => handleDelete(resource.id, resource.path)}
-                          title="Delete resource"
-                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors ml-1"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {!isViewer && (
+                          <button
+                            onClick={() => handleDelete(resource.id, resource.path)}
+                            title="Delete resource"
+                            className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors ml-1"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -13,7 +13,7 @@ import { journalEntrySchema } from '../lib/schemas';
 import { kv } from '../lib/kv';
 
 export default function Journal() {
-  const { activeProject } = useProject();
+  const { activeProject, isViewer } = useProject();
   const navigate = useNavigate();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -276,7 +276,7 @@ export default function Journal() {
             Log your progress, meetings, and weekly diaries.
           </p>
         </div>
-        {!isEditing && (
+        {!isEditing && !isViewer && (
           <button
             onClick={() => openEditor()}
             className="w-full sm:w-fit mt-2 sm:mt-0 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-colors"
@@ -296,13 +296,15 @@ export default function Journal() {
               <p className="text-zinc-500 mb-6 max-w-sm mx-auto">
                 Start documenting your research journey by creating your first journal Entry.
               </p>
-              <button
-                onClick={() => openEditor()}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Create Entry
-              </button>
+              {!isViewer && (
+                <button
+                  onClick={() => openEditor()}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create Entry
+                </button>
+              )}
             </div>
           ) : (
             entries.map((Entry) => (
@@ -321,20 +323,22 @@ export default function Journal() {
                         : format(parseEntryDate(Entry.date), 'MMMM d, yyyy')}
                     </span>
                   </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => openEditor(Entry)}
-                      className="p-2 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-white/10 rounded-xl transition-colors"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(Entry.id)}
-                      className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  {!isViewer && (
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openEditor(Entry)}
+                        className="p-2 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-white/10 rounded-xl transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(Entry.id)}
+                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="prose max-w-none prose-p:leading-relaxed prose-pre:bg-[var(--color-surface)] prose-pre:border prose-pre:border-[var(--color-border)] dark:prose-invert">
                   <Markdown>{Entry.content}</Markdown>

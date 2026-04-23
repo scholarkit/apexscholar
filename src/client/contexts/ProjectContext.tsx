@@ -5,6 +5,10 @@ import { supermemory } from '../lib/supermemory';
 interface ProjectContextType {
   activeProject: Project | null;
   projects: Project[];
+  /** The current user's role on the active project */
+  activeProjectRole: 'owner' | 'editor' | 'viewer';
+  /** Convenience: true when the user is a viewer on the active project */
+  isViewer: boolean;
   loading: boolean;
   setActiveProject: (project: Project) => void;
   refreshProjects: () => Promise<void>;
@@ -124,11 +128,17 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const activeProjectRole: 'owner' | 'editor' | 'viewer' =
+    activeProject?._role || 'owner';
+  const isViewer = activeProjectRole === 'viewer';
+
   return (
     <ProjectContext.Provider
       value={{
         activeProject,
         projects,
+        activeProjectRole,
+        isViewer,
         loading,
         setActiveProject,
         refreshProjects: fetchProjects,

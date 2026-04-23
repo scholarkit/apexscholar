@@ -19,6 +19,7 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import BrainModal from './BrainModal';
 import { ErrorBoundary } from './ErrorBoundary';
+import { NotificationBell } from './NotificationCenter';
 import { auth, type User as AuthUser } from '../lib/auth';
 
 export function cn(...inputs: ClassValue[]) {
@@ -174,6 +175,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        {/* Notification Bell */}
+        <div className={cn('px-3 mb-1', isCollapsed && 'flex justify-center')}>
+          <NotificationBell>
+            {!isCollapsed && (
+              <span className="animate-in fade-in slide-in-from-left-1 duration-300">
+                Notifications
+              </span>
+            )}
+          </NotificationBell>
+        </div>
 
         {/* Brain Button */}
         <div className={cn('px-3 mb-2', isCollapsed && 'flex justify-center')}>
@@ -338,6 +350,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               ⌘B
             </kbd>
           </button>
+        </div>
+
+        {/* Notification Bell (mobile drawer) */}
+        <div className="px-3 mb-2">
+          <NotificationBell>
+            <span>Notifications</span>
+          </NotificationBell>
         </div>
 
         {/* Drawer Footer — user + sign out */}

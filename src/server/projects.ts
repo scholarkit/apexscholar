@@ -4,16 +4,50 @@ import { requireAuth } from './middleware.ts';
 
 export const projectsRouter = Router();
 
-// Get all projects for the authenticated user
+// Get all projects for the authenticated user (owned + shared)
 projectsRouter.get('/', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
-    const { data, error } = await supabaseAdmin
+
+    // 1. Owned projects
+    const { data: owned, error: ownedErr } = await supabaseAdmin
       .from('projects')
       .select('*')
       .eq('owner_id', user.id);
-    if (error) throw error;
-    res.json(data);
+    if (ownedErr) throw ownedErr;
+
+    // 2. Shared projects (accepted collaborations)
+    const { data: collabs, error: collabErr } = await supabaseAdmin
+      .from('project_collaborators')
+      .select('role, project_id')
+      .eq('user_id', user.id)
+      .eq('status', 'accepted');
+    if (collabErr) throw collabErr;
+
+    // 3. Fetch full project data for shared projects
+    const sharedProjectIds = (collabs || []).map((c) => c.project_id);
+    let sharedProjects: any[] = [];
+    if (sharedProjectIds.length > 0) {
+      const { data: sharedData, error: sharedErr } = await supabaseAdmin
+        .from('projects')
+        .select('*')
+        .in('id', sharedProjectIds);
+      if (sharedErr) throw sharedErr;
+      sharedProjects = sharedData || [];
+    }
+
+    // 4. Build role lookup
+    const roleMap = new Map((collabs || []).map((c) => [c.project_id, c.role]));
+
+    // 5. Merge with role annotation
+    const ownedWithRole = (owned || []).map((p: any) => ({ ...p, _role: 'owner' }));
+    const sharedWithRole = sharedProjects.map((p: any) => ({
+      ...p,
+      _role: roleMap.get(p.id) || 'viewer',
+      _shared: true,
+    }));
+
+    res.json([...ownedWithRole, ...sharedWithRole]);
   } catch (err: any) {
     console.error('Projects fetch error:', err);
     res.status(500).json({ error: err.message });

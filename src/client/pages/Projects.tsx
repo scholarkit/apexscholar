@@ -13,6 +13,7 @@ import {
   Plus,
   Settings,
   SquareKanban,
+  Users,
   X,
 } from 'lucide-react';
 import { useProject } from '../contexts/ProjectContext';
@@ -390,8 +391,29 @@ export default function Projects() {
       {projects.length > 0 ? (
         <div className="space-y-4 sm:space-y-8">
           {/* Active Project Card & Switcher */}
-          <div className="border border-[var(--color-border)] rounded-xl p-3 sm:p-6 sm:p-8 relative overflow-hidden">
+          <div className="border border-[var(--color-border)] rounded-xl relative overflow-hidden group/card bg-[var(--bg-surface-2)]">
+            {/* Shared Banner */}
+            {activeProject?._shared && (
+              <div className="bg-indigo-500/10 border-b border-indigo-500/20 px-4 sm:px-8 py-2.5 flex items-center gap-3 group-hover/card:bg-indigo-500/15 transition-colors">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-indigo-500/20 rounded-full animate-ping pointer-events-none" />
+                  <Users className="w-4 h-4 text-indigo-400 relative z-10" />
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-indigo-400">
+                    Collaborative Workspace
+                  </span>
+                  <span className="hidden sm:block w-1 h-1 rounded-full bg-zinc-700" />
+                  <span className="text-[10px] text-zinc-500 font-medium">
+                    Shared with you as <span className="text-zinc-300 font-bold capitalize">{activeProject._role}</span>
+                  </span>
+                </div>
+              </div>
+            )}
+
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none -mr-32 -mt-32 will-change-transform" />
+
+            <div className="p-3 sm:p-6 sm:p-8">
 
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
               <div className="flex-1 space-y-4">
@@ -406,10 +428,20 @@ export default function Projects() {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
                       <p className="text-sm text-zinc-500 flex items-center gap-2 font-medium">
                         <span
-                          className={`w-2 h-2 rounded-full ${activeProject?.status === 'draft' ? 'bg-zinc-400' : 'bg-emerald-500'} animate-pulse`}
+                          className={`w-2 h-2 rounded-full ${activeProject?.status === 'draft' ? 'bg-zinc-400' : 'bg-emerald-500'}`}
                         ></span>
                         {activeProject?.status === 'draft' ? 'Draft Workspace' : 'Active Workspace'}
                       </p>
+                      {activeProject?._shared && (
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${
+                          activeProject._role === 'editor'
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-emerald-500/5'
+                            : 'bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-blue-500/5'
+                        }`}>
+                          <Users className="w-3 h-3" />
+                          {activeProject._role}
+                        </span>
+                      )}
                       {activeProject?.start_date && (
                         <p className="text-xs text-zinc-500 flex items-center gap-1.5">
                           <Calendar className="w-3 h-3" />
@@ -453,24 +485,33 @@ export default function Projects() {
                   >
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name}
+                        {p._shared ? `${p.name} (${p._role})` : p.name}
                       </option>
                     ))}
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
                 </div>
-                <div className="w-px h-10 bg-white/10 hidden sm:block mx-1" />
-                <button
-                  onClick={() => navigate('/projects/settings')}
-                  className="flex flex-row items-center justify-center p-3 text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-xl transition-all border border-transparent hover:border-indigo-500/20 group"
-                  title="Project Settings"
-                >
-                  <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
-                  <span className="sm:hidden font-medium ml-2">Project Settings</span>
-                </button>
+
+                {/* Show settings button only for owners and editors */}
+                {activeProject?._role !== 'viewer' && (
+                  <>
+                    <div className="w-px h-10 bg-white/10 hidden sm:block mx-1" />
+                    <button
+                      onClick={() => navigate('/projects/settings')}
+                      className="flex flex-row items-center justify-center p-3 text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-xl transition-all border border-transparent hover:border-indigo-500/20 group"
+                      title="Project Settings"
+                    >
+                      <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
+                      <span className="sm:hidden font-medium ml-2">Project Settings</span>
+                    </button>
+                  </>
+                )}
               </div>
+
+
             </div>
           </div>
+        </div>
 
           {activeProject ? (
             <div className="space-y-6">

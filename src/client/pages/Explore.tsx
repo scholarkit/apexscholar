@@ -535,6 +535,7 @@ function InsightPanel({
   setIsOpen: (open: boolean) => void;
   isEditing: boolean;
   setIsEditing: (editing: boolean) => void;
+  isViewer?: boolean;
 }) {
   const [localInsight, setLocalInsight] = useState<PaperInsight>(insight);
 
@@ -576,12 +577,14 @@ function InsightPanel({
               Save
             </button>
           ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="text-xs px-2 py-1 bg-white/10 text-zinc-300 rounded-xl hover:bg-white/20 transition-colors"
-            >
-              Edit
-            </button>
+            !isViewer && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-xs px-2 py-1 bg-white/10 text-zinc-300 rounded-xl hover:bg-white/20 transition-colors"
+              >
+                Edit
+              </button>
+            )
           )}
           <button
             onClick={() => setIsOpen(false)}
@@ -767,6 +770,7 @@ interface PaperCardProps {
   onRemove: (p: Paper) => Promise<void> | void;
   onCite: (p: Paper) => void;
   onSaveInsight?: (i: PaperInsight) => void;
+  isViewer?: boolean;
 }
 
 function PaperCard({
@@ -777,6 +781,7 @@ function PaperCard({
   onRemove,
   onCite,
   onSaveInsight,
+  isViewer,
 }: PaperCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [isInsightOpen, setIsInsightOpen] = useState(false);
@@ -985,43 +990,49 @@ function PaperCard({
                 {isInsightOpen ? 'Hide Insight' : 'View Insight'}
               </button>
             ) : (
-              <button
-                onClick={handleExtract}
-                disabled={isExtracting}
-                className="flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl transition-colors disabled:opacity-50"
-              >
-                {isExtracting ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Sparkles className="w-3.5 h-3.5" />
-                )}
-                {isExtracting ? 'Extracting...' : 'Extract Insight'}
-              </button>
+              !isViewer && (
+                <button
+                  onClick={handleExtract}
+                  disabled={isExtracting}
+                  className="flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {isExtracting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5" />
+                  )}
+                  {isExtracting ? 'Extracting...' : 'Extract Insight'}
+                </button>
+              )
             )}
           </>
         )}
 
         {isSaved ? (
           <button
-            onClick={() => onRemove(paper)}
-            className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-red-400 hover:bg-red-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl transition-colors ml-auto"
+            onClick={() => !isViewer && onRemove(paper)}
+            className={`flex items-center gap-1.5 text-xs px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl transition-colors ml-auto ${
+              isViewer ? 'text-emerald-400' : 'text-emerald-400 hover:text-red-400 hover:bg-red-400/10'
+            }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
             Saved
           </button>
         ) : (
-          <button
-            onClick={handleImportClick}
-            disabled={isImporting}
-            className="flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl transition-colors ml-auto disabled:opacity-50"
-          >
-            {isImporting ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Download className="w-3.5 h-3.5" />
-            )}
-            {isImporting ? 'Importing...' : 'Import'}
-          </button>
+          !isViewer && (
+            <button
+              onClick={handleImportClick}
+              disabled={isImporting}
+              className="flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-300 hover:bg-indigo-400/10 px-1 sm:px-2 py-1 sm:py-1.5 rounded-xl transition-colors ml-auto disabled:opacity-50"
+            >
+              {isImporting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Download className="w-3.5 h-3.5" />
+              )}
+              {isImporting ? 'Importing...' : 'Import'}
+            </button>
+          )
         )}
       </div>
 
@@ -1041,6 +1052,7 @@ function PaperCard({
           setIsOpen={setIsInsightOpen}
           isEditing={isEditing}
           setIsEditing={setIsEditing}
+          isViewer={isViewer}
         />
       )}
     </div>
@@ -1085,7 +1097,7 @@ export default function Explore() {
     { id: 'crossref', label: 'CrossRef', status: 'idle', count: 0 },
   ]);
 
-  const { activeProject } = useProject();
+  const { activeProject, isViewer } = useProject();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -1606,6 +1618,7 @@ export default function Explore() {
                         onRemove={handleRemove}
                         onCite={setCitingPaper}
                         onSaveInsight={handleSaveInsight}
+                        isViewer={isViewer}
                       />
                     ))}
                   </div>
@@ -1632,6 +1645,7 @@ export default function Explore() {
                     onRemove={handleRemove}
                     onCite={setCitingPaper}
                     onSaveInsight={handleSaveInsight}
+                    isViewer={isViewer}
                   />
                 ))}
               </div>
@@ -1670,6 +1684,7 @@ export default function Explore() {
                   onRemove={handleRemove}
                   onCite={setCitingPaper}
                   onSaveInsight={handleSaveInsight}
+                  isViewer={isViewer}
                 />
               ))}
             </div>
@@ -1694,13 +1709,15 @@ export default function Explore() {
               <p className="text-zinc-500 text-sm max-w-sm mx-auto">
                 Extract insights from papers in your Knowledge Base to build the reasoning graph.
               </p>
-              <button
-                onClick={() => rebuildGraph()}
-                className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-medium transition-colors"
-              >
-                <BookMarked className="w-4 h-4" />
-                Build Graph
-              </button>
+              {!isViewer && (
+                <button
+                  onClick={() => rebuildGraph()}
+                  className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-medium transition-colors"
+                >
+                  <BookMarked className="w-4 h-4" />
+                  Build Graph
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -1726,18 +1743,20 @@ export default function Explore() {
               <div className="lg:col-span-3 bg-black border border-[var(--color-border)] rounded-xl overflow-hidden relative">
                 {/* Overlay Controls */}
                 <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
-                  <button
-                    onClick={handleIdentifyGap}
-                    disabled={isIdentifyingGap || graph.nodes.length < 2}
-                    className="bg-[var(--color-surface)]/80 hover:bg-zinc-800 backdrop-blur-md border border-[var(--color-border)] px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-xl flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
-                  >
-                    {isIdentifyingGap ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Search className="w-3.5 h-3.5 text-indigo-500" />
-                    )}
-                    {isIdentifyingGap ? 'Identifying Gaps...' : 'Identify Gap'}
-                  </button>
+                  {!isViewer && (
+                    <button
+                      onClick={handleIdentifyGap}
+                      disabled={isIdentifyingGap || graph.nodes.length < 2}
+                      className="bg-[var(--color-surface)]/80 hover:bg-zinc-800 backdrop-blur-md border border-[var(--color-border)] px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-xl flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                    >
+                      {isIdentifyingGap ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Search className="w-3.5 h-3.5 text-indigo-500" />
+                      )}
+                      {isIdentifyingGap ? 'Identifying Gaps...' : 'Identify Gap'}
+                    </button>
+                  )}
                 </div>
                 <ForceGraph2D
                   height={450}

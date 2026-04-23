@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { supabaseAdmin } from './supabase.ts';
 import { requireAuth } from './middleware.ts';
+import { checkProjectAccess } from './collaborators.ts';
 
 export const exploreRouter = Router();
 
@@ -50,6 +51,10 @@ exploreRouter.post('/papers', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'project_id is required' });
     }
 
+    const { hasAccess, role } = await checkProjectAccess(project_id, user.id);
+    if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+    if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot add papers' });
+
     const { data, error } = await supabaseAdmin
       .from('papers')
       .insert({
@@ -81,11 +86,22 @@ exploreRouter.delete('/papers/:paperId', requireAuth, async (req, res) => {
     const user = (req as any).user;
     const paperId = req.params.paperId;
 
+    const { data: paper } = await supabaseAdmin
+      .from('papers')
+      .select('project_id')
+      .eq('id', paperId)
+      .single();
+
+    if (paper?.project_id) {
+      const { hasAccess, role } = await checkProjectAccess(paper.project_id, user.id);
+      if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+      if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot delete papers' });
+    }
+
     const { data, error } = await supabaseAdmin
       .from('papers')
       .delete()
       .eq('id', paperId)
-      .eq('added_by', user.id)
       .select('*')
       .single();
 
@@ -157,6 +173,10 @@ exploreRouter.post('/insights', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'project_id is required' });
     }
 
+    const { hasAccess, role } = await checkProjectAccess(project_id, user.id);
+    if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+    if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot add insights' });
+
     const { data, error } = await supabaseAdmin
       .from('paper_insights')
       .insert({
@@ -181,11 +201,22 @@ exploreRouter.put('/insights/:insightId', requireAuth, async (req, res) => {
     const user = (req as any).user;
     const insightId = req.params.insightId;
 
+    const { data: insight } = await supabaseAdmin
+      .from('paper_insights')
+      .select('project_id')
+      .eq('id', insightId)
+      .single();
+
+    if (insight?.project_id) {
+      const { hasAccess, role } = await checkProjectAccess(insight.project_id, user.id);
+      if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+      if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot edit insights' });
+    }
+
     const { data, error } = await supabaseAdmin
       .from('paper_insights')
       .update(req.body)
       .eq('id', insightId)
-      .eq('author_id', user.id)
       .select('*')
       .single();
 
@@ -202,11 +233,22 @@ exploreRouter.delete('/insights/:insightId', requireAuth, async (req, res) => {
     const user = (req as any).user;
     const insightId = req.params.insightId;
 
+    const { data: insight } = await supabaseAdmin
+      .from('paper_insights')
+      .select('project_id')
+      .eq('id', insightId)
+      .single();
+
+    if (insight?.project_id) {
+      const { hasAccess, role } = await checkProjectAccess(insight.project_id, user.id);
+      if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+      if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot delete insights' });
+    }
+
     const { data, error } = await supabaseAdmin
       .from('paper_insights')
       .delete()
       .eq('id', insightId)
-      .eq('author_id', user.id)
       .select('*')
       .single();
 
@@ -283,6 +325,10 @@ exploreRouter.post('/graph/nodes', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'graph_id and project_id are required' });
     }
 
+    const { hasAccess, role } = await checkProjectAccess(project_id, user.id);
+    if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+    if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot modify graph nodes' });
+
     const { data, error } = await supabaseAdmin
       .from('knowledge_graph_nodes')
       .insert({
@@ -303,7 +349,20 @@ exploreRouter.post('/graph/nodes', requireAuth, async (req, res) => {
 
 exploreRouter.put('/graph/nodes/:nodeId', requireAuth, async (req, res) => {
   try {
+    const user = (req as any).user;
     const nodeId = req.params.nodeId;
+
+    const { data: node } = await supabaseAdmin
+      .from('knowledge_graph_nodes')
+      .select('project_id')
+      .eq('id', nodeId)
+      .single();
+
+    if (node?.project_id) {
+      const { hasAccess, role } = await checkProjectAccess(node.project_id, user.id);
+      if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+      if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot modify graph nodes' });
+    }
 
     const { data, error } = await supabaseAdmin
       .from('knowledge_graph_nodes')
@@ -329,6 +388,10 @@ exploreRouter.post('/graph/edges', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'graph_id and project_id are required' });
     }
 
+    const { hasAccess, role } = await checkProjectAccess(project_id, user.id);
+    if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+    if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot modify graph edges' });
+
     const { data, error } = await supabaseAdmin
       .from('knowledge_graph_edges')
       .insert({
@@ -349,7 +412,20 @@ exploreRouter.post('/graph/edges', requireAuth, async (req, res) => {
 
 exploreRouter.delete('/graph/edges/:edgeId', requireAuth, async (req, res) => {
   try {
+    const user = (req as any).user;
     const edgeId = req.params.edgeId;
+
+    const { data: edge } = await supabaseAdmin
+      .from('knowledge_graph_edges')
+      .select('project_id')
+      .eq('id', edgeId)
+      .single();
+
+    if (edge?.project_id) {
+      const { hasAccess, role } = await checkProjectAccess(edge.project_id, user.id);
+      if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+      if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot delete graph edges' });
+    }
 
     const { data, error } = await supabaseAdmin
       .from('knowledge_graph_edges')
@@ -375,6 +451,18 @@ exploreRouter.post('/graph/clear', requireAuth, async (req, res) => {
 
     if (!graph_id) {
       return res.status(400).json({ error: 'graph_id is required' });
+    }
+
+    const { data: graph } = await supabaseAdmin
+      .from('knowledge_graphs')
+      .select('project_id')
+      .eq('id', graph_id)
+      .single();
+
+    if (graph?.project_id) {
+      const { hasAccess, role } = await checkProjectAccess(graph.project_id, user.id);
+      if (!hasAccess) return res.status(403).json({ error: 'Access denied' });
+      if (role === 'viewer') return res.status(403).json({ error: 'Viewers cannot clear graph' });
     }
 
     // Delete all edges first (foreign key constraint)

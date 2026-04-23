@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import AdmZip from 'adm-zip';
 import dotenv from 'dotenv';
+import { requireAuth } from './middleware.ts';
 dotenv.config({ path: '.env' });
 
 export const latexRouter = Router();
@@ -9,7 +10,7 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_OWNER = 'scholarkit';
 const GITHUB_REPO = 'LaTex';
 
-latexRouter.post('/compile', async (req, res) => {
+latexRouter.post('/compile', requireAuth, async (req, res) => {
   const { content } = req.body;
   if (!content) return res.status(400).json({ error: 'Missing content' });
 

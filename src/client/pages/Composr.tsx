@@ -152,7 +152,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
 };
 
 export default function Composr() {
-  const { activeProject } = useProject();
+  const { activeProject, isViewer } = useProject();
   const navigate = useNavigate();
   const [documents, setDocuments] = useState<DocumentData[]>([]);
   const [activeDoc, setActiveDoc] = useState<DocumentData | null>(null);
@@ -197,6 +197,7 @@ export default function Composr() {
         class: 'prose prose-invert max-w-none focus:outline-none p-6 min-h-[600px] text-zinc-300',
       },
     },
+    editable: !isViewer,
   });
 
   // Sync editor content when docsContent changes (e.g., on load)
@@ -483,18 +484,20 @@ Your abstract here.
             placeholder="Manuscript Title"
           />
           <div className="flex items-center justify-end gap-4">
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center justify-center gap-2 hover:text-white hover:cursor-pointer text-sm font-medium transition-colors shrink-0"
-            >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              Save
-            </button>
+            {!isViewer && (
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="flex items-center justify-center gap-2 hover:text-white hover:cursor-pointer text-sm font-medium transition-colors shrink-0"
+              >
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                Save
+              </button>
+            )}
 
             <button
               onClick={downloadFile}
@@ -504,7 +507,7 @@ Your abstract here.
               {activeMode === 'latex' ? '.tex' : '.html'}
             </button>
 
-            {activeMode === 'latex' && (
+            {!isViewer && activeMode === 'latex' && (
               <button
                 onClick={handleCompile}
                 disabled={isCompiling}
@@ -555,22 +558,24 @@ Your abstract here.
         >
           <div className="flex bg-[var(--color-surface)]/80 border-b border-zinc-800 p-3 items-center justify-between">
             <span className="text-sm font-semibold text-white">Project Documents</span>
-            <button
-              onClick={async () => {
-                if (!activeProject) return;
-                const newDoc = await documentService.createDocument(
-                  activeProject.id,
-                  `New Document ${documents.length + 1}`,
-                  'thesis'
-                );
-                setDocuments([...documents, newDoc]);
-                selectDocument(newDoc);
-              }}
-              className="p-1.5 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors"
-              title="New Document"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+            {!isViewer && (
+              <button
+                onClick={async () => {
+                  if (!activeProject) return;
+                  const newDoc = await documentService.createDocument(
+                    activeProject.id,
+                    `New Document ${documents.length + 1}`,
+                    'thesis'
+                  );
+                  setDocuments([...documents, newDoc]);
+                  selectDocument(newDoc);
+                }}
+                className="p-1.5 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors"
+                title="New Document"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
@@ -605,44 +610,48 @@ Your abstract here.
                       />
                       <span className="text-sm font-medium truncate">{doc.title}</span>
                     </div>
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        const newTitle = prompt('Enter new title:', doc.title);
-                        if (newTitle && newTitle !== doc.title) {
-                          await documentService.updateDocument(doc.id, activeProject!.id, {
-                            title: newTitle,
-                          });
-                          const newDocs = documents.map((d) =>
-                            d.id === doc.id ? { ...d, title: newTitle } : d
-                          );
-                          setDocuments(newDocs);
-                        }
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded transition-colors shrink-0"
-                      title="Rename Document"
-                    >
-                      <Pen className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        if (confirm('Delete this document?')) {
-                          await documentService.deleteDocument(doc.id, activeProject!.id);
-                          const newDocs = documents.filter((d) => d.id !== doc.id);
-                          setDocuments(newDocs);
-                          if (isDocActive) {
-                            setActiveDoc(null);
-                            setStructure([]);
-                            if (newDocs.length > 0) selectDocument(newDocs[0]);
-                          }
-                        }
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded transition-colors shrink-0"
-                      title="Delete Document"
-                    >
-                      <Trash className="w-3 h-3" />
-                    </button>
+                    {!isViewer && (
+                      <>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            const newTitle = prompt('Enter new title:', doc.title);
+                            if (newTitle && newTitle !== doc.title) {
+                              await documentService.updateDocument(doc.id, activeProject!.id, {
+                                title: newTitle,
+                              });
+                              const newDocs = documents.map((d) =>
+                                d.id === doc.id ? { ...d, title: newTitle } : d
+                              );
+                              setDocuments(newDocs);
+                            }
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded transition-colors shrink-0"
+                          title="Rename Document"
+                        >
+                          <Pen className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (confirm('Delete this document?')) {
+                              await documentService.deleteDocument(doc.id, activeProject!.id);
+                              const newDocs = documents.filter((d) => d.id !== doc.id);
+                              setDocuments(newDocs);
+                              if (isDocActive) {
+                                setActiveDoc(null);
+                                setStructure([]);
+                                if (newDocs.length > 0) selectDocument(newDocs[0]);
+                              }
+                            }
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded transition-colors shrink-0"
+                          title="Delete Document"
+                        >
+                          <Trash className="w-3 h-3" />
+                        </button>
+                      </>
+                    )}
                   </div>
 
                   {isExpanded && isDocActive && (
@@ -650,16 +659,19 @@ Your abstract here.
                       {structure.map((sec, idx) => (
                         <div
                           key={sec.id}
-                          draggable
+                          draggable={!isViewer}
                           onDragStart={(e) => {
+                            if (isViewer) return;
                             setDraggedIdx(idx);
                             e.dataTransfer.effectAllowed = 'move';
                           }}
                           onDragOver={(e) => {
+                            if (isViewer) return;
                             e.preventDefault();
                             e.dataTransfer.dropEffect = 'move';
                           }}
                           onDrop={async (e) => {
+                            if (isViewer) return;
                             e.preventDefault();
                             if (draggedIdx === null || draggedIdx === idx) return;
                             const newStructure = [...structure];
@@ -671,7 +683,9 @@ Your abstract here.
                           }}
                           className={`flex items-center group px-2 py-1.5 rounded-lg cursor-pointer transition-colors ${activeSection?.id === sec.id ? 'bg-indigo-500/20 text-indigo-300' : 'text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300'} ${draggedIdx === idx ? 'opacity-50' : ''}`}
                         >
-                          <GripVertical className="w-3 h-3 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing mr-1 shrink-0" />
+                          {!isViewer && (
+                            <GripVertical className="w-3 h-3 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing mr-1 shrink-0" />
+                          )}
                           {sec.type === 'chapter' ? (
                             <Folder className="w-3.5 h-3.5 shrink-0 text-indigo-500/70 mr-2" />
                           ) : (
@@ -679,58 +693,65 @@ Your abstract here.
                           )}
                           <input
                             value={sec.title}
+                            readOnly={isViewer}
                             onChange={(e) => {
+                              if (isViewer) return;
                               const newStructure = [...structure];
                               newStructure[idx].title = e.target.value;
                               setStructure(newStructure);
                             }}
                             onBlur={async () => {
+                              if (isViewer) return;
                               await kv.set(`doc_structure_${activeDoc.id}`, structure);
                             }}
                             onClick={() => selectSection(sec)}
                             className="text-xs truncate flex-1 bg-transparent focus:outline-none border-b border-transparent focus:border-indigo-500"
                           />
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (confirm('Delete this section?')) {
-                                const newStructure = structure.filter((s) => s.id !== sec.id);
-                                setStructure(newStructure);
-                                await kv.set(`doc_structure_${activeDoc.id}`, newStructure);
-                                if (activeSection?.id === sec.id && newStructure.length > 0) {
-                                  selectSection(newStructure[newStructure.length - 1]);
+                          {!isViewer && (
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (confirm('Delete this section?')) {
+                                  const newStructure = structure.filter((s) => s.id !== sec.id);
+                                  setStructure(newStructure);
+                                  await kv.set(`doc_structure_${activeDoc.id}`, newStructure);
+                                  if (activeSection?.id === sec.id && newStructure.length > 0) {
+                                    selectSection(newStructure[newStructure.length - 1]);
+                                  }
                                 }
-                              }
-                            }}
-                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded transition-colors shrink-0"
-                            title="Delete Section"
-                          >
-                            <Trash className="w-3 h-3" />
-                          </button>
+                              }}
+                              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded transition-colors shrink-0"
+                              title="Delete Section"
+                            >
+                              <Trash className="w-3 h-3" />
+                            </button>
+                          )}
                         </div>
                       ))}
-                      <button
-                        onClick={async () => {
-                          const newSec: Section = {
-                            id: Math.random().toString(36).substring(7),
-                            title: `New Chapter ${structure.length + 1}`,
-                            type: 'chapter',
-                            path: `composr/${activeDoc.id}/chapter_${Math.random().toString(36).substring(7)}.tex`,
-                          };
-                          const newStructure = [...structure, newSec];
-                          setStructure(newStructure);
-                          await kv.set(`doc_structure_${activeDoc.id}`, newStructure);
-                          await storage.write(
-                            newSec.path,
-                            '\\section{Introduction}\n\nStart writing...\n'
-                          );
-                          selectSection(newSec);
-                        }}
-                        className="w-full flex items-center gap-2 px-6 py-1.5 text-zinc-500 text-xs hover:text-zinc-300 hover:bg-zinc-800/50 rounded-lg transition-colors mt-1"
-                      >
-                        <Plus className="w-3 h-3" />
-                        Add Chapter
-                      </button>
+                      {!isViewer && (
+                        <button
+                          onClick={async () => {
+                            const newSec: Section = {
+                              id: Math.random().toString(36).substring(7),
+                              title: `New Chapter ${structure.length + 1}`,
+                              type: 'chapter',
+                              path: `composr/${activeDoc.id}/chapter_${Math.random().toString(36).substring(7)}.tex`,
+                            };
+                            const newStructure = [...structure, newSec];
+                            setStructure(newStructure);
+                            await kv.set(`doc_structure_${activeDoc.id}`, newStructure);
+                            await storage.write(
+                              newSec.path,
+                              '\\section{Introduction}\n\nStart writing...\n'
+                            );
+                            selectSection(newSec);
+                          }}
+                          className="w-full flex items-center gap-2 px-6 py-1.5 text-zinc-500 text-xs hover:text-zinc-300 hover:bg-zinc-800/50 rounded-lg transition-colors mt-1"
+                        >
+                          <Plus className="w-3 h-3" />
+                          Add Chapter
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -747,6 +768,8 @@ Your abstract here.
             {activeMode === 'latex' ? (
               <CodeMirror
                 value={latexContent}
+                readOnly={isViewer}
+                editable={!isViewer}
                 height="100%"
                 theme={oneDark}
                 extensions={[latex()]}

@@ -20,6 +20,8 @@ import { grantRouter } from './grants.ts';
 import { exploreRouter } from './explore.ts';
 import { brainRouter } from './brain.ts';
 import { resetRouter } from './reset.ts';
+import { collaboratorsRouter } from './collaborators.ts';
+import { notificationsRouter } from './notifications.ts';
 
 const PORT = 3000;
 
@@ -55,6 +57,8 @@ app.use('/api/funding', grantRouter);
 app.use('/api/explore', exploreRouter);
 app.use('/api/brain', brainRouter);
 app.use('/api/reset', resetRouter);
+app.use('/api', collaboratorsRouter);
+app.use('/api/notifications', notificationsRouter);
 
 // Global error handler
 app.use(errorHandler);

@@ -3,33 +3,35 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
-import Projects from './pages/Projects';
-import Journal from './pages/Journal';
-import Resources from './pages/Resources';
-import Insights from './pages/Insights';
-import Composr from './pages/Composr';
 import Login from './components/Login';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import OnboardingModal from './components/OnboardingModal';
 import { auth } from './lib/auth';
 import { getE2EEConfig, initE2EE, isE2EEEnabled, unlockE2EE } from './lib/e2ee';
-import Explore from './pages/Explore';
-import Kanban from './pages/Kanban';
-import Funding from './pages/Funding';
-import About from './pages/About';
-import Settings from './pages/Settings';
-import Learn from './pages/Learn';
-import CourseView from './pages/CourseView';
-import LessonView from './pages/LessonView';
-import ProjectSettings from './pages/ProjectSettings';
 import { ProjectProvider } from './contexts/ProjectContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { Eye, EyeOff, Loader2, Lock } from 'lucide-react';
+
+// Lazy-loaded page components — each splits into its own chunk
+const Projects = lazy(() => import('./pages/Projects'));
+const ProjectSettings = lazy(() => import('./pages/ProjectSettings'));
+const Journal = lazy(() => import('./pages/Journal'));
+const Resources = lazy(() => import('./pages/Resources'));
+const Explore = lazy(() => import('./pages/Explore'));
+const Kanban = lazy(() => import('./pages/Kanban'));
+const Funding = lazy(() => import('./pages/Funding'));
+const Insights = lazy(() => import('./pages/Insights'));
+const Composr = lazy(() => import('./pages/Composr'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Learn = lazy(() => import('./pages/Learn'));
+const CourseView = lazy(() => import('./pages/CourseView'));
+const LessonView = lazy(() => import('./pages/LessonView'));
+const About = lazy(() => import('./pages/About'));
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -220,24 +222,35 @@ export default function App() {
           <Router>
             <Layout>
               <ErrorBoundary>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/projects" element={<Projects />} />
-                  <Route path="/projects/settings" element={<ProjectSettings />} />
-                  <Route path="/journal" element={<Journal />} />
-                  <Route path="/resources" element={<Resources />} />
-                  <Route path="/explore" element={<Explore />} />
-                  <Route path="/kanban" element={<Kanban />} />
-                  <Route path="/funding" element={<Funding />} />
-                  <Route path="/insights" element={<Insights />} />
-                  <Route path="/composr" element={<Composr />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/learn" element={<Learn />} />
-                  <Route path="/learn/:courseId" element={<CourseView />} />
-                  <Route path="/learn/:courseId/:lessonId" element={<LessonView />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center min-h-[60vh]">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-10 h-10 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+                        <span className="text-sm text-zinc-500">Loading module…</span>
+                      </div>
+                    </div>
+                  }
+                >
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/projects" element={<Projects />} />
+                    <Route path="/projects/settings" element={<ProjectSettings />} />
+                    <Route path="/journal" element={<Journal />} />
+                    <Route path="/resources" element={<Resources />} />
+                    <Route path="/explore" element={<Explore />} />
+                    <Route path="/kanban" element={<Kanban />} />
+                    <Route path="/funding" element={<Funding />} />
+                    <Route path="/insights" element={<Insights />} />
+                    <Route path="/composr" element={<Composr />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/learn" element={<Learn />} />
+                    <Route path="/learn/:courseId" element={<CourseView />} />
+                    <Route path="/learn/:courseId/:lessonId" element={<LessonView />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Suspense>
               </ErrorBoundary>
             </Layout>
           </Router>

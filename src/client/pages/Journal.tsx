@@ -110,25 +110,17 @@ export default function Journal() {
 
     try {
       const isNew = !currentEntry.id;
-      let finalDate = currentEntry.end_date || new Date().toISOString();
+      let finalDate = currentEntry.date || new Date().toISOString().split('T')[0];
 
       if (currentEntry.type === 'weekly' && currentEntry.start_date && currentEntry.end_date) {
         finalDate = `${currentEntry.start_date} to ${currentEntry.end_date}`;
       }
 
-      const newEntry: JournalEntry = {
+      const newEntry: Partial<JournalEntry> = {
         project_id: activeProject?.id,
-        date: finalDate,
         content: currentEntry.content,
         type: currentEntry.type,
-        start_date:
-          currentEntry.type === 'weekly'
-            ? currentEntry.start_date
-            : currentEntry.date || currentEntry.start_date,
-        end_date:
-          currentEntry.type === 'weekly'
-            ? currentEntry.end_date
-            : currentEntry.date || currentEntry.end_date,
+        date: finalDate,
       };
 
       if (isNew) {
@@ -159,16 +151,25 @@ export default function Journal() {
       const isWeekly = Entry.type === 'weekly';
       let startDate = '';
       let endDate = '';
+      let singleDate = '';
 
-      if (isWeekly) {
-        startDate = Entry.start_date;
-        endDate = Entry.end_date;
+      if (isWeekly && Entry.date?.includes(' to ')) {
+        const parts = Entry.date.split(' to ');
+        startDate = parts[0]?.trim() || '';
+        endDate = parts[1]?.trim() || '';
+      } else if (isWeekly) {
+        startDate = Entry.start_date || '';
+        endDate = Entry.end_date || '';
+      } else {
+        // For non-weekly entries, extract a YYYY-MM-DD date for the input field
+        singleDate = Entry.date ? Entry.date.split('T')[0] : '';
       }
 
       setCurrentEntry({
         ...Entry,
-        start_date: startDate || (isWeekly ? Entry.start_date : ''),
-        end_date: endDate || '',
+        date: singleDate,
+        start_date: startDate,
+        end_date: endDate,
       });
     } else {
       const today = new Date().toISOString().split('T')[0];

@@ -411,13 +411,6 @@ export default function BrainModal({ onClose }: BrainModalProps) {
                 </button>
               </div>
             </div>
-            <div className="flex items-center justify-center gap-2 mt-4 opacity-70">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400/70" />
-              <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-[0.2em]">
-                Nexus AI securely analyzes your knowledge base
-              </p>
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400/70" />
-            </div>
           </div>
         </main>
       </div>

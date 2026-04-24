@@ -506,6 +506,7 @@ function Column({
   tasks,
   onAddTask,
   onDeleteTask,
+  isViewer,
 }: {
   column: { id: ColumnId; title: string; color: string };
   tasks: Task[];

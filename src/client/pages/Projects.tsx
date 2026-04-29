@@ -124,10 +124,11 @@ const ModuleCard = memo(function ModuleCard({
   return (
     <button
       onClick={handleClick}
-      className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] shadow-sm group p-3 sm:p-6 hover:bg-[var(--color-surface-hover)] hover:border-indigo-500/30 transition-all text-left relative overflow-hidden backdrop-blur-sm"
+      className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] shadow-sm group p-3 sm:p-6 hover:bg-[var(--color-surface-hover)] hover:border-indigo-500/30 transition-all text-left relative overflow-hidden"
     >
       <div
-        className={`absolute top-0 right-0 w-24 h-24 ${colors.glow} blur-3xl rounded-full -mr-8 -mt-8 group-hover:${colors.glowHover} transition-colors will-change-transform`}
+        className={`absolute top-0 right-0 w-24 h-24 ${colors.glow} blur-2xl rounded-full -mr-8 -mt-8 pointer-events-none will-change-transform`}
+        style={{ contain: 'strict' }}
       />
       <div className="flex items-start justify-between mb-4 relative z-10">
         <div
@@ -373,7 +374,7 @@ export default function Projects() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none will-change-transform" />
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <div>
           <h1 className="text-2xl font-semibold mb-2">Research Projects</h1>
           <p className="text-base text-zinc-400">Organize and manage your research workspaces.</p>
@@ -411,7 +412,7 @@ export default function Projects() {
               </div>
             )}
 
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none -mr-32 -mt-32 will-change-transform" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none -mr-32 -mt-32 will-change-transform" style={{ contain: 'strict' }} />
 
             <div className="p-3 sm:p-6 sm:p-8">
 

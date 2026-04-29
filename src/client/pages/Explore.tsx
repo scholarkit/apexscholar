@@ -1421,7 +1421,7 @@ export default function Explore() {
       <Breadcrumbs />
       {/* Header */}
       <header className="relative">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <div className="flex items-center gap-3 mb-1">
           <h1 className="text-xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
             Explore

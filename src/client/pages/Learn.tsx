@@ -37,7 +37,7 @@ export default function Learn() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       {/* Header */}
       <header>
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <h1 className="text-2xl font-semibold mb-2">Learn</h1>
         <p className="text-base text-zinc-400">
           Structured courses to master every step of the research process.

@@ -177,7 +177,7 @@ export default function Funding() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <div>
           <h1 className="text-2xl font-semibold tracking-tight mb-2 flex items-center gap-3">
             Funding & Grants

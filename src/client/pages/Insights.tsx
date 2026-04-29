@@ -230,7 +230,7 @@ SUMMARY:`;
     <div className="space-y-4 sm:space-y-8 animate-in fade-in duration-500">
       <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <div>
           <h1 className="text-2xl font-semibold text-white">AI Insights Engine</h1>
           <p className="text-base text-zinc-400">

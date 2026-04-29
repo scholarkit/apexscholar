@@ -161,7 +161,7 @@ export default function LessonView() {
 
       {/* Lesson Header */}
       <div className="mb-8">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <div className="flex items-center gap-2 mb-3">
           <div className="p-1.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
             <BookOpen className="w-4 h-4 text-indigo-400" />

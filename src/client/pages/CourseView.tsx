@@ -71,7 +71,7 @@ export default function CourseView() {
 
       {/* Course Header */}
       <div className="bg-[var(--color-surface)]/40 border border-[var(--color-border)] rounded-xl p-6 sm:p-8">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <div className="flex items-start gap-5 mb-6">
           <div className="text-5xl leading-none select-none">{getIcon(course.coverEmoji)}</div>
           <div className="flex-1 min-w-0">

@@ -468,7 +468,7 @@ Your abstract here.
 
       {/* Dynamic Header */}
       <header className="flex flex-col lg:flex-row items-center gap-4 mb-6 shrink-0">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <div className="flex items-center gap-4 w-full">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}

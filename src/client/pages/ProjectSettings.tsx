@@ -1,65 +1,55 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
   Calendar,
   CheckCircle2,
-  Clock,
   Download,
   FolderGit,
+  Loader2,
   Save,
   Settings,
   Tag,
   Trash2,
+  Upload,
   Users,
   X,
 } from 'lucide-react';
+import { journalService } from '../lib/journal';
+import { resourcesService } from '../lib/resources';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import type { Project } from '../lib/projects';
 import ShareProjectModal from '../components/ShareProjectModal';
 
-function ComingSoonBadge() {
-  return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-400 border border-zinc-700">
-      <Clock className="w-3 h-3" />
-      Coming Soon
-    </span>
-  );
-}
-
 function SectionCard({
   title,
   description,
   icon,
-  comingSoon,
   children,
   danger,
 }: {
   title: string;
   description: string;
   icon: React.ReactNode;
-  comingSoon?: boolean;
   children?: React.ReactNode;
   danger?: boolean;
 }) {
   return (
     <div
-      className={`rounded-xl border p-6 ${
+      className={`rounded-xl border p-4 sm:p-6 ${
         danger
           ? 'border-red-500/20 bg-red-500/5'
           : 'border-[var(--color-border)] bg-[var(--color-surface)]'
       }`}
     >
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-3 sm:mb-4">
         <div className="flex items-center gap-3">
           <div
             className={`p-2 rounded-xl ${
               danger
                 ? 'bg-red-500/10 text-red-400'
-                : comingSoon
-                  ? 'bg-zinc-800 text-zinc-500'
-                  : 'bg-indigo-500/10 text-indigo-400'
+                : 'bg-indigo-500/10 text-indigo-400'
             }`}
           >
             {icon}
@@ -69,14 +59,8 @@ function SectionCard({
             <p className="text-xs text-zinc-500 mt-0.5">{description}</p>
           </div>
         </div>
-        {comingSoon && <ComingSoonBadge />}
       </div>
-      {children && !comingSoon && <div>{children}</div>}
-      {comingSoon && (
-        <div className="h-16 rounded-lg bg-[var(--color-surface-2)] border border-dashed border-zinc-700 flex items-center justify-center">
-          <p className="text-xs text-zinc-600">This feature is not available yet — stay tuned.</p>
-        </div>
-      )}
+      {children && <div>{children}</div>}
     </div>
   );
 }
@@ -93,6 +77,7 @@ export default function ProjectSettings() {
   const { activeProject, updateProject, deleteProject, isViewer } = useProject();
   const navigate = useNavigate();
 
+  const restoreInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<Project['status']>('active');
@@ -104,6 +89,7 @@ export default function ProjectSettings() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState('');
   const [showShare, setShowShare] = useState(false);
+  const [restoring, setRestoring] = useState(false);
 
   // Tags state
   const [tags, setTags] = useState<string[]>([]);
@@ -221,10 +207,10 @@ export default function ProjectSettings() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-32 lg:pb-8">
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-32 lg:pb-8">
       {/* Header */}
-      <header className="flex items-center gap-4">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+      <header className="flex items-center gap-3 sm:gap-4">
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <button
           onClick={() => navigate('/projects')}
           className="p-2 rounded-xl hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
@@ -235,9 +221,9 @@ export default function ProjectSettings() {
         <div>
           <div className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-indigo-400" />
-            <h1 className="text-2xl font-semibold">Project Settings</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold">Project Settings</h1>
           </div>
-          <p className="text-sm text-zinc-500 ml-7">
+          <p className="text-xs sm:text-sm text-zinc-500 ml-7">
             <span className="text-[var(--color-accent)] font-medium">{activeProject.name}</span>
           </p>
         </div>
@@ -249,9 +235,9 @@ export default function ProjectSettings() {
         description="Update your project name, description, status, and dates."
         icon={<FolderGit className="w-4 h-4" />}
       >
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-3 sm:space-y-4">
           <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">Project Name</label>
+            <label className="block text-xs sm:text-sm font-medium text-zinc-400 mb-1.5 sm:mb-2">Project Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -261,7 +247,7 @@ export default function ProjectSettings() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">Description</label>
+            <label className="block text-xs sm:text-sm font-medium text-zinc-400 mb-1.5 sm:mb-2">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -271,7 +257,7 @@ export default function ProjectSettings() {
           </div>
 
           {/* Status */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             <div>
               <label className="block text-sm font-medium text-zinc-400">Status</label>
               <div className="relative w-full sm:w-64">
@@ -396,17 +382,20 @@ export default function ProjectSettings() {
         description="Invite team members and manage permissions."
         icon={<Users className="w-4 h-4" />}
       >
-        <div className="space-y-4">
-          <p className="text-sm text-zinc-400">
-            Share this project with collaborators. Editors can modify content; viewers have read-only access.
-          </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-[var(--color-surface)]/50 rounded-xl border border-[var(--color-border)]">
+          <div className="min-w-0">
+            <h4 className="text-sm font-medium mb-0.5">Share & Permissions</h4>
+            <p className="text-xs text-zinc-500">
+              Invite collaborators with editor or viewer access to this project.
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => setShowShare(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold text-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-600/20 border border-indigo-500/20 text-indigo-500 hover:text-indigo-300 rounded-xl text-sm font-medium transition-colors flex-shrink-0"
           >
             <Users className="w-4 h-4" />
-            Manage Collaborators
+            Manage
           </button>
         </div>
       </SectionCard>
@@ -421,13 +410,149 @@ export default function ProjectSettings() {
         />
       )}
 
-      {/* Coming Soon: Export / Backup */}
+      {/* Export & Backup */}
       <SectionCard
         title="Export & Backup"
-        description="Export your research data or create encrypted backups."
+        description="Export or restore this project's journal entries and resources."
         icon={<Download className="w-4 h-4" />}
-        comingSoon
-      />
+      >
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-[var(--color-surface)]/50 rounded-xl border border-[var(--color-border)]">
+            <div className="min-w-0">
+              <h4 className="text-sm font-medium mb-0.5">Export Project Backup</h4>
+              <p className="text-xs text-zinc-500">
+                Download a JSON file containing this project's entries, resources, and metadata.
+              </p>
+            </div>
+            <button
+              onClick={async () => {
+                try {
+                  const [entries, resources] = await Promise.all([
+                    journalService.getEntries(activeProject.id),
+                    resourcesService.listForProject(activeProject.id),
+                  ]);
+                  const backup = {
+                    project: {
+                      name: activeProject.name,
+                      description: activeProject.description,
+                      tags: activeProject.tags,
+                      status: activeProject.status,
+                      start_date: activeProject.start_date,
+                      end_date: activeProject.end_date,
+                    },
+                    entries: entries || [],
+                    resources: resources || [],
+                    exportedAt: new Date().toISOString(),
+                  };
+                  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${activeProject.name.replace(/\s+/g, '-').toLowerCase()}-backup-${new Date().toISOString().split('T')[0]}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch (err) {
+                  console.error('Project backup failed', err);
+                  alert('Failed to create project backup.');
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-xl text-sm font-medium transition-colors flex-shrink-0"
+            >
+              <Download className="w-4 h-4" /> Export
+            </button>
+          </div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-[var(--color-surface)]/50 rounded-xl border border-[var(--color-border)]">
+            <div className="min-w-0">
+              <h4 className="text-sm font-medium mb-0.5">Import Project Backup</h4>
+              <p className="text-xs text-zinc-500">
+                Restore entries and resources from a previously exported project backup.
+              </p>
+            </div>
+            <input
+              ref={restoreInputRef}
+              type="file"
+              accept=".json"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                if (
+                  !confirm(
+                    'Import this backup into the current project? Duplicate entries may be created if data already exists.'
+                  )
+                ) {
+                  e.target.value = '';
+                  return;
+                }
+                setRestoring(true);
+                try {
+                  const text = await file.text();
+                  const backup = JSON.parse(text);
+                  const errors: string[] = [];
+
+                  // Restore journal entries
+                  if (backup.entries?.length) {
+                    for (const entry of backup.entries) {
+                      try {
+                        const { id, author_id, created_at, updated_at, ...rest } = entry;
+                        await journalService.createEntry({
+                          ...rest,
+                          project_id: activeProject.id,
+                        });
+                      } catch {
+                        errors.push(`Entry: ${entry.type} - ${(entry.content || '').substring(0, 40)}`);
+                      }
+                    }
+                  }
+
+                  // Restore resources
+                  if (backup.resources?.length) {
+                    for (const resource of backup.resources) {
+                      try {
+                        const { id, user_id, created_at, updated_at, ...rest } = resource;
+                        await resourcesService.create({
+                          ...rest,
+                          project_id: activeProject.id,
+                        });
+                      } catch {
+                        errors.push(`Resource: ${resource.name}`);
+                      }
+                    }
+                  }
+
+                  if (errors.length > 0) {
+                    alert(
+                      `Backup imported with ${errors.length} skipped item(s):\n${errors.slice(0, 10).join('\n')}${errors.length > 10 ? `\n...and ${errors.length - 10} more` : ''}`
+                    );
+                  } else {
+                    alert(
+                      `Backup imported successfully! ${(backup.entries?.length || 0)} entries and ${(backup.resources?.length || 0)} resources restored.`
+                    );
+                  }
+                } catch (err) {
+                  console.error('Restore failed', err);
+                  alert('Failed to import backup. Make sure the file is a valid project backup.');
+                } finally {
+                  e.target.value = '';
+                  setRestoring(false);
+                }
+              }}
+              className="hidden"
+            />
+            <button
+              onClick={() => restoreInputRef.current?.click()}
+              disabled={restoring}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-600/20 border border-indigo-500/20 text-indigo-500 hover:text-indigo-300 rounded-xl text-sm font-medium transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {restoring ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
+              {restoring ? 'Importing…' : 'Import'}
+            </button>
+          </div>
+        </div>
+      </SectionCard>
 
       {/* Danger Zone */}
       <SectionCard
@@ -437,7 +562,7 @@ export default function ProjectSettings() {
         danger
       >
         {!showDeleteConfirm ? (
-          <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-red-500/5 border border-red-500/10">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-red-500/5 border border-red-500/10">
             <div>
               <p className="text-sm font-medium">Delete this project</p>
               <p className="text-xs text-zinc-500 mt-0.5">

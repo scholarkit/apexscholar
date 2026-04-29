@@ -426,7 +426,7 @@ export default function Kanban() {
     <div className="flex flex-col h-full pb-32 lg:pb-8">
       <Breadcrumbs />
       <header className="mb-6 shrink-0">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <h1 className="text-2xl font-semibold text-white">Kanban Board</h1>
         <p className="text-base text-zinc-400">
           Track the progress of your research projects and papers.

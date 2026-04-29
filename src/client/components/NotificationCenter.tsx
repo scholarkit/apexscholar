@@ -197,74 +197,88 @@ export function NotificationPanel() {
   if (!isPanelOpen) return null;
 
   return (
-    <div
-      ref={panelRef}
-      // Stop mousedown from reaching the document handler — this is the key fix
-      onMouseDown={(e) => e.stopPropagation()}
-      className="fixed left-16 md:left-[68px] bottom-16 w-[22rem] sm:w-96 max-h-[70vh] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-bottom-2 duration-200"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
-        <div className="flex items-center gap-2">
-          <Bell className="w-4 h-4 text-indigo-400" />
-          <h3 className="text-sm font-semibold">Notifications</h3>
-          {unreadCount > 0 && (
-            <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 text-[10px] font-bold rounded-full">
-              {unreadCount}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllRead}
-              title="Mark all as read"
-              className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-indigo-400 transition-colors"
-            >
-              <CheckCheck className="w-4 h-4" />
-            </button>
-          )}
-          {notifications.length > 0 && (
-            <button
-              onClick={clearAll}
-              title="Clear all"
-              className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-red-400 transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
-          <button
-            onClick={closePanel}
-            className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-white transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+    <>
+      {/* Mobile backdrop overlay */}
+      <div
+        className="md:hidden fixed inset-0 z-[99] bg-black/50 backdrop-blur-sm animate-in fade-in duration-150"
+        onClick={closePanel}
+      />
 
-      {/* Body */}
-      <div className="overflow-y-auto max-h-[calc(70vh-52px)] custom-scrollbar">
-        {notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Bell className="w-10 h-10 text-zinc-700 mb-3" />
-            <p className="text-sm text-zinc-500 font-medium">
-              No notifications yet
-            </p>
-            <p className="text-xs text-zinc-600 mt-1">
-              You'll see invites and updates here.
-            </p>
+      <div
+        ref={panelRef}
+        // Stop mousedown from reaching the document handler — this is the key fix
+        onMouseDown={(e) => e.stopPropagation()}
+        className={[
+          'fixed z-[100] bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl overflow-hidden animate-in fade-in duration-200',
+          // Mobile: centered full-width sheet
+          'inset-x-3 bottom-20 top-auto max-h-[70vh] rounded-2xl',
+          // Desktop: sidebar-anchored popover
+          'md:inset-x-auto md:left-[68px] md:bottom-16 md:w-96 md:max-h-[70vh] md:rounded-xl md:slide-in-from-bottom-2',
+        ].join(' ')}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
+          <div className="flex items-center gap-2">
+            <Bell className="w-4 h-4 text-indigo-400" />
+            <h3 className="text-sm font-semibold">Notifications</h3>
+            {unreadCount > 0 && (
+              <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 text-[10px] font-bold rounded-full">
+                {unreadCount}
+              </span>
+            )}
           </div>
-        ) : (
-          notifications.map((n) => (
-            <NotificationItem
-              key={n.id}
-              notification={n}
-              onAction={refresh}
-            />
-          ))
-        )}
+          <div className="flex items-center gap-1">
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllRead}
+                title="Mark all as read"
+                className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-indigo-400 transition-colors"
+              >
+                <CheckCheck className="w-4 h-4" />
+              </button>
+            )}
+            {notifications.length > 0 && (
+              <button
+                onClick={clearAll}
+                title="Clear all"
+                className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-red-400 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={closePanel}
+              className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="overflow-y-auto max-h-[calc(70vh-52px)] custom-scrollbar">
+          {notifications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Bell className="w-10 h-10 text-zinc-700 mb-3" />
+              <p className="text-sm text-zinc-500 font-medium">
+                No notifications yet
+              </p>
+              <p className="text-xs text-zinc-600 mt-1">
+                You'll see invites and updates here.
+              </p>
+            </div>
+          ) : (
+            notifications.map((n) => (
+              <NotificationItem
+                key={n.id}
+                notification={n}
+                onAction={refresh}
+              />
+            ))
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

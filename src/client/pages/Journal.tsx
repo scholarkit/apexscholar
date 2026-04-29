@@ -270,7 +270,7 @@ export default function Journal() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <div>
           <h1 className="text-2xl font-semibold">Research Journal</h1>
           <p className="text-base text-zinc-400">

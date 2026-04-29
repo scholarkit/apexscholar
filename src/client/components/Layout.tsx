@@ -218,7 +218,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {isCollapsed ? (
             <>
               <div
-                title={user?.username || 'User'}
+                title={user?.email || user?.username || 'User'}
                 className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0"
               >
                 {user ? initials : <User className="w-4 h-4" />}
@@ -246,10 +246,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     {user?.username || 'Loading...'}
                   </p>
                   <p
-                    className="text-xs capitalize whitespace-nowrap overflow-hidden text-ellipsis"
+                    className="text-xs truncate whitespace-nowrap overflow-hidden text-ellipsis"
                     style={{ color: 'var(--color-text-muted)' }}
+                    title={user?.email || ''}
                   >
-                    Account
+                    {user?.email || 'Account'}
                   </p>
                 </div>
               </div>
@@ -369,8 +370,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text)' }}>
                 {user?.username || 'Loading...'}
               </p>
-              <p className="text-xs truncate" style={{ color: 'var(--color-text-muted)' }}>
-                Account
+              <p className="text-xs truncate" style={{ color: 'var(--color-text-muted)' }} title={user?.email || ''}>
+                {user?.email || 'Account'}
               </p>
             </div>
           </div>
@@ -388,7 +389,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ──────────────────────────────────────────────
           MAIN CONTENT
       ────────────────────────────────────────────── */}
-      <main ref={mainRef} className="flex-1 overflow-auto relative custom-scrollbar flex flex-col">
+      <main
+        ref={mainRef}
+        className="flex-1 overflow-auto relative custom-scrollbar flex flex-col"
+        style={{ WebkitOverflowScrolling: 'touch', willChange: 'scroll-position' }}
+      >
         <div className="absolute inset-0 pointer-events-none" />
 
         {/* Mobile top bar with hamburger */}

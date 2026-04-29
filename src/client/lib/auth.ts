@@ -1,6 +1,7 @@
 export interface User {
   username: string;
   uuid: string;
+  email?: string;
 }
 
 // Keys used for localStorage
@@ -186,6 +187,7 @@ export const auth = {
     return {
       username: parsed.user_metadata?.display_name || parsed.email?.split('@')[0] || 'User',
       uuid: parsed.id,
+      email: parsed.email || undefined,
     };
   },
 };

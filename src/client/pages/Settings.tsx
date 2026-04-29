@@ -1041,7 +1041,7 @@ export default function Settings() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       <header className="flex items-center gap-3">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         {activeModule && (
           <button
             onClick={() => setActiveModule(null)}
@@ -1076,10 +1076,11 @@ export default function Settings() {
             <button
               key={module.id}
               onClick={() => setActiveModule(module.id)}
-              className={`rounded-xl bg-[var(--color-surface)] border shadow-sm group p-6 transition-all text-left backdrop-blur-sm relative overflow-hidden ${module.id === 'danger' ? 'border-rose-500/20 hover:border-rose-500/40' : 'border-[var(--color-border)] hover:border-indigo-500/30'}`}
+              className={`rounded-xl bg-[var(--color-surface)] border shadow-sm group p-6 transition-all text-left relative overflow-hidden ${module.id === 'danger' ? 'border-rose-500/20 hover:border-rose-500/40' : 'border-[var(--color-border)] hover:border-indigo-500/30'}`}
             >
               <div
-                className={`absolute top-0 right-0 w-24 h-24 bg-${module.color}-500/5 blur-3xl rounded-full -mr-8 -mt-8 group-hover:bg-${module.color}-500/10 transition-colors`}
+                className={`absolute top-0 right-0 w-24 h-24 bg-${module.color}-500/5 blur-2xl rounded-full -mr-8 -mt-8 pointer-events-none will-change-transform`}
+                style={{ contain: 'strict' }}
               />
               <div className="flex items-center sm:items-start justify-between gap-2 mb-4 relative z-10">
                 <div

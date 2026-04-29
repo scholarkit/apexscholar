@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import { Edit2, FileText, Loader2, Mic, Plus, Radio, Save, Trash2, X } from 'lucide-react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { Edit2, FileText, Loader2, Mic, Plus, Radio, Save, Trash2, X, Search, Filter, Eye, EyeOff, AlertCircle, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import Markdown from 'react-markdown';
 import { parseEntryDate } from '../utils/dateUtils';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, ArrowLeft } from 'lucide-react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { type JournalEntry, journalService } from '../lib/journal';
 import { journalEntrySchema } from '../lib/schemas';
@@ -25,6 +24,38 @@ export default function Journal() {
   const [isSaving, setIsSaving] = useState(false);
   const recognitionRef = useRef<any>(null);
   const contentRef = useRef<string>('');
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
+
+  const toggleEntry = (id?: string) => {
+    if (!id) return;
+    setExpandedEntries((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const filteredEntries = useMemo(() => {
+    return entries.filter((entry) => {
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch =
+        !searchQuery ||
+        (entry.content && entry.content.toLowerCase().includes(searchLower)) ||
+        (entry.type && entry.type.toLowerCase().includes(searchLower)) ||
+        (entry.date && entry.date.toLowerCase().includes(searchLower));
+
+      const matchesType = typeFilter === 'all' || entry.type === typeFilter;
+
+      return matchesSearch && matchesType;
+    });
+  }, [entries, searchQuery, typeFilter]);
 
   const entryTypes = [
     { label: 'Daily Diary', value: 'daily' },
@@ -290,14 +321,42 @@ export default function Journal() {
 
       {!isEditing && (
         <div className="space-y-6">
-          {entries.length === 0 ? (
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+              <input
+                type="text"
+                placeholder="Search entries..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              />
+            </div>
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl pl-10 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none min-w-[150px]"
+              >
+                <option value="all">All Types</option>
+                {entryTypes.map(t => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {filteredEntries.length === 0 ? (
             <div className="text-center py-20 border border-dashed border-[var(--color-border)] rounded-xl bg-[var(--color-surface)]/20">
               <FileText className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-white mb-2">No entries yet</h3>
+              <h3 className="text-lg font-medium text-white mb-2">No entries found</h3>
               <p className="text-zinc-500 mb-6 max-w-sm mx-auto">
-                Start documenting your research journey by creating your first journal Entry.
+                {entries.length === 0 
+                  ? "Start documenting your research journey by creating your first journal Entry."
+                  : "No entries match your current search and filter criteria."}
               </p>
-              {!isViewer && (
+              {!isViewer && entries.length === 0 && (
                 <button
                   onClick={() => openEditor()}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
@@ -308,44 +367,69 @@ export default function Journal() {
               )}
             </div>
           ) : (
-            entries.map((Entry) => (
-              <div
-                key={Entry.id}
-                className="bg-[var(--color-surface)]/40 border    border-[var(--color-border)] rounded-xl p-3 sm:p-6 hover:bg-[var(--color-surface)]/60 transition-colors group"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-500 text-xs font-semibold tracking-wide uppercase border border-indigo-500/20">
-                      {Entry.type}
-                    </span>
-                    <span className="text-sm text-zinc-500 font-medium">
-                      {Entry.type === 'weekly'
-                        ? Entry.date
-                        : format(parseEntryDate(Entry.date), 'MMMM d, yyyy')}
-                    </span>
+            filteredEntries.map((Entry) => {
+              const isExpanded = expandedEntries.has(Entry.id || '');
+              return (
+                <div
+                  key={Entry.id}
+                  className="bg-[var(--color-surface)]/40 border border-[var(--color-border)] rounded-xl hover:bg-[var(--color-surface)]/60 transition-colors group overflow-hidden"
+                >
+                  <div className="p-3 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-500 text-xs font-semibold tracking-wide uppercase border border-indigo-500/20 whitespace-nowrap">
+                        {Entry.type}
+                      </span>
+                      <span className="text-sm text-zinc-500 font-medium whitespace-nowrap">
+                        {Entry.type === 'weekly'
+                          ? Entry.date
+                          : format(parseEntryDate(Entry.date), 'MMMM d, yyyy')}
+                      </span>
+                      <span className="text-sm text-zinc-400 truncate hidden sm:block opacity-60">
+                        {Entry.content.replace(/[\n\r]+/g, ' ').substring(0, 80)}...
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        onClick={() => toggleEntry(Entry.id)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-lg text-sm font-medium transition-colors"
+                      >
+                        {isExpanded ? (
+                          <><EyeOff className="w-4 h-4" /> Hide</>
+                        ) : (
+                          <><Eye className="w-4 h-4" /> Preview</>
+                        )}
+                      </button>
+                      
+                      {!isViewer && (
+                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => openEditor(Entry)}
+                            className="p-1.5 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-white/10 rounded-lg transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(Entry.id as string)}
+                            className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {!isViewer && (
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => openEditor(Entry)}
-                        className="p-2 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-white/10 rounded-xl transition-colors"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(Entry.id)}
-                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                  
+                  {isExpanded && (
+                    <div className="px-3 pb-3 sm:px-6 sm:pb-6 pt-0 border-t border-[var(--color-border)] mt-4">
+                      <div className="prose max-w-none prose-p:leading-relaxed prose-pre:bg-[var(--color-surface)] prose-pre:border prose-pre:border-[var(--color-border)] dark:prose-invert pt-4">
+                        <Markdown>{Entry.content}</Markdown>
+                      </div>
                     </div>
                   )}
                 </div>
-                <div className="prose max-w-none prose-p:leading-relaxed prose-pre:bg-[var(--color-surface)] prose-pre:border prose-pre:border-[var(--color-border)] dark:prose-invert">
-                  <Markdown>{Entry.content}</Markdown>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}

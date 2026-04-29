@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, memo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   closestCorners,
@@ -94,7 +94,7 @@ function isDueSoon(dateStr: string): boolean {
 
 // ─── Components ──────────────────────────────────────────────────────────────
 
-function TaskCard({ task, deleteIdea, isViewer }: { task: Task; deleteIdea?: (id: string) => void; isViewer?: boolean }) {
+const TaskCard = memo(function TaskCard({ task, deleteIdea, isViewer }: { task: Task; deleteIdea?: (id: string) => void; isViewer?: boolean }) {
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { type: 'Task', task },
@@ -168,11 +168,11 @@ function TaskCard({ task, deleteIdea, isViewer }: { task: Task; deleteIdea?: (id
       </div>
     </div>
   );
-}
+});
 
 // ─── Inline Add Task Form ────────────────────────────────────────────────────
 
-function AddTaskForm({
+const AddTaskForm = memo(function AddTaskForm({
   onAdd,
   onCancel,
 }: {
@@ -238,7 +238,7 @@ function AddTaskForm({
       </div>
     </div>
   );
-}
+});
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
@@ -501,7 +501,7 @@ const COLUMN_DOT_COLORS: Record<string, string> = {
   emerald: 'bg-emerald-400',
 };
 
-function Column({
+const Column = memo(function Column({
   column,
   tasks,
   onAddTask,
@@ -566,4 +566,4 @@ function Column({
       </div>
     </div>
   );
-}
+});

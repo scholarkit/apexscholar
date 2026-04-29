@@ -1,4 +1,4 @@
-import React, { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
+import React, { createContext, type ReactNode, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { type CreateProjectInput, type Project, projectService, type UpdateProjectPatch } from '../lib/projects';
 import { supermemory } from '../lib/supermemory';
 
@@ -24,7 +24,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     setLoading(true);
     try {
       const projList = await projectService.getProjects();
@@ -47,13 +47,13 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeProject]);
 
   useEffect(() => {
     fetchProjects();
   }, []);
 
-  const setActiveProject = async (project: Project) => {
+  const setActiveProject = useCallback(async (project: Project) => {
     setActiveProjectState(project);
     await projectService.updateProjectAccess(project.id);
     // Refresh to get updated sort order
@@ -70,9 +70,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         projectName: project.name,
       }
     );
-  };
+  }, []);
 
-  const createProject = async (input: CreateProjectInput) => {
+  const createProject = useCallback(async (input: CreateProjectInput) => {
     const proj = await projectService.createProject(input);
     await fetchProjects();
     await setActiveProject(proj);
@@ -90,9 +90,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     );
 
     return proj;
-  };
+  }, [fetchProjects, setActiveProject]);
 
-  const updateProject = async (id: string, patch: UpdateProjectPatch) => {
+  const updateProject = useCallback(async (id: string, patch: UpdateProjectPatch) => {
     const updated = await projectService.updateProject(id, patch);
     if (activeProject?.id === id) {
       setActiveProjectState(updated);
@@ -109,9 +109,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         updatedFields: Object.keys(patch),
       }
     );
-  };
+  }, [activeProject, fetchProjects]);
 
-  const deleteProject = async (id: string) => {
+  const deleteProject = useCallback(async (id: string) => {
     await projectService.deleteProject(id);
 
     if (activeProject?.id === id) {
@@ -126,27 +126,30 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       action: 'delete',
       projectId: id,
     });
-  };
+  }, [activeProject, fetchProjects]);
 
   const activeProjectRole: 'owner' | 'editor' | 'viewer' =
     activeProject?._role || 'owner';
   const isViewer = activeProjectRole === 'viewer';
 
+  const contextValue = useMemo(() => ({
+    activeProject,
+    projects,
+    activeProjectRole,
+    isViewer,
+    loading,
+    setActiveProject,
+    refreshProjects: fetchProjects,
+    createProject,
+    updateProject,
+    deleteProject,
+  }), [
+    activeProject, projects, activeProjectRole, isViewer, loading,
+    setActiveProject, fetchProjects, createProject, updateProject, deleteProject
+  ]);
+
   return (
-    <ProjectContext.Provider
-      value={{
-        activeProject,
-        projects,
-        activeProjectRole,
-        isViewer,
-        loading,
-        setActiveProject,
-        refreshProjects: fetchProjects,
-        createProject,
-        updateProject,
-        deleteProject,
-      }}
-    >
+    <ProjectContext.Provider value={contextValue}>
       {children}
     </ProjectContext.Provider>
   );

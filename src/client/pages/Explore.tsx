@@ -26,7 +26,7 @@ import {
 import ForceGraph2D from 'react-force-graph-2d';
 import { type CitationMetadata } from '../lib/citationPipeline';
 import QuickCiteModal from '../components/QuickCiteModal';
-import { useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '../contexts/ProjectContext';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -521,13 +521,14 @@ export function detectGaps(graph: KGGraph): ResearchGap[] {
 
 // ─── Insight Panel Component ───────────────────────────────────────────────────
 
-function InsightPanel({
+const InsightPanel = memo(function InsightPanel({
   insight,
   onSave,
   isOpen,
   setIsOpen,
   isEditing,
   setIsEditing,
+  isViewer,
 }: {
   insight: PaperInsight;
   onSave: (i: PaperInsight) => void;
@@ -674,7 +675,7 @@ function InsightPanel({
       </div>
     </div>
   );
-}
+});
 
 // ─── Source Scanner Component ──────────────────────────────────────────────────
 
@@ -773,7 +774,7 @@ interface PaperCardProps {
   isViewer?: boolean;
 }
 
-function PaperCard({
+const PaperCard = memo(function PaperCard({
   paper,
   isSaved,
   insight,
@@ -1057,7 +1058,7 @@ function PaperCard({
       )}
     </div>
   );
-}
+});
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 

@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useMemo,
 } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
@@ -169,21 +170,21 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setUnreadCount(0);
   }, []);
 
+  const contextValue = useMemo(() => ({
+    notifications,
+    unreadCount,
+    isPanelOpen,
+    togglePanel,
+    closePanel,
+    markRead,
+    markAllRead,
+    remove,
+    clearAll,
+    refresh: fetchNotifications,
+  }), [notifications, unreadCount, isPanelOpen, togglePanel, closePanel, markRead, markAllRead, remove, clearAll, fetchNotifications]);
+
   return (
-    <NotificationContext.Provider
-      value={{
-        notifications,
-        unreadCount,
-        isPanelOpen,
-        togglePanel,
-        closePanel,
-        markRead,
-        markAllRead,
-        remove,
-        clearAll,
-        refresh: fetchNotifications,
-      }}
-    >
+    <NotificationContext.Provider value={contextValue}>
       {children}
     </NotificationContext.Provider>
   );

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { apiFetch } from '../lib/apiFetch';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '../contexts/ProjectContext';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -389,7 +390,7 @@ Your abstract here.
 
       setCompilationStatus('Compiling...');
 
-      const response = await fetch('/api/latex/compile', {
+      const response = await apiFetch('/api/latex/compile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: stitchedLatex }),

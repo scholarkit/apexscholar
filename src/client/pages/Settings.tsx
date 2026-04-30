@@ -1,4 +1,5 @@
 import { type JSX, useEffect, useRef, useState } from 'react';
+import { apiFetch } from '../lib/apiFetch';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -370,7 +371,7 @@ export default function Settings() {
     setResetting(true);
     try {
       const token = localStorage.getItem('supabase_token');
-      const res = await fetch('/api/reset', {
+      const res = await apiFetch('/api/reset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

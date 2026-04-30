@@ -48,12 +48,6 @@ function injectAuth(init?: RequestInit): RequestInit {
   return { ...init, headers };
 }
 
-/**
- * Centralized fetch wrapper for authenticated Supabase API calls.
- * Automatically injects the stored access token and retries once
- * with a refreshed token when the server responds with 401.
- * Dispatches a `session-expired` event if refresh also fails.
- */
 export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const res = await fetch(`${API_BASE}${input}`, injectAuth(init));
 
@@ -61,7 +55,11 @@ export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Pr
     const refreshed = await tryRefreshToken();
     if (refreshed) {
       // Retry the original request with the new token
-      return fetch(`${API_BASE}${input}`, injectAuth(init));
+      const retryRes = await fetch(`${API_BASE}${input}`, injectAuth(init));
+      if (!retryRes.ok && retryRes.status !== 401) {
+        await dispatchError(retryRes);
+      }
+      return retryRes;
     }
 
     // Refresh failed — session is truly expired
@@ -69,7 +67,20 @@ export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Pr
     localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem('supabase_user');
     window.dispatchEvent(new CustomEvent('session-expired'));
+  } else if (!res.ok) {
+    await dispatchError(res);
   }
 
   return res;
+}
+
+async function dispatchError(res: Response) {
+  try {
+    const cloned = res.clone();
+    const data = await cloned.json();
+    const message = data.error || res.statusText || 'An unexpected API error occurred';
+    window.dispatchEvent(new CustomEvent('api-error', { detail: { message } }));
+  } catch {
+    window.dispatchEvent(new CustomEvent('api-error', { detail: { message: res.statusText || 'An unexpected API error occurred' } }));
+  }
 }

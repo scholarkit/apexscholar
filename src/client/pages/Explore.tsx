@@ -35,6 +35,7 @@ import remarkGfm from 'remark-gfm';
 import { ai } from '../lib/ai';
 import { kv } from '../lib/kv';
 import { exploreService, type KGEdge, type KGGraph, type KGNode, type Paper, type PaperInsight } from '../lib/explore';
+import { apiFetch } from '../lib/apiFetch';
 
 type SourceFilter =
   | 'all'
@@ -55,7 +56,7 @@ interface SourceStatus {
 // ─── arXiv API ─────────────────────────────────────────────────────────────────
 
 async function searchArxiv(query: string): Promise<Paper[]> {
-  const res = await fetch('/api/sources/arxiv?q=' + query);
+  const res = await apiFetch('/api/sources/arxiv?q=' + query);
   const text = await res.text();
   const xml = new DOMParser().parseFromString(text, 'text/xml');
   const entries = Array.from(xml.querySelectorAll('entry'));
@@ -145,7 +146,7 @@ async function searchSemanticScholar(query: string): Promise<Paper[]> {
 
 async function searchGoogleScholar(query: string): Promise<Paper[]> {
   try {
-    const res = await fetch('/api/sources/scholar?q=' + encodeURIComponent(query));
+    const res = await apiFetch('/api/sources/scholar?q=' + encodeURIComponent(query));
     if (!res.ok) return [];
     const data = await res.json();
     return (data.organic_results || []).map((w: any) => {
@@ -192,7 +193,7 @@ async function searchGoogleScholar(query: string): Promise<Paper[]> {
 
 async function searchPubmed(query: string): Promise<Paper[]> {
   try {
-    const res = await fetch('/api/sources/pubmed?q=' + encodeURIComponent(query));
+    const res = await apiFetch('/api/sources/pubmed?q=' + encodeURIComponent(query));
     if (!res.ok) return [];
     const text = await res.text();
     const xml = new DOMParser().parseFromString(text, 'text/xml');
@@ -799,7 +800,7 @@ const PaperCard = memo(function PaperCard({
     const checkPdf = async () => {
       setIsCheckingPdf(true);
       try {
-        const res = await fetch(`/api/sources/resolve-pdf?url=${encodeURIComponent(paper.url!)}`);
+        const res = await apiFetch(`/api/sources/resolve-pdf?url=${encodeURIComponent(paper.url!)}`);
         if (res.ok) {
           const contentType = res.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {

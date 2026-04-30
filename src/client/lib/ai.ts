@@ -1,16 +1,16 @@
+import { apiFetch } from './apiFetch';
+
 export const ai = {
   async chat(messages: any[], options?: any) {
-    const token = localStorage.getItem('supabase_token');
-    const res = await fetch('/api/ai/chat', {
+    const res = await apiFetch('/api/ai/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ messages, options }),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'Failed to generate AI response');
     }
     if (options?.stream) {

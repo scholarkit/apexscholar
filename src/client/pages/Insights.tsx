@@ -258,11 +258,11 @@ SUMMARY:`;
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full space-y-4 py-20">
             <div className="relative">
-              <div className="w-16 h-16 border-4 border-indigo-500/20 rounded-full animate-pulse" />
+              <div className="w-16 h-16 border-4 border-indigo-500/20 rounded-full" />
               <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin absolute inset-0" />
               <Sparkles className="w-6 h-6 text-indigo-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
-            <p className="text-zinc-400 font-medium animate-pulse">
+            <p className="text-zinc-400 font-medium">
               Reading recent journal entries...
             </p>
           </div>

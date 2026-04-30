@@ -1,3 +1,5 @@
+import { apiFetch } from './apiFetch';
+
 export interface ZoteroCredentials {
   userId: string;
   apiKey: string;
@@ -10,7 +12,7 @@ export const zoteroService = {
   async getRequestToken(
     callbackUrl: string
   ): Promise<{ token: string; secret: string; url: string }> {
-    const response = await fetch('/api/zotero/request-token', {
+    const response = await apiFetch('/api/zotero/request-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ callbackUrl }),
@@ -32,7 +34,7 @@ export const zoteroService = {
     requestTokenSecret: string,
     oauthVerifier: string
   ): Promise<ZoteroCredentials> {
-    const response = await fetch('/api/zotero/access-token', {
+    const response = await apiFetch('/api/zotero/access-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ oauthToken: requestToken, requestTokenSecret, oauthVerifier }),
@@ -54,7 +56,7 @@ export const zoteroService = {
     credentials: ZoteroCredentials,
     params: Record<string, string | number> = {}
   ) {
-    const response = await fetch('/api/zotero/api', {
+    const response = await apiFetch('/api/zotero/api', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ endpoint, credentials, params }),

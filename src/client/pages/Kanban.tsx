@@ -36,19 +36,14 @@ import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { kv } from '../lib/kv';
+import { kanbanService, KanbanCard } from '../lib/kanban';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type ColumnId = 'pending' | 'in_progress' | 'completed';
 
-interface Task {
-  id: string;
-  projectId?: string;
-  columnId: ColumnId;
-  content: string;
-  deadline?: string; // optional ISO date string (YYYY-MM-DD)
-  createdAt: string;
-}
+// Alias KanbanCard to Task for backwards compatibility in UI
+type Task = KanbanCard;
 
 const COLUMNS: { id: ColumnId; title: string; color: string }[] = [
   { id: 'pending', title: 'Pending', color: 'amber' },
@@ -140,7 +135,7 @@ const TaskCard = memo(function TaskCard({ task, deleteIdea, isViewer }: { task: 
       <div className="flex items-center justify-between text-xs text-zinc-600 pl-6">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <Calendar className="w-3 h-3" /> {new Date(task.createdAt).toLocaleDateString()}
+            <Calendar className="w-3 h-3" /> {new Date(task.created_at || new Date()).toLocaleDateString()}
           </span>
           {task.deadline && (
             <span
@@ -249,59 +244,64 @@ export default function Kanban() {
   const [loading, setLoading] = useState(true);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
-  // Load from KV
+  // Load and migrate data
   useEffect(() => {
     if (!activeProject) {
       setLoading(false);
       return;
     }
-    kv.get(KV_KEY).then((data: Task[] | null) => {
-      const allTasks = data || [];
-      // Filter for this project and migrate old column IDs
-      const projectTasks = allTasks
-        .filter((t) => t.projectId === activeProject.id)
-        .map((t) => ({
-          ...t,
-          columnId: COLUMN_MIGRATION[t.columnId] || 'pending',
-        })) as Task[];
-      setTasks(projectTasks);
-      setLoading(false);
-    });
-  }, [activeProject]);
-
-  // Auto-save whenever tasks change
-  useEffect(() => {
-    if (loading || !activeProject) return;
-    const save = async () => {
+    const load = async () => {
       try {
-        const allTasks: Task[] = (await kv.get(KV_KEY)) || [];
-        // Replace tasks for this project only
-        const otherTasks = allTasks.filter((t) => t.projectId !== activeProject.id);
-        const updatedTasks = [...otherTasks, ...tasks];
-        await kv.set(KV_KEY, updatedTasks);
+        // Check for legacy KV data
+        const kvData: any[] | null = await kv.get(KV_KEY);
+        if (kvData && kvData.length > 0) {
+          console.log('Migrating legacy Kanban data to DB...');
+          for (const t of kvData) {
+            await kanbanService.createCard({
+              project_id: t.projectId,
+              column_id: COLUMN_MIGRATION[t.columnId] || 'pending',
+              content: t.content,
+              deadline: t.deadline
+            });
+          }
+          await kv.delete(KV_KEY);
+        }
+
+        // Fetch from Postgres
+        const allCards = await kanbanService.getGlobalCards();
+        const projectCards = allCards.filter((t) => t.project_id === activeProject.id);
+        setTasks(projectCards);
       } catch (err) {
-        console.error('Failed to auto-save Kanban board', err);
+        console.error('Failed to load kanban cards', err);
+      } finally {
+        setLoading(false);
       }
     };
-    const t = setTimeout(save, 500); // debounce save
-    return () => clearTimeout(t);
-  }, [tasks, loading, activeProject]);
+    load();
+  }, [activeProject]);
 
-  const addTask = (columnId: ColumnId, content: string, deadline?: string) => {
-    const newTask: Task = {
-      id: crypto.randomUUID(),
-      projectId: activeProject?.id,
-      columnId,
-      content,
-      deadline,
-      createdAt: new Date().toISOString(),
-    };
-    setTasks([...tasks, newTask]);
+  const addTask = async (column_id: ColumnId, content: string, deadline?: string) => {
+    try {
+      const newCard = await kanbanService.createCard({
+        project_id: activeProject?.id,
+        column_id,
+        content,
+        deadline,
+      });
+      setTasks((prev) => [...prev, newCard]);
+    } catch (err) {
+      console.error('Failed to create task', err);
+    }
   };
 
-  const deleteTask = (id: string) => {
+  const deleteTask = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this task?')) return;
-    setTasks(tasks.filter((t) => t.id !== id));
+    try {
+      await kanbanService.deleteCard(id);
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      console.error('Failed to delete task', err);
+    }
   };
 
   // Drag and Drop Logic
@@ -337,8 +337,10 @@ export default function Kanban() {
         const activeIndex = tasks.findIndex((t) => t.id === activeId);
         const overIndex = tasks.findIndex((t) => t.id === overId);
 
-        if (tasks[activeIndex].columnId !== tasks[overIndex].columnId) {
-          tasks[activeIndex].columnId = tasks[overIndex].columnId;
+        if (tasks[activeIndex].column_id !== tasks[overIndex].column_id) {
+          const newColumn = tasks[overIndex].column_id;
+          tasks[activeIndex].column_id = newColumn;
+          kanbanService.updateCard(activeId, { column_id: newColumn }).catch(console.error);
           return arrayMove(tasks, activeIndex, overIndex - 1);
         }
 
@@ -350,7 +352,8 @@ export default function Kanban() {
     if (isActiveTask && isOverColumn) {
       setTasks((tasks) => {
         const activeIndex = tasks.findIndex((t) => t.id === activeId);
-        tasks[activeIndex].columnId = overId as ColumnId;
+        tasks[activeIndex].column_id = overId as ColumnId;
+        kanbanService.updateCard(activeId, { column_id: overId as ColumnId }).catch(console.error);
         return arrayMove(tasks, activeIndex, activeIndex);
       });
     }
@@ -373,8 +376,10 @@ export default function Kanban() {
         const activeIndex = tasks.findIndex((t) => t.id === activeId);
         const overIndex = tasks.findIndex((t) => t.id === overId);
 
-        if (tasks[activeIndex].columnId !== tasks[overIndex].columnId) {
-          tasks[activeIndex].columnId = tasks[overIndex].columnId;
+        if (tasks[activeIndex].column_id !== tasks[overIndex].column_id) {
+          const newColumn = tasks[overIndex].column_id;
+          tasks[activeIndex].column_id = newColumn;
+          kanbanService.updateCard(activeId, { column_id: newColumn }).catch(console.error);
           return arrayMove(tasks, activeIndex, overIndex - 1);
         }
         return arrayMove(tasks, activeIndex, overIndex);
@@ -386,7 +391,7 @@ export default function Kanban() {
   const columns = useMemo(() => {
     const cols = Object.fromEntries(COLUMNS.map((c) => [c.id, [] as Task[]]));
     tasks.forEach((t) => {
-      if (cols[t.columnId]) cols[t.columnId].push(t);
+      if (cols[t.column_id]) cols[t.column_id].push(t);
     });
     return cols;
   }, [tasks]);

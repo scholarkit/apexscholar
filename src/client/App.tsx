@@ -25,6 +25,8 @@ const Journal = lazy(() => import('./pages/Journal'));
 const Resources = lazy(() => import('./pages/Resources'));
 const Explore = lazy(() => import('./pages/Explore'));
 const Kanban = lazy(() => import('./pages/Kanban'));
+const GlobalKanban = lazy(() => import('./pages/GlobalKanban'));
+const Timetable = lazy(() => import('./pages/Timetable'));
 const Funding = lazy(() => import('./pages/Funding'));
 const Insights = lazy(() => import('./pages/Insights'));
 const Composr = lazy(() => import('./pages/Composr'));
@@ -33,6 +35,7 @@ const Learn = lazy(() => import('./pages/Learn'));
 const CourseView = lazy(() => import('./pages/CourseView'));
 const LessonView = lazy(() => import('./pages/LessonView'));
 const About = lazy(() => import('./pages/About'));
+const VimeoDownloader = lazy(() => import('./pages/VimeoDownloader'));
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -249,6 +252,8 @@ export default function App() {
                       <Route path="/resources" element={<Resources />} />
                       <Route path="/explore" element={<Explore />} />
                       <Route path="/kanban" element={<Kanban />} />
+                      <Route path="/backlog" element={<GlobalKanban />} />
+                      <Route path="/timetable" element={<Timetable />} />
                       <Route path="/funding" element={<Funding />} />
                       <Route path="/insights" element={<Insights />} />
                       <Route path="/composr" element={<Composr />} />
@@ -257,6 +262,7 @@ export default function App() {
                       <Route path="/learn/:courseId" element={<CourseView />} />
                       <Route path="/learn/:courseId/:lessonId" element={<LessonView />} />
                       <Route path="/about" element={<About />} />
+                      <Route path="/vimeo-downloader" element={<VimeoDownloader />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </Suspense>

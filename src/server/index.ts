@@ -22,12 +22,20 @@ import { brainRouter } from './brain.ts';
 import { resetRouter } from './reset.ts';
 import { collaboratorsRouter } from './collaborators.ts';
 import { notificationsRouter } from './notifications.ts';
+import { kanbanRouter } from './kanban.ts';
+import { timetableRouter } from './timetable.ts';
+import { pushRouter } from './push.ts';
+import { vimeoRouter } from './vimeo.ts';
+import { initCronJobs } from './cron.ts';
 
 const PORT = 3000;
 
 // Global middlewares
 const app = express();
 app.use(express.json());
+
+// Init background jobs
+initCronJobs();
 
 // CORS
 app.use(cors({
@@ -59,6 +67,10 @@ app.use('/api/brain', brainRouter);
 app.use('/api/reset', resetRouter);
 app.use('/api', collaboratorsRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/kanban', kanbanRouter);
+app.use('/api/timetable', timetableRouter);
+app.use('/api/push', pushRouter);
+app.use('/api/vimeo', vimeoRouter);
 
 // Global error handler
 app.use(errorHandler);

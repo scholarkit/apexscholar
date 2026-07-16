@@ -90,10 +90,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navItems: { path: string; icon: any; label: string; beta?: boolean }[] = [
     { path: '/', icon: Home, label: 'Dashboard' },
     { path: '/projects', icon: SquareChartGantt, label: 'Projects' },
-    { path: '/backlog', icon: ListTodo, label: 'Backlog' },
+    { path: '/todos', icon: ListTodo, label: 'Todos' },
     { path: '/timetable', icon: CalendarDays, label: 'Timetable' },
     { path: '/funding', icon: Landmark, label: 'Funding & Grants' },
-    { path: '/learn', icon: BookMarked, label: 'Learn' },
     { path: '/vimeo-downloader', icon: Film, label: 'Subtitles' },
     { path: '/settings', icon: Settings, label: 'Settings' },
     { path: '/about', icon: Info, label: 'About' },

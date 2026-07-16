@@ -26,6 +26,9 @@ export const kanbanService = {
   async createCard(card: Partial<KanbanCard>): Promise<KanbanCard> {
     const res = await apiFetch(kanbanUrl, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(card),
     });
     if (!res.ok) throw new Error('Failed to create card');
@@ -35,6 +38,9 @@ export const kanbanService = {
   async updateCard(id: string, updates: Partial<KanbanCard>): Promise<KanbanCard> {
     const res = await apiFetch(`${kanbanUrl}/${id}`, {
       method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(updates),
     });
     if (!res.ok) throw new Error('Failed to update card');
@@ -78,6 +84,9 @@ export const timetableService = {
   async updateAvailability(profile: Partial<AvailabilityProfile>): Promise<AvailabilityProfile> {
     const res = await apiFetch(`${timetableUrl}/availability`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(profile),
     });
     if (!res.ok) throw new Error('Failed to update availability');

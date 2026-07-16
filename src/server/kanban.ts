@@ -32,7 +32,15 @@ kanbanRouter.get('/global', requireAuth, async (req, res) => {
 kanbanRouter.post('/', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
-    const newCard = { ...req.body, user_id: user.id };
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = {};
+      }
+    }
+    const newCard = { ...body, user_id: user.id };
 
     const { data, error } = await supabaseAdmin
       .from('kanban_cards')
@@ -54,9 +62,18 @@ kanbanRouter.put('/:id', requireAuth, async (req, res) => {
     const user = (req as any).user;
     const { id } = req.params;
 
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = {};
+      }
+    }
+
     const { data, error } = await supabaseAdmin
       .from('kanban_cards')
-      .update(req.body)
+      .update(body)
       .eq('id', id)
       .eq('user_id', user.id)
       .select()

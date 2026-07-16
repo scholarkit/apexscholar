@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, memo } from 'react';
 import { createPortal } from 'react-dom';
+import { useTimer } from '../contexts/TimerContext';
 import {
   closestCorners,
   defaultDropAnimationSideEffects,
@@ -27,6 +28,9 @@ import {
   Calendar,
   Clock,
   GripVertical,
+  Pencil,
+  Play,
+  Pause,
   Plus,
   SquareKanban,
   Trash2,
@@ -87,9 +91,38 @@ function isDueSoon(dateStr: string): boolean {
   return diffDays >= 0 && diffDays <= 2;
 }
 
+function formatTime(totalSeconds: number): string {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  const pad = (num: number) => String(num).padStart(2, '0');
+  
+  if (hours > 0) {
+    return `${hours}:${pad(minutes)}:${pad(seconds)}`;
+  }
+  return `${pad(minutes)}:${pad(seconds)}`;
+}
+
 // ─── Components ──────────────────────────────────────────────────────────────
 
-const TaskCard = memo(function TaskCard({ task, deleteIdea, isViewer }: { task: Task; deleteIdea?: (id: string) => void; isViewer?: boolean }) {
+const TaskCard = memo(function TaskCard({
+  task,
+  deleteIdea,
+  onEdit,
+  isViewer,
+  isTimerRunning,
+  elapsedSeconds,
+  onToggleTimer,
+}: {
+  task: Task;
+  deleteIdea?: (id: string) => void;
+  onEdit?: (task: Task) => void;
+  isViewer?: boolean;
+  isTimerRunning?: boolean;
+  elapsedSeconds?: number;
+  onToggleTimer?: (taskId: string) => void;
+}) {
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { type: 'Task', task },
@@ -111,8 +144,8 @@ const TaskCard = memo(function TaskCard({ task, deleteIdea, isViewer }: { task: 
     );
   }
 
-  const overdue = task.deadline && task.columnId !== 'completed' && isOverdue(task.deadline);
-  const dueSoon = task.deadline && task.columnId !== 'completed' && !overdue && isDueSoon(task.deadline);
+  const overdue = task.deadline && task.column_id !== 'completed' && isOverdue(task.deadline);
+  const dueSoon = task.deadline && task.column_id !== 'completed' && !overdue && isDueSoon(task.deadline);
 
   return (
     <div
@@ -133,10 +166,36 @@ const TaskCard = memo(function TaskCard({ task, deleteIdea, isViewer }: { task: 
         </p>
       </div>
       <div className="flex items-center justify-between text-xs text-zinc-600 pl-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="flex items-center gap-1">
             <Calendar className="w-3 h-3" /> {new Date(task.created_at || new Date()).toLocaleDateString()}
           </span>
+          {task.estimated_minutes && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="flex items-center gap-1 text-[10px]">
+                <Clock className="w-3 h-3 text-zinc-500" /> Est: {task.estimated_minutes}m
+              </span>
+              {elapsedSeconds !== undefined && (
+                <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-medium ${
+                  isTimerRunning
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 animate-pulse'
+                    : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+                }`}>
+                  Time: {formatTime(elapsedSeconds)}
+                </span>
+              )}
+              {(() => {
+                const estSeconds = task.estimated_minutes * 60;
+                const isOverEstimate = estSeconds > 0 && (elapsedSeconds || 0) > estSeconds;
+                const overEstimateMinutes = isOverEstimate ? Math.ceil(((elapsedSeconds || 0) - estSeconds) / 60) : 0;
+                return isOverEstimate ? (
+                  <span className="px-1 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[9px] font-semibold">
+                    +{overEstimateMinutes}m over
+                  </span>
+                ) : null;
+              })()}
+            </div>
+          )}
           {task.deadline && (
             <span
               className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium ${overdue
@@ -152,13 +211,41 @@ const TaskCard = memo(function TaskCard({ task, deleteIdea, isViewer }: { task: 
             </span>
           )}
         </div>
-        {!isViewer && deleteIdea && (
-          <button
-            onClick={() => deleteIdea(task.id)}
-            className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 hover:bg-red-500/10 rounded transition-all"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+        {!isViewer && (
+          <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            {task.estimated_minutes && onToggleTimer && (
+              <button
+                onClick={() => onToggleTimer(task.id)}
+                className={`p-1 rounded transition-all ${
+                  isTimerRunning
+                    ? 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {isTimerRunning ? (
+                  <Pause className="w-3.5 h-3.5" />
+                ) : (
+                  <Play className="w-3.5 h-3.5" />
+                )}
+              </button>
+            )}
+            {onEdit && (
+              <button
+                onClick={() => onEdit(task)}
+                className="p-1 hover:text-indigo-400 hover:bg-indigo-500/10 rounded transition-all"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {deleteIdea && (
+              <button
+                onClick={() => deleteIdea(task.id)}
+                className="p-1 hover:text-red-400 hover:bg-red-500/10 rounded transition-all"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -238,14 +325,27 @@ const AddTaskForm = memo(function AddTaskForm({
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function Kanban() {
-  const { activeProject, isViewer } = useProject();
+  const { activeProject, projects, isViewer, loading: projectLoading } = useProject();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  const {
+    activeTaskId: activeTimerTaskId,
+    taskElapsedTimes,
+    startTimer,
+    stopTimer,
+    setTaskElapsedTimes,
+  } = useTimer();
+
+  const KV_TIMERS_KEY = useMemo(() => activeProject ? `kanban_timers_${activeProject.id}` : '', [activeProject]);
 
   // Load and migrate data
   useEffect(() => {
+    if (projectLoading) return;
+
     if (!activeProject) {
       setLoading(false);
       return;
@@ -256,13 +356,29 @@ export default function Kanban() {
         const kvData: any[] | null = await kv.get(KV_KEY);
         if (kvData && kvData.length > 0) {
           console.log('Migrating legacy Kanban data to DB...');
+          const validProjectIds = new Set(projects.map((p) => p.id));
           for (const t of kvData) {
-            await kanbanService.createCard({
-              project_id: t.projectId,
-              column_id: COLUMN_MIGRATION[t.columnId] || 'pending',
-              content: t.content,
-              deadline: t.deadline
-            });
+            const hasValidProject =
+              t.projectId &&
+              t.projectId !== 'null' &&
+              t.projectId !== 'undefined' &&
+              validProjectIds.has(t.projectId);
+
+            if (
+              !t.projectId ||
+              t.projectId === 'null' ||
+              t.projectId === 'undefined' ||
+              hasValidProject
+            ) {
+              await kanbanService.createCard({
+                project_id: hasValidProject ? t.projectId : undefined,
+                column_id: COLUMN_MIGRATION[t.columnId] || 'pending',
+                content: t.content,
+                deadline: t.deadline
+              });
+            } else {
+              console.log(`Skipping migration of card "${t.content}" because project ${t.projectId} no longer exists.`);
+            }
           }
           await kv.delete(KV_KEY);
         }
@@ -271,6 +387,12 @@ export default function Kanban() {
         const allCards = await kanbanService.getGlobalCards();
         const projectCards = allCards.filter((t) => t.project_id === activeProject.id);
         setTasks(projectCards);
+
+        // Fetch task timers from KV
+        const savedTimers = await kv.get(`kanban_timers_${activeProject.id}`);
+        if (savedTimers) {
+          setTaskElapsedTimes((prev) => ({ ...prev, ...savedTimers }));
+        }
       } catch (err) {
         console.error('Failed to load kanban cards', err);
       } finally {
@@ -278,7 +400,18 @@ export default function Kanban() {
       }
     };
     load();
-  }, [activeProject]);
+  }, [activeProject, projects, projectLoading]);
+
+  const handleToggleTimer = async (taskId: string) => {
+    if (activeTimerTaskId === taskId) {
+      stopTimer();
+    } else {
+      const task = tasks.find((t) => t.id === taskId);
+      if (task) {
+        startTimer(taskId, task.content, KV_TIMERS_KEY);
+      }
+    }
+  };
 
   const addTask = async (column_id: ColumnId, content: string, deadline?: string) => {
     try {
@@ -291,6 +424,15 @@ export default function Kanban() {
       setTasks((prev) => [...prev, newCard]);
     } catch (err) {
       console.error('Failed to create task', err);
+    }
+  };
+
+  const updateTask = async (id: string, updates: Partial<Task>) => {
+    try {
+      const updatedCard = await kanbanService.updateCard(id, updates);
+      setTasks((prev) => prev.map((t) => (t.id === id ? updatedCard : t)));
+    } catch (err) {
+      console.error('Failed to update task', err);
     }
   };
 
@@ -439,24 +581,6 @@ export default function Kanban() {
       </header>
 
       <div className="flex-1 w-full overflow-x-auto pb-4 custom-scrollbar">
-        {tasks.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center border border-dashed border-[var(--color-border)] rounded-xl bg-[var(--color-surface)]/20 py-20">
-            <SquareKanban className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">Your board is empty</h3>
-            <p className="text-zinc-500 text-sm max-w-sm mx-auto text-center mb-6">
-              Create your first task to start organizing your research pipeline and tracking
-              progress.
-            </p>
-            {!isViewer && (
-              <button
-                onClick={() => addTask(COLUMNS[0].id, 'My first task')}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] text-white rounded-xl font-medium transition-colors"
-              >
-                <Plus className="w-4 h-4" /> Add First Task
-              </button>
-            )}
-          </div>
-        ) : (
           <div className="flex gap-4 h-full min-w-max items-start">
             <DndContext
               sensors={sensors}
@@ -472,7 +596,11 @@ export default function Kanban() {
                   tasks={columns[col.id]}
                   onAddTask={(content, deadline) => addTask(col.id, content, deadline)}
                   onDeleteTask={deleteTask}
+                  onEditTask={setEditingTask}
                   isViewer={isViewer}
+                  activeTimerTaskId={activeTimerTaskId}
+                  taskElapsedTimes={taskElapsedTimes}
+                  onToggleTimer={handleToggleTimer}
                 />
               ))}
               {typeof window !== 'undefined' &&
@@ -490,8 +618,14 @@ export default function Kanban() {
                 )}
             </DndContext>
           </div>
-        )}
       </div>
+      {editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          onClose={() => setEditingTask(null)}
+          onSave={updateTask}
+        />
+      )}
     </div>
   );
 }
@@ -511,13 +645,21 @@ const Column = memo(function Column({
   tasks,
   onAddTask,
   onDeleteTask,
+  onEditTask,
   isViewer,
+  activeTimerTaskId,
+  taskElapsedTimes,
+  onToggleTimer,
 }: {
   column: { id: ColumnId; title: string; color: string };
   tasks: Task[];
   onAddTask: (content: string, deadline?: string) => void;
   onDeleteTask: (id: string) => void;
+  onEditTask?: (task: Task) => void;
   isViewer?: boolean;
+  activeTimerTaskId?: string | null;
+  taskElapsedTimes?: Record<string, number>;
+  onToggleTimer?: (taskId: string) => void;
 }) {
   const [showForm, setShowForm] = useState(false);
   const { setNodeRef } = useDroppable({
@@ -545,7 +687,16 @@ const Column = memo(function Column({
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} deleteIdea={onDeleteTask} isViewer={isViewer} />
+            <TaskCard
+              key={task.id}
+              task={task}
+              deleteIdea={onDeleteTask}
+              onEdit={onEditTask}
+              isViewer={isViewer}
+              isTimerRunning={activeTimerTaskId === task.id}
+              elapsedSeconds={taskElapsedTimes?.[task.id]}
+              onToggleTimer={onToggleTimer}
+            />
           ))}
         </SortableContext>
 
@@ -572,3 +723,135 @@ const Column = memo(function Column({
     </div>
   );
 });
+
+// ─── Edit Task Modal ─────────────────────────────────────────────────────────────
+
+interface EditTaskModalProps {
+  task: Task;
+  onClose: () => void;
+  onSave: (id: string, updates: Partial<Task>) => Promise<void>;
+}
+
+function EditTaskModal({ task, onClose, onSave }: EditTaskModalProps) {
+  const [content, setContent] = useState(task.content);
+  const [deadline, setDeadline] = useState(task.deadline || '');
+  const [estimatedMinutes, setEstimatedMinutes] = useState<number | ''>(
+    task.estimated_minutes !== undefined && task.estimated_minutes !== null
+      ? task.estimated_minutes
+      : ''
+  );
+  const [columnId, setColumnId] = useState<ColumnId>(task.column_id);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!content.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      await onSave(task.id, {
+        content: content.trim(),
+        deadline: deadline || undefined,
+        estimated_minutes: estimatedMinutes === '' ? undefined : Number(estimatedMinutes),
+        column_id: columnId,
+      });
+      onClose();
+    } catch (error) {
+      console.error('Failed to update task:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-lg bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-white">Edit Task</h3>
+          <button
+            onClick={onClose}
+            className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-zinc-400 mb-2">
+              Task Description <span className="text-indigo-400">*</span>
+            </label>
+            <textarea
+              autoFocus
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={3}
+              className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none leading-relaxed"
+              placeholder="What needs to be done?"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-400 mb-2">Deadline</label>
+              <input
+                type="date"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-400 mb-2">Estimated Duration</label>
+              <input
+                type="number"
+                min="1"
+                value={estimatedMinutes}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setEstimatedMinutes(val === '' ? '' : parseInt(val, 10));
+                }}
+                placeholder="Minutes"
+                className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-400 mb-2">Status / Column</label>
+            <select
+              value={columnId}
+              onChange={(e) => setColumnId(e.target.value as ColumnId)}
+              className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            >
+              {COLUMNS.map((col) => (
+                <option key={col.id} value={col.id} className="bg-[var(--color-surface)]">
+                  {col.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 border border-[var(--color-border)] text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl font-semibold transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || !content.trim()}
+              className="px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-white rounded-xl font-semibold transition-colors flex items-center gap-2"
+            >
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

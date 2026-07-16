@@ -127,7 +127,7 @@ export default function Timetable() {
           <div className="bg-[#1a1b23] border border-indigo-500/30 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
             <h2 className="text-xl font-semibold text-white mb-4">Availability Profile</h2>
             <p className="text-sm text-zinc-400 mb-6">
-              Set how many minutes per day you can dedicate to tasks. We use this to auto-schedule your backlog.
+              Set how many minutes per day you can dedicate to tasks. We use this to auto-schedule your todos.
             </p>
             <form onSubmit={handleSaveAvailability} className="space-y-4">
               <div>

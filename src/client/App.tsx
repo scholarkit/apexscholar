@@ -13,6 +13,7 @@ import OnboardingModal from './components/OnboardingModal';
 import { auth } from './lib/auth';
 import { getE2EEConfig, initE2EE, isE2EEEnabled, unlockE2EE } from './lib/e2ee';
 import { ProjectProvider } from './contexts/ProjectContext';
+import { TimerProvider } from './contexts/TimerContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -31,9 +32,6 @@ const Funding = lazy(() => import('./pages/Funding'));
 const Insights = lazy(() => import('./pages/Insights'));
 const Composr = lazy(() => import('./pages/Composr'));
 const Settings = lazy(() => import('./pages/Settings'));
-const Learn = lazy(() => import('./pages/Learn'));
-const CourseView = lazy(() => import('./pages/CourseView'));
-const LessonView = lazy(() => import('./pages/LessonView'));
 const About = lazy(() => import('./pages/About'));
 const VimeoDownloader = lazy(() => import('./pages/VimeoDownloader'));
 
@@ -231,44 +229,43 @@ export default function App() {
         <OnboardingModal />
         <NotificationProvider>
           <ProjectProvider>
-            <Router>
-              <Layout>
-                <ErrorBoundary>
-                  <Suspense
-                    fallback={
-                      <div className="flex items-center justify-center min-h-[60vh]">
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="w-10 h-10 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
-                          <span className="text-sm text-zinc-500">Loading module…</span>
+            <TimerProvider>
+              <Router>
+                <Layout>
+                  <ErrorBoundary>
+                    <Suspense
+                      fallback={
+                        <div className="flex items-center justify-center min-h-[60vh]">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="w-10 h-10 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+                            <span className="text-sm text-zinc-500">Loading module…</span>
+                          </div>
                         </div>
-                      </div>
-                    }
-                  >
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/projects" element={<Projects />} />
-                      <Route path="/projects/settings" element={<ProjectSettings />} />
-                      <Route path="/journal" element={<Journal />} />
-                      <Route path="/resources" element={<Resources />} />
-                      <Route path="/explore" element={<Explore />} />
-                      <Route path="/kanban" element={<Kanban />} />
-                      <Route path="/backlog" element={<GlobalKanban />} />
-                      <Route path="/timetable" element={<Timetable />} />
-                      <Route path="/funding" element={<Funding />} />
-                      <Route path="/insights" element={<Insights />} />
-                      <Route path="/composr" element={<Composr />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/learn" element={<Learn />} />
-                      <Route path="/learn/:courseId" element={<CourseView />} />
-                      <Route path="/learn/:courseId/:lessonId" element={<LessonView />} />
-                      <Route path="/about" element={<About />} />
-                      <Route path="/vimeo-downloader" element={<VimeoDownloader />} />
-                      <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                  </Suspense>
-                </ErrorBoundary>
-              </Layout>
-            </Router>
+                      }
+                    >
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/projects" element={<Projects />} />
+                        <Route path="/projects/settings" element={<ProjectSettings />} />
+                        <Route path="/journal" element={<Journal />} />
+                        <Route path="/resources" element={<Resources />} />
+                        <Route path="/explore" element={<Explore />} />
+                        <Route path="/kanban" element={<Kanban />} />
+                        <Route path="/todos" element={<GlobalKanban />} />
+                        <Route path="/timetable" element={<Timetable />} />
+                        <Route path="/funding" element={<Funding />} />
+                        <Route path="/insights" element={<Insights />} />
+                        <Route path="/composr" element={<Composr />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/about" element={<About />} />
+                        <Route path="/vimeo-downloader" element={<VimeoDownloader />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                      </Routes>
+                    </Suspense>
+                  </ErrorBoundary>
+                </Layout>
+              </Router>
+            </TimerProvider>
           </ProjectProvider>
         </NotificationProvider>
       </ToastProvider>

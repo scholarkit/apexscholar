@@ -27,7 +27,15 @@ timetableRouter.get('/availability', requireAuth, async (req, res) => {
 timetableRouter.post('/availability', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
-    const { weekday_minutes, weekend_minutes, blocked_slots } = req.body;
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = {};
+      }
+    }
+    const { weekday_minutes, weekend_minutes, blocked_slots } = body;
 
     const { data, error } = await supabaseAdmin
       .from('availability_profiles')

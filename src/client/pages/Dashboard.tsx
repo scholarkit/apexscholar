@@ -230,35 +230,96 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Entry Types Distribution */}
-        <div className="bg-[var(--bg-surface-2)] border border-[var(--color-border)] rounded-xl p-3 sm:p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-              <Calendar className="w-5 h-5 text-emerald-400" />
+        {/* Left Column: Entry Distribution & Recent Activity */}
+        <div className="space-y-6">
+          {/* Entry Types Distribution */}
+          <div className="bg-[var(--bg-surface-2)] border border-[var(--color-border)] rounded-xl p-3 sm:p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                <Calendar className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h2 className="text-xl font-semibold">Entry Distribution</h2>
             </div>
-            <h2 className="text-xl font-semibold">Entry Distribution</h2>
-          </div>
-          <div className="space-y-4">
-            {typeChartData.length === 0 ? (
-              <p className="text-zinc-500 text-center py-8">No data available</p>
-            ) : (
-              typeChartData.map((item, index) => (
-                <div key={item.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-3 h-3 rounded-full ${['bg-indigo-500', 'bg-emerald-500', 'bg-blue-500', 'bg-purple-500'][index % 4]}`}
-                    />
-                    <span className="text-[var(--color-text-muted)]">{item.name}</span>
+            <div className="space-y-4">
+              {typeChartData.length === 0 ? (
+                <p className="text-zinc-500 text-center py-8">No data available</p>
+              ) : (
+                typeChartData.map((item, index) => (
+                  <div key={item.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-3 h-3 rounded-full ${['bg-indigo-500', 'bg-emerald-500', 'bg-blue-500', 'bg-purple-500'][index % 4]}`}
+                      />
+                      <span className="text-[var(--color-text-muted)]">{item.name}</span>
+                    </div>
+                    <span className="font-medium">{item.value}</span>
                   </div>
-                  <span className="font-medium">{item.value}</span>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Recent Activity Feed */}
+          <div>
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-zinc-400" />
+              Recent Activity
+            </h2>
+
+            <div className="space-y-4">
+              {sortedEntries.slice(0, 5).map((entry) => (
+                <div
+                  key={entry.id}
+                  className="p-5 rounded-xl bg-[var(--bg-surface-2)] border border-[var(--color-border)] transition-colors group"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="px-1 sm:px-2.5 py-1 rounded-xl bg-[var(--color-surface-2)] text-xs font-medium text-[var(--color-text-muted)] border border-[var(--color-accent-glow)]">
+                        {entry.type}
+                      </span>
+                      {entry.project_id && projectMap.get(entry.project_id) && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-violet-500/10 text-xs font-medium text-violet-400 border border-violet-500/20">
+                          <Layers className="w-3 h-3" />
+                          {projectMap.get(entry.project_id)}
+                        </span>
+                      )}
+                      <span className="text-xs sm:text-sm text-zinc-500">
+                        {formatDistanceToNow(parseEntryDate(entry.date), { addSuffix: true })}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="line-clamp-2 mt-2 leading-relaxed">{entry.content}</p>
+                  <button
+                    type="button"
+                    onClick={() => handleViewEntry(entry.project_id)}
+                    className="inline-flex items-center text-sm text-indigo-500 hover:text-indigo-300 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    View full entry &rarr;
+                  </button>
                 </div>
-              ))
-            )}
+              ))}
+
+              {sortedEntries.length === 0 && (
+                <div className="text-center py-12 bg-[var(--color-surface)]/20 border border-dashed border-[var(--color-border)] rounded-xl">
+                  <BookOpen className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
+                  <p className="text-white font-medium mb-1">No recent activity</p>
+                  <p className="text-zinc-500 text-sm mb-6 max-w-sm mx-auto">
+                    Start documenting your research journey by creating your first journal entry.
+                  </p>
+                  <Link
+                    to="/journal"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 text-indigo-500 hover:bg-indigo-600/20 border border-indigo-500/20 rounded-xl font-medium transition-colors"
+                  >
+                    <Plus className="w-4 h-4" /> Create Journal Entry
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Recent Milestones (From Analytics) */}
-        <div className="bg-[var(--bg-surface-2)] border border-[var(--color-border)] rounded-xl p-3 sm:p-6">
+        {/* Right Column: Recent Milestones (From Analytics) */}
+        <div className="bg-[var(--bg-surface-2)] border border-[var(--color-border)] rounded-xl p-3 sm:p-6 h-fit">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 bg-purple-500/10 rounded-xl border border-purple-500/20">
               <GitCommit className="w-5 h-5 text-purple-400" />
@@ -296,64 +357,6 @@ export default function Dashboard() {
               <p className="text-zinc-500 text-center py-8 relative z-10">No milestones yet</p>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Recent Activity Feed */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-          <Clock className="w-5 h-5 text-zinc-400" />
-          Recent Activity
-        </h2>
-
-        <div className="space-y-4">
-          {sortedEntries.slice(0, 5).map((entry) => (
-            <div
-              key={entry.id}
-              className="p-5 rounded-xl bg-[var(--bg-surface-2)] border border-[var(--color-border)] transition-colors group"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="px-1 sm:px-2.5 py-1 rounded-xl bg-[var(--color-surface-2)] text-xs font-medium text-[var(--color-text-muted)] border border-[var(--color-accent-glow)]">
-                    {entry.type}
-                  </span>
-                  {entry.project_id && projectMap.get(entry.project_id) && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-violet-500/10 text-xs font-medium text-violet-400 border border-violet-500/20">
-                      <Layers className="w-3 h-3" />
-                      {projectMap.get(entry.project_id)}
-                    </span>
-                  )}
-                  <span className="text-xs sm:text-sm text-zinc-500">
-                    {formatDistanceToNow(parseEntryDate(entry.date), { addSuffix: true })}
-                  </span>
-                </div>
-              </div>
-              <p className="line-clamp-2 mt-2 leading-relaxed">{entry.content}</p>
-              <button
-                type="button"
-                onClick={() => handleViewEntry(entry.project_id)}
-                className="inline-flex items-center text-sm text-indigo-500 hover:text-indigo-300 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                View full entry &rarr;
-              </button>
-            </div>
-          ))}
-
-          {sortedEntries.length === 0 && (
-            <div className="text-center py-12 bg-[var(--color-surface)]/20 border border-dashed border-[var(--color-border)] rounded-xl">
-              <BookOpen className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-              <p className="text-white font-medium mb-1">No recent activity</p>
-              <p className="text-zinc-500 text-sm mb-6 max-w-sm mx-auto">
-                Start documenting your research journey by creating your first journal entry.
-              </p>
-              <Link
-                to="/journal"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 text-indigo-500 hover:bg-indigo-600/20 border border-indigo-500/20 rounded-xl font-medium transition-colors"
-              >
-                <Plus className="w-4 h-4" /> Create Journal Entry
-              </Link>
-            </div>
-          )}
         </div>
       </div>
     </div>

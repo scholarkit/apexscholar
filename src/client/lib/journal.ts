@@ -52,7 +52,7 @@ export const journalService = {
     return res.json() || [];
   },
 
-  async createEntry(entry: Omit<JournalEntry, 'id'>): Promise<JournalEntry> {
+  async createEntry(entry: any): Promise<JournalEntry> {
     const res = await apiFetch(baseUrl, {
       method: 'POST',
       headers: {
@@ -64,14 +64,15 @@ export const journalService = {
     if (!res.ok) throw new Error('Failed to create journal entry');
 
     // Track journal entry creation in memory
+    const contentStr = entry.content || '';
     supermemory.addMemory(
-      `[journal] create_entry: type=${entry.type}, projectId=${entry.project_id || 'none'}, contentPreview=${entry.content.substring(0, 100)}${entry.content.length > 100 ? '...' : ''}`,
+      `[journal] create_entry: type=${entry.type}, projectId=${entry.project_id || 'none'}, contentPreview=${contentStr.substring(0, 100)}${contentStr.length > 100 ? '...' : ''}`,
       {
         module: 'journal',
         action: 'create_entry',
         entryType: entry.type,
         projectId: entry.project_id,
-        contentPreview: entry.content.substring(0, 100) + (entry.content.length > 100 ? '...' : ''),
+        contentPreview: contentStr.substring(0, 100) + (contentStr.length > 100 ? '...' : ''),
       }
     );
 

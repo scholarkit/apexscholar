@@ -1,4 +1,4 @@
-node_modules/
+﻿node_modules/
 build/
 dist/
 coverage/
@@ -7,4 +7,4 @@ coverage/
 .env*
 !.env.example
 api/_server/
-
+api/_built/

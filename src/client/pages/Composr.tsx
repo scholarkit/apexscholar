@@ -369,24 +369,51 @@ Your abstract here.
 
       await saveCurrentSection();
 
-      let stitchedLatex = `${DEFAULT_LATEX.split('\\begin{document}')[0]}\\begin{document}\n\n`;
-
+      let sectionsContent: string[] = [];
       const docStructure = (await kv.get(`doc_structure_${activeDoc.id}`)) as Section[];
-      for (const sec of docStructure || []) {
-        try {
-          const res = await storage.read(sec.path);
-          const text =
-            typeof res === 'string'
-              ? res
-              : res && typeof res.text === 'function'
-                ? await res.text()
-                : '';
-          stitchedLatex += `\n% --- ${sec.title} ---\n${text}\n`;
-        } catch (err) {
-          console.log(`Failed to read ${sec.path} for stitching`);
+
+      if (docStructure && docStructure.length > 0) {
+        for (const sec of docStructure) {
+          try {
+            let text = '';
+            if (activeSection && activeSection.id === sec.id && activeMode === 'latex') {
+              text = latexContent;
+            } else {
+              const res = await storage.read(sec.path);
+              text =
+                typeof res === 'string'
+                  ? res
+                  : res && typeof res.text === 'function'
+                    ? await res.text()
+                    : '';
+            }
+            sectionsContent.push(`% --- ${sec.title} ---\n${text}`);
+          } catch (err) {
+            console.log(`Failed to read ${sec.path} for stitching`);
+          }
         }
+      } else {
+        sectionsContent.push(latexContent);
       }
-      stitchedLatex += `\n\\end{document}`;
+
+      const combinedRaw = sectionsContent.join('\n\n');
+      const hasDocClass = /\\documentclass(?:\[[^\]]*\])?\{[^}]+\}/.test(combinedRaw);
+      const hasBeginDoc = /\\begin\{document\}/.test(combinedRaw);
+
+      let stitchedLatex = '';
+      if (hasDocClass && hasBeginDoc) {
+        stitchedLatex = combinedRaw;
+        if (!stitchedLatex.includes('\\end{document}')) {
+          stitchedLatex += '\n\\end{document}';
+        }
+      } else {
+        const preamble = DEFAULT_LATEX.split('\\begin{document}')[0];
+        const cleanedBody = combinedRaw
+          .replace(/^[ \t]*\\documentclass(?:\[[^\]]*\])?\{[^}]+\}.*$/gm, '')
+          .replace(/\\begin\{document\}/g, '')
+          .replace(/\\end\{document\}/g, '');
+        stitchedLatex = `${preamble}\\begin{document}\n\n${cleanedBody}\n\n\\end{document}`;
+      }
 
       setCompilationStatus('Compiling...');
 

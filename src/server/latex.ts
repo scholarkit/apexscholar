@@ -1,131 +1,65 @@
 import { Router } from 'express';
-import AdmZip from 'adm-zip';
-import dotenv from 'dotenv';
+import { compile, isAvailable, getVersion } from 'node-latex-compiler';
 import { requireAuth } from './middleware.ts';
-dotenv.config({ path: '.env' });
 
 export const latexRouter = Router();
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_OWNER = 'scholarkit';
-const GITHUB_REPO = 'LaTex';
+// Endpoint to check Tectonic engine status & version
+latexRouter.get('/status', async (_req, res) => {
+  try {
+    const available = isAvailable();
+    const version = available ? await getVersion() : null;
+    res.json({
+      engine: 'tectonic',
+      available,
+      version: version || 'unknown',
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to inspect LaTeX engine status', details: (err as Error).message });
+  }
+});
 
+// Compile LaTeX content directly to PDF
 latexRouter.post('/compile', requireAuth, async (req, res) => {
   const { content } = req.body;
-  if (!content) return res.status(400).json({ error: 'Missing content' });
-
-  if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
-    return res.status(500).json({
-      error: 'GitHub configuration missing',
-      details: 'Ensure GITHUB_TOKEN, GITHUB_OWNER, and GITHUB_REPO are set in .env',
-    });
+  if (!content || typeof content !== 'string') {
+    return res.status(400).json({ error: 'Missing or invalid LaTeX content' });
   }
 
   try {
-    console.log(`Dispatching GitHub Workflow for LaTeX compilation...`);
+    console.log('[Tectonic] Starting LaTeX compilation...');
+    const startTime = Date.now();
 
-    // 1. Dispatch Workflow
-    const dispatchRes = await fetch(
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/compile.yml/dispatches`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-        body: JSON.stringify({
-          ref: 'main',
-          inputs: { tex: content },
-        }),
-      }
-    );
-
-    if (!dispatchRes.ok) {
-      const error = await dispatchRes.text();
-      throw new Error(`GitHub Dispatch Failed: ${error}`);
-    }
-
-    // 2. Poll for the specific run
-    await new Promise((r) => setTimeout(r, 4000));
-
-    let runId = null;
-    let status = 'queued';
-    let attempts = 0;
-    const MAX_ATTEMPTS = 40;
-
-    while (attempts < MAX_ATTEMPTS) {
-      const runsRes = await fetch(
-        `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs?workflow=compile.yml&event=workflow_dispatch&per_page=1`,
-        {
-          headers: {
-            Authorization: `Bearer ${GITHUB_TOKEN}`,
-            Accept: 'application/vnd.github+json',
-          },
-        }
-      );
-      const runsData = await runsRes.json();
-      const latestRun = runsData.workflow_runs?.[0];
-
-      if (latestRun) {
-        runId = latestRun.id;
-        status = latestRun.status;
-
-        if (status === 'completed') {
-          if (latestRun.conclusion !== 'success') {
-            throw new Error(`Workflow failed with conclusion: ${latestRun.conclusion}`);
-          }
-          break;
-        }
-      }
-
-      console.log(
-        `Polling workflow run... Status: ${status} (Attempt ${attempts + 1}/${MAX_ATTEMPTS})`
-      );
-      await new Promise((r) => setTimeout(r, 3000));
-      attempts++;
-    }
-
-    if (status !== 'completed') {
-      throw new Error('Workflow timed out or failed to complete.');
-    }
-    await new Promise((r) => setTimeout(r, 3000));
-    // 3. Get Artifacts
-    console.log(`Retrieving artifact for Run ID: ${runId}`);
-    const artifactsRes = await fetch(
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs/${runId}/artifacts`,
-      {
-        headers: {
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-        },
-      }
-    );
-    const artifactsText = await artifactsRes.text();
-    const artifactsData = JSON.parse(artifactsText);
-    const artifact = artifactsData.artifacts?.find((a: any) => a.name === 'pdf');
-
-    if (!artifact) {
-      throw new Error('Compiled PDF artifact not found.');
-    }
-
-    // 4. Download and Extract PDF
-    const downloadRes = await fetch(artifact.archive_download_url, {
-      headers: { Authorization: `Bearer ${GITHUB_TOKEN}` },
+    const result = await compile({
+      tex: content,
+      returnBuffer: true,
     });
-    const buffer = await downloadRes.arrayBuffer();
 
-    const zip = new AdmZip(Buffer.from(buffer));
-    const zipEntries = zip.getEntries();
-    const pdfEntry = zipEntries.find((e) => e.entryName.endsWith('.pdf'));
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
-    if (!pdfEntry) {
-      throw new Error('manuscript.pdf not found in artifact ZIP.');
+    if (result.status !== 'success' || !result.pdfBuffer) {
+      console.error(`[Tectonic] Compilation failed after ${elapsed}s:`, result.stderr || result.error);
+      return res.status(400).json({
+        error: 'LaTeX compilation failed',
+        details: result.stderr || result.error || result.stdout || 'Unknown error occurred during compilation',
+      });
     }
 
-    res.set('Content-Type', 'application/pdf');
-    res.send(pdfEntry.getData());
+    console.log(`[Tectonic] Compilation successful in ${elapsed}s (${result.pdfBuffer.length} bytes)`);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'inline; filename="manuscript.pdf"',
+      'Content-Length': result.pdfBuffer.length.toString(),
+    });
+
+    res.send(result.pdfBuffer);
   } catch (err) {
-    console.error('LaTeX compilation error:', err);
-    res.status(500).json({ error: 'LaTeX compilation failed', details: (err as any).message });
+    console.error('[Tectonic] Compilation exception:', err);
+    res.status(500).json({
+      error: 'LaTeX compilation failed',
+      details: (err as Error).message || 'Unexpected server error',
+    });
   }
 });
+

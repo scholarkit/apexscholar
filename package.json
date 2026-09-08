@@ -53,6 +53,7 @@
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "node-cron": "^4.6.0",
+    "node-latex-compiler": "^1.0.5",
     "oauth-1.0a": "^2.2.6",
     "pdfjs-dist": "^5.4.624",
     "query-string": "^9.3.1",

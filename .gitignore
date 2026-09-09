@@ -8,3 +8,4 @@ coverage/
 !.env.example
 api/_server/
 api/_built/
+.agents/

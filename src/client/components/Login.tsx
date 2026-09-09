@@ -41,123 +41,136 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   };
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-[#09090b] selection:bg-indigo-500/30">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)] selection:bg-indigo-500/30 p-4 relative overflow-hidden subtle-mesh">
+      {/* Ambient background glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[25%] -left-[25%] w-[50%] h-[50%] bg-indigo-500/10 blur-[120px] rounded-full animate-pulse" />
-        <div
-          className="absolute -bottom-[25%] -right-[25%] w-[50%] h-[50%] bg-purple-500/10 blur-[120px] rounded-full animate-pulse"
-          style={{ animationDelay: '2s' }}
-        />
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-indigo-500/10 blur-[130px] rounded-full" />
+        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-purple-500/10 blur-[130px] rounded-full" />
       </div>
 
       <div className="relative w-full sm:max-w-lg">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-xl mb-6 shadow-2xl shadow-indigo-500/10">
-            <img src="/logo-transparent.png" alt="logo" className="w-16 h-16" />
+        {/* Brand header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-indigo-500/10 border border-indigo-500/20 shadow-lg shadow-indigo-500/10">
+            <img src="/logo-transparent.png" alt="logo" className="w-10 h-10" />
           </div>
-          <h1 className="text-4xl font-bold text-white tracking-tight mb-3">Apex Scholar</h1>
-          <p className="text-zinc-400 text-lg">Secure, portable research management.</p>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-[var(--color-text)] tracking-tight mb-2">
+            Apex Scholar
+          </h1>
+          <p className="text-[var(--color-text-muted)] text-sm sm:text-base">
+            Private, portable workspace for academic literature and writing.
+          </p>
         </div>
 
-        <div className="p-8 overflow-hidden relative group">
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-          <div className="relative space-y-6">
+        {/* Auth Card */}
+        <div className="card-elevated rounded-3xl p-6 sm:p-8 relative backdrop-blur-2xl">
+          <div className="space-y-6">
             {error && (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+              <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs sm:text-sm text-center font-medium">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSignIn} className="space-y-4">
               {isSignUp && (
-                <input
-                  type="text"
-                  placeholder="Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-zinc-800/50 border border-neutral-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
-                  required={isSignUp}
-                />
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1.5 uppercase tracking-wider">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. MarieCurie"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-text-faint)] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
+                    required={isSignUp}
+                  />
+                </div>
               )}
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-zinc-800/50 border border-neutral-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
-                required
-              />
-              <div className="relative flex items-center">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1.5 uppercase tracking-wider">
+                  Email
+                </label>
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-zinc-800/50 border border-neutral-700 rounded-xl pl-4 pr-12 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  type="email"
+                  placeholder="scholar@institution.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-text-faint)] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 p-1.5 text-zinc-400 hover:text-white transition-colors focus:outline-none rounded-lg hover:bg-white/5"
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
               </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--color-text-muted)] mb-1.5 uppercase tracking-wider">
+                  Password
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl pl-4 pr-12 py-3 text-[var(--color-text)] placeholder:text-[var(--color-text-faint)] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm font-mono"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 p-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors focus:outline-none rounded-lg"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full relative group overflow-hidden px-6 py-4 bg-indigo-500 hover:bg-indigo-600 hover:cursor-pointer text-white rounded-xl font-bold text-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 shadow-xl shadow-indigo-600/20"
+                className="w-full py-3.5 px-6 bg-indigo-600 hover:bg-indigo-500 cursor-pointer text-white rounded-xl font-bold text-base transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 shadow-md shadow-indigo-600/25 mt-2"
               >
-                <div className="flex items-center justify-center gap-3">
+                <div className="flex items-center justify-center gap-2.5">
                   {loading ? (
-                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
-                      <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
-                      <Shield className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      <span>{isSignUp ? 'Create Workspace' : 'Sign In to Workspace'}</span>
+                      <Shield className="w-4 h-4" />
                     </>
                   )}
                 </div>
               </button>
-              <div className="text-center mt-4">
+
+              <div className="text-center pt-2">
                 <button
                   type="button"
                   onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-indigo-400 hover:text-indigo-300 hover:cursor-pointer text-sm transition-colors"
+                  className="text-xs text-indigo-400 hover:text-indigo-300 cursor-pointer transition-colors font-medium"
                 >
-                  {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+                  {isSignUp ? 'Already have an account? Sign in' : "First time here? Create your account"}
                 </button>
               </div>
             </form>
 
-            <div className="flex flex-col sm:flex-row sm:gap-4 space-y-4 sm:space-y-0">
-              <div className="sm:w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800/30 border border-[var(--color-border)] transition-all hover:bg-zinc-800/50 hover:border-[var(--color-border)]">
-                <div className="p-2 bg-blue-500/10 rounded-xl">
-                  <Globe className="w-5 h-5 text-blue-400" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[var(--color-border)]">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]">
+                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+                  <Globe className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Cloud Storage</h3>
-                  <p className="text-xs text-zinc-500">Persistent, accessible anywhere</p>
+                  <h4 className="text-xs font-semibold text-[var(--color-text)]">Local-First</h4>
+                  <p className="text-[11px] text-[var(--color-text-muted)]">Encrypted browser data</p>
                 </div>
               </div>
 
-              <div className="sm:w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800/30 border border-[var(--color-border)] transition-all hover:bg-zinc-800/50 hover:border-[var(--color-border)]">
-                <div className="p-2 bg-emerald-500/10 rounded-xl">
-                  <Rocket className="w-5 h-5 text-emerald-400" />
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]">
+                <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+                  <Shield className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Lightning Fast</h3>
-                  <p className="text-xs text-zinc-500">
-                    Real-time sync and decentralized performance
-                  </p>
+                  <h4 className="text-xs font-semibold text-[var(--color-text)]">Private Vault</h4>
+                  <p className="text-[11px] text-[var(--color-text-muted)]">Zero telemetry tracking</p>
                 </div>
               </div>
             </div>

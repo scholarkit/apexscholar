@@ -124,22 +124,32 @@ const ModuleCard = memo(function ModuleCard({
   return (
     <button
       onClick={handleClick}
-      className="rounded-xl border border-[var(--color-border)] bg-[var(--bg-surface-2)] shadow-sm group p-3 sm:p-6 hover:bg-[var(--color-surface-hover)] hover:border-indigo-500/30 transition-all text-left relative overflow-hidden"
+      className="card-elevated rounded-2xl p-5 sm:p-6 group transition-all text-left relative overflow-hidden flex flex-col justify-between active:scale-[0.98] cursor-pointer"
     >
       <div
-        className={`absolute top-0 right-0 w-24 h-24 ${colors.glow} blur-2xl rounded-full -mr-8 -mt-8 pointer-events-none will-change-transform`}
+        className={`absolute top-0 right-0 w-28 h-28 ${colors.glow} blur-2xl rounded-full -mr-8 -mt-8 pointer-events-none will-change-transform`}
         style={{ contain: 'strict' }}
       />
-      <div className="flex items-start justify-between mb-4 relative z-10">
-        <div
-          className={`p-3 ${colors.bg} rounded-xl group-hover:scale-110 transition-transform duration-300`}
-        >
-          <div className={colors.text}>{module.icon}</div>
+      <div>
+        <div className="flex items-start justify-between mb-4 relative z-10">
+          <div
+            className={`p-3 ${colors.bg} border border-white/5 rounded-xl group-hover:scale-105 transition-transform duration-300`}
+          >
+            <div className={colors.text}>{module.icon}</div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] group-hover:translate-x-0.5 transition-all" />
         </div>
-        <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-zinc-400 transition-colors" />
+        <h3 className="text-base sm:text-lg font-bold text-[var(--color-text)] mb-1.5 relative z-10">
+          {module.name}
+        </h3>
+        <p className="text-xs sm:text-sm text-[var(--color-text-muted)] leading-relaxed relative z-10">
+          {module.description}
+        </p>
       </div>
-      <h3 className="text-lg font-semibold mb-2 relative z-10">{module.name}</h3>
-      <p className="text-sm text-zinc-500 leading-relaxed relative z-10">{module.description}</p>
+      <div className="mt-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between text-xs text-[var(--color-text-muted)] group-hover:text-[var(--color-text)] transition-colors relative z-10">
+        <span>Open module</span>
+        <span className="font-semibold text-[var(--color-accent)]">&rarr;</span>
+      </div>
     </button>
   );
 });
@@ -373,26 +383,34 @@ export default function Projects() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold mb-2">Research Projects</h1>
-          <p className="text-base text-zinc-400">Organize and manage your research workspaces.</p>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+              Workspaces
+            </span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--color-text)]">
+            Research Projects
+          </h1>
+          <p className="text-sm sm:text-base text-[var(--color-text-muted)] mt-1">
+            Organize discovery areas, manage literature datasets, and configure parameters.
+          </p>
         </div>
         <button
           onClick={() => setIsCreating(true)}
-          className="w-full sm:w-fit flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-colors  "
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium transition-all shadow-md shadow-indigo-600/20 active:scale-[0.98] cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          New Project
+          <span>New Project</span>
         </button>
       </header>
 
       {/* Main Content Area */}
       {projects.length > 0 ? (
-        <div className="space-y-4 sm:space-y-8">
+        <div className="space-y-6">
           {/* Active Project Card & Switcher */}
-          <div className="border border-[var(--color-border)] rounded-xl relative overflow-hidden group/card bg-[var(--bg-surface-2)]">
+          <div className="card-elevated rounded-2xl relative overflow-hidden group/card">
             {/* Shared Banner */}
             {activeProject?._shared && (
               <div className="bg-indigo-500/10 border-b border-indigo-500/20 px-4 sm:px-8 py-2.5 flex items-center gap-3 group-hover/card:bg-indigo-500/15 transition-colors">
@@ -404,9 +422,9 @@ export default function Projects() {
                   <span className="text-[11px] font-bold uppercase tracking-widest text-indigo-400">
                     Collaborative Workspace
                   </span>
-                  <span className="hidden sm:block w-1 h-1 rounded-full bg-zinc-700" />
-                  <span className="text-[10px] text-zinc-500 font-medium">
-                    Shared with you as <span className="text-zinc-300 font-bold capitalize">{activeProject._role}</span>
+                  <span className="hidden sm:block w-1 h-1 rounded-full bg-[var(--color-border)]" />
+                  <span className="text-xs text-[var(--color-text-muted)] font-medium">
+                    Shared with you as <span className="text-[var(--color-text)] font-semibold capitalize">{activeProject._role}</span>
                   </span>
                 </div>
               </div>

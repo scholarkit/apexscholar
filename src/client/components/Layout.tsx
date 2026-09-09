@@ -140,9 +140,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 space-y-1">
+        <nav className="flex-1 px-3 space-y-1.5">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive =
+              item.path === '/'
+                ? location.pathname === '/'
+                : location.pathname.startsWith(item.path);
             const Icon = item.icon;
             return (
               <Link
@@ -150,27 +153,28 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 to={item.path}
                 title={isCollapsed ? item.label : undefined}
                 className={cn(
-                  'flex items-center rounded-xl text-sm font-medium transition-all duration-200 group',
+                  'flex items-center rounded-xl text-sm font-medium transition-all duration-200 group active:scale-[0.98]',
                   isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'gap-3 px-3 py-2.5',
-                  isActive ? 'bg-[--bg-surface] text-[--color-accent]' : 'hover:bg-white/5'
+                  isActive
+                    ? 'bg-[var(--color-surface-2)] text-[var(--color-accent)] font-semibold shadow-xs border border-[var(--color-border)]'
+                    : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]'
                 )}
-                style={!isActive ? { color: 'var(--color-text-muted)' } : undefined}
               >
                 <Icon
                   className={cn(
-                    'w-5 h-5 flex-shrink-0',
+                    'w-5 h-5 flex-shrink-0 transition-colors duration-200',
                     isActive
-                      ? 'text-indigo-500'
-                      : 'text-zinc-500 group-hover:text-[var(--color-accent)]'
+                      ? 'text-[var(--color-accent)]'
+                      : 'text-[var(--color-text-muted)] group-hover:text-[var(--color-text)]'
                   )}
                 />
                 {!isCollapsed && (
-                  <div>
+                  <div className="flex items-center justify-between flex-1">
                     <span className="animate-in fade-in slide-in-from-left-1 duration-300">
                       {item.label}
                     </span>
                     {item.beta && (
-                      <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-500 text-[10px] font-bold uppercase tracking-wider">
+                      <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-500 text-[10px] font-bold uppercase tracking-wider">
                         Beta
                       </span>
                     )}
@@ -196,10 +200,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className={cn('px-3 mb-2', isCollapsed && 'flex justify-center')}>
           <button
             onClick={() => setShowBrain(true)}
-            title={isCollapsed ? 'Brain (Ctrl+B)' : undefined}
+            title={isCollapsed ? 'Nexus AI (Ctrl+B)' : undefined}
             className={cn(
-              'flex items-center rounded-xl text-sm font-medium transition-all duration-200 group',
-              'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 text-[var(--color-accent)] hover:from-indigo-500/20 hover:to-purple-500/20',
+              'flex items-center rounded-xl text-sm font-medium transition-all duration-200 group active:scale-[0.98]',
+              'bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5 border border-indigo-500/20 text-[var(--color-accent)] hover:border-indigo-500/40 hover:from-indigo-500/15 hover:to-purple-500/15',
               isCollapsed ? 'justify-center w-10 h-10' : 'gap-3 px-3 py-2.5 w-full'
             )}
           >
@@ -208,7 +212,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <span className="animate-in fade-in slide-in-from-left-1 duration-300">Nexus</span>
             )}
             {!isCollapsed && (
-              <kbd className="ml-auto text-[10px] text-zinc-600 bg-[var(--color-surface)] px-1.5 py-0.5 rounded font-mono border border-white/5">
+              <kbd className="ml-auto text-[10px] text-[var(--color-text-muted)] bg-[var(--color-surface)] px-1.5 py-0.5 rounded font-mono border border-[var(--color-border)]">
                 ⌘ B
               </kbd>
             )}
@@ -396,7 +400,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       ────────────────────────────────────────────── */}
       <main
         ref={mainRef}
-        className="flex-1 overflow-auto relative custom-scrollbar flex flex-col"
+        className="flex-1 overflow-auto relative custom-scrollbar flex flex-col subtle-mesh"
         style={{ WebkitOverflowScrolling: 'touch', willChange: 'scroll-position' }}
       >
         <div className="absolute inset-0 pointer-events-none" />
@@ -422,8 +426,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Page content */}
-        <div className="relative p-6 sm:p-8 w-full min-h-full">{children}</div>
+        {/* Page content with max-width container */}
+        <div className="relative p-4 sm:p-8 w-full max-w-7xl mx-auto min-h-full flex-1">{children}</div>
 
         {/* ──────────────────────────────────────────────
             MOBILE BOTTOM TAB BAR

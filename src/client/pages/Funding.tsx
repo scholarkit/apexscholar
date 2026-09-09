@@ -202,12 +202,12 @@ export default function Funding() {
       </header>
 
       {/* Metrics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         <MetricCard
           title="Active Proposals"
           value={metrics.activeProposals.toString()}
           icon={<FileText className="w-5 h-5 text-indigo-500" />}
-          trend="In progress"
+          trend="Currently in drafting / review"
         />
         <MetricCard
           title="Total Awarded"
@@ -221,29 +221,33 @@ export default function Funding() {
           icon={<DollarSign className="w-5 h-5 text-amber-400" />}
           trend={
             metrics.totalAwarded > 0
-              ? `${Math.round((metrics.totalSpent / metrics.totalAwarded) * 100)}% of awarded`
+              ? `${Math.round((metrics.totalSpent / metrics.totalAwarded) * 100)}% of secured funding`
               : 'No funds awarded yet'
           }
         />
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 sm:p-6 shadow-sm">
+        <div className="card-elevated rounded-2xl p-5 sm:p-6 flex flex-col justify-between">
           <div className="flex items-start justify-between mb-4">
-            <span className="text-sm font-medium text-zinc-400">Approaching Deadlines</span>
-            <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-2)] flex items-center justify-center">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+              Upcoming Deadlines
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
               <Clock className="w-5 h-5 text-rose-400" />
             </div>
           </div>
           <div>
             {metrics.upcomingDeadlines.length > 0 ? (
               <div className="flex flex-col gap-1">
-                <span className="text-2xl font-bold">{metrics.upcomingDeadlines.length}</span>
+                <span className="text-3xl font-bold tracking-tight text-[var(--color-text)] tabular-nums">
+                  {metrics.upcomingDeadlines.length}
+                </span>
                 <span className="text-xs text-rose-400 font-medium truncate">
                   Next: {metrics.upcomingDeadlines[0].funder}
                 </span>
               </div>
             ) : (
               <div className="flex flex-col gap-1">
-                <span className="text-2xl font-bold">0</span>
-                <span className="text-xs text-zinc-500">No deadlines in next 30 days</span>
+                <span className="text-3xl font-bold tracking-tight text-[var(--color-text)] tabular-nums">0</span>
+                <span className="text-xs text-[var(--color-text-muted)]">No deadlines within 30 days</span>
               </div>
             )}
           </div>
@@ -369,16 +373,18 @@ function MetricCard({
   trend: string;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 sm:p-6 shadow-sm">
+    <div className="card-elevated rounded-2xl p-5 sm:p-6 flex flex-col justify-between">
       <div className="flex items-start justify-between mb-4">
-        <span className="text-sm font-medium text-zinc-400">{title}</span>
-        <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-2)] flex items-center justify-center group-hover:scale-110 transition-transform">
+        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+          {title}
+        </span>
+        <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center">
           {icon}
         </div>
       </div>
       <div className="flex flex-col gap-1">
-        <span className="text-2xl font-bold tracking-tight">{value}</span>
-        <span className="text-xs text-zinc-500">{trend}</span>
+        <span className="text-3xl font-bold tracking-tight text-[var(--color-text)] tabular-nums">{value}</span>
+        <span className="text-xs text-[var(--color-text-muted)]">{trend}</span>
       </div>
     </div>
   );
@@ -396,7 +402,7 @@ function StatusBadge({ status }: { status: Grant['status'] }) {
   return (
     <span
       className={cn(
-        'px-2.5 py-1 text-xs font-semibold rounded-full border capitalize',
+        'px-2.5 py-0.5 text-xs font-semibold rounded-full border capitalize',
         colors[status]
       )}
     >
@@ -430,12 +436,12 @@ function GrantCard({
   const isDueToday = Boolean(deadlineDay && deadlineDay.getTime() === today.getTime());
 
   return (
-    <div className="bg-[var(--color-surface)]/40 border    border-[var(--color-border)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface)]/60 transition-all rounded-xl p-2.5 sm:p-5 flex flex-col gap-4 group relative">
+    <div className="card-elevated rounded-2xl p-5 sm:p-6 flex flex-col justify-between group relative">
       {/* Context Actions */}
       <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={onEdit}
-          className="p-1.5 text-zinc-500 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+          className="p-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
           title="Edit"
         >
           <Edit2 className="w-3.5 h-3.5" />

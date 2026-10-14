@@ -5,7 +5,6 @@ import remarkGfm from 'remark-gfm';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import { useMemory } from '../hooks/useMemory';
-import Breadcrumbs from '../components/Breadcrumbs';
 // @ts-ignore - html2pdf doesn't have official types
 import html2pdf from 'html2pdf.js';
 
@@ -228,7 +227,6 @@ SUMMARY:`;
 
   return (
     <div className="space-y-4 sm:space-y-8 animate-in fade-in duration-500">
-      <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <div>

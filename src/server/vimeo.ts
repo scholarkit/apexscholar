@@ -2,7 +2,7 @@ import express from 'express';
 
 export const vimeoRouter = express.Router();
 
-// Route to extract Vimeo subtitle tracks metadata
+// Route to extract subtitle tracks metadata
 vimeoRouter.post('/extract', async (req, res) => {
   try {
     const { url } = req.body;
@@ -12,15 +12,15 @@ vimeoRouter.post('/extract', async (req, res) => {
     }
 
     // Extract Video ID using RegExp
-    const vimeoRegExp = /(?:videos?\/|vimeo\.com\/)(?:channels\/[^/]+\/|groups\/[^/]+\/forum\/discussion\/|album\/[^/]+\/video\/|showcase\/[^/]+\/video\/)?([0-9]+)/;
-    const match = url.match(vimeoRegExp);
+    const regExp = /(?:videos?\/|vimeo\.com\/)(?:channels\/[^/]+\/|groups\/[^/]+\/forum\/discussion\/|album\/[^/]+\/video\/|showcase\/[^/]+\/video\/)?([0-9]+)/;
+    const match = url.match(regExp);
     const videoId = match ? match[1] : null;
 
     if (!videoId) {
-      return res.status(400).json({ error: 'Invalid Vimeo URL format' });
+      return res.status(400).json({ error: 'Invalid URL format' });
     }
 
-    // Fetch public configuration from Vimeo player endpoint
+    // Fetch public configuration from player endpoint
     const configResponse = await fetch(`https://player.vimeo.com/video/${videoId}/config`, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',

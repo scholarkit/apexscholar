@@ -29,7 +29,6 @@ import QuickCiteModal from '../components/QuickCiteModal';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '../contexts/ProjectContext';
-import Breadcrumbs from '../components/Breadcrumbs';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ai } from '../lib/ai';
@@ -1420,7 +1419,6 @@ export default function Explore() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
-      <Breadcrumbs />
       {/* Header */}
       <header className="relative">
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />

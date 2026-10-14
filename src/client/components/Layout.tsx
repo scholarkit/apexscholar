@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  BookMarked,
   Brain,
   ChevronLeft,
   ChevronRight,
@@ -15,15 +14,24 @@ import {
   SquareChartGantt,
   ListTodo,
   CalendarDays,
+  Compass,
+  BookOpen,
+  FileCode,
+  Sun,
+  Moon,
   User,
   X,
 } from 'lucide-react';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import BrainModal from './BrainModal';
+import Breadcrumbs from './Breadcrumbs';
+import ContextInspector from './ContextInspector';
 import { ErrorBoundary } from './ErrorBoundary';
 import { NotificationBell } from './NotificationCenter';
 import { auth, type User as AuthUser } from '../lib/auth';
+import { useTheme } from '../contexts/ThemeContext';
+import { useProject } from '../contexts/ProjectContext';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -31,7 +39,14 @@ export function cn(...inputs: ClassValue[]) {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 1024);
+  const { resolvedTheme, setTheme } = useTheme();
+  const { activeProject } = useProject();
+
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) return true;
+    const saved = localStorage.getItem('apex-sidebar-collapsed');
+    return saved === 'true';
+  });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [signingOut, setSigningOut] = useState(false);
@@ -76,6 +91,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     setUser(userData);
   }
 
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('apex-sidebar-collapsed', String(next));
+      return next;
+    });
+  };
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+  };
+
   const handleSignOut = async () => {
     if (!confirm('Are you sure you want to sign out?')) return;
     setSigningOut(true);
@@ -84,22 +111,46 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       window.location.reload();
     } catch (error) {
       console.error('Error signing out:', error);
+      setSigningOut(false);
     }
   };
 
-  const navItems: { path: string; icon: any; label: string; beta?: boolean }[] = [
-    { path: '/', icon: Home, label: 'Dashboard' },
-    { path: '/projects', icon: SquareChartGantt, label: 'Projects' },
-    { path: '/todos', icon: ListTodo, label: 'Todos' },
-    { path: '/timetable', icon: CalendarDays, label: 'Timetable' },
-    { path: '/funding', icon: Landmark, label: 'Funding & Grants' },
-    { path: '/vimeo-downloader', icon: Film, label: 'Subtitles' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
-    { path: '/about', icon: Info, label: 'About' },
+  const navSections = [
+    {
+      title: 'Workspace',
+      items: [
+        { path: '/', icon: Home, label: 'Dashboard' },
+        { path: '/projects', icon: SquareChartGantt, label: 'Projects' },
+        { path: '/todos', icon: ListTodo, label: 'Todos' },
+        { path: '/timetable', icon: CalendarDays, label: 'Timetable' },
+      ],
+    },
+    {
+      title: 'Research',
+      items: [
+        { path: '/explore', icon: Compass, label: 'Explore' },
+        { path: '/journal', icon: BookOpen, label: 'Journal' },
+        { path: '/composr', icon: FileCode, label: 'Composr', beta: true },
+        { path: '/funding', icon: Landmark, label: 'Grants' },
+        { path: '/vimeo-downloader', icon: Film, label: 'Subtitles' },
+      ],
+    },
+    {
+      title: 'System',
+      items: [
+        { path: '/settings', icon: Settings, label: 'Settings' },
+        { path: '/about', icon: Info, label: 'About' },
+      ],
+    },
   ];
 
-  // Bottom tab bar shows first 5 items; remaining accessible via drawer
-  const bottomTabItems = navItems.slice(0, 5);
+  // Bottom tab bar primary items for mobile
+  const bottomTabItems = [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/projects', icon: SquareChartGantt, label: 'Projects' },
+    { path: '/journal', icon: BookOpen, label: 'Journal' },
+    { path: '/explore', icon: Compass, label: 'Explore' },
+  ];
 
   const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : '?';
 
@@ -113,178 +164,215 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       ────────────────────────────────────────────── */}
       <aside
         className={cn(
-          'hidden md:flex relative z-20 flex-shrink-0 flex-col transition-all duration-300 ease-in-out',
-          isCollapsed ? 'w-16' : 'w-64'
+          'hidden md:flex relative z-30 flex-shrink-0 flex-col transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] select-none',
+          isCollapsed ? 'w-[68px]' : 'w-60'
         )}
         style={{ background: 'var(--color-bg)', borderRight: '1px solid var(--color-border)' }}
       >
         {/* Collapse Toggle */}
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-12 w-6 h-6 rounded-full flex items-center justify-center z-50"
-          style={{
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            color: 'var(--color-text)',
-          }}
+          onClick={toggleCollapse}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="absolute -right-3.5 top-5 w-7 h-7 rounded-full flex items-center justify-center z-40 transition-all duration-200 shadow-xs border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:scale-105 active:scale-95"
         >
-          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
         </button>
 
-        {/* Logo */}
+        {/* Logo Header */}
         <div
-          className={cn('px-2 py-4 flex items-center', isCollapsed ? 'justify-center' : 'gap-2')}
+          className={cn(
+            'h-16 px-4 flex items-center border-b border-[var(--color-border)]',
+            isCollapsed ? 'justify-center px-2' : 'justify-between'
+          )}
         >
-          <img src="/logo-transparent.png" alt="logo" className="w-12 h-12" />
-          {!isCollapsed && <h1 className="logo-title">Apex Scholar</h1>}
+          <Link to="/" className="flex items-center gap-2.5 min-w-0 group">
+            <img
+              src="/logo-transparent.png"
+              alt="logo"
+              className="w-8 h-8 flex-shrink-0 group-hover:scale-105 transition-transform"
+            />
+            {!isCollapsed && (
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-semibold text-sm tracking-tight text-[var(--color-text)] truncate">
+                  Apex Scholar
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider bg-[var(--color-surface-2)] text-[var(--color-text-faint)] border border-[var(--color-border)]">
+                  OS
+                </span>
+              </div>
+            )}
+          </Link>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 px-3 space-y-1.5">
-          {navItems.map((item) => {
-            const isActive =
-              item.path === '/'
-                ? location.pathname === '/'
-                : location.pathname.startsWith(item.path);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                title={isCollapsed ? item.label : undefined}
-                className={cn(
-                  'flex items-center rounded-xl text-sm font-medium transition-all duration-200 group active:scale-[0.98]',
-                  isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'gap-3 px-3 py-2.5',
-                  isActive
-                    ? 'bg-[var(--color-surface-2)] text-[var(--color-accent)] font-semibold shadow-xs border border-[var(--color-border)]'
-                    : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]'
-                )}
-              >
-                <Icon
-                  className={cn(
-                    'w-5 h-5 flex-shrink-0 transition-colors duration-200',
-                    isActive
-                      ? 'text-[var(--color-accent)]'
-                      : 'text-[var(--color-text-muted)] group-hover:text-[var(--color-text)]'
-                  )}
-                />
-                {!isCollapsed && (
-                  <div className="flex items-center justify-between flex-1">
-                    <span className="animate-in fade-in slide-in-from-left-1 duration-300">
-                      {item.label}
-                    </span>
-                    {item.beta && (
-                      <span className="ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-500 text-[10px] font-bold uppercase tracking-wider">
-                        Beta
-                      </span>
-                    )}
-                  </div>
-                )}
-              </Link>
-            );
-          })}
+        {/* Grouped Nav List */}
+        <nav className="flex-1 px-2.5 py-3 space-y-4 overflow-y-auto custom-scrollbar">
+          {navSections.map((section, idx) => (
+            <div key={section.title}>
+              {!isCollapsed ? (
+                <div className="px-2 pb-1.5 pt-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-faint)]">
+                  {section.title}
+                </div>
+              ) : (
+                idx > 0 && <div className="border-t border-[var(--color-border)] my-2 mx-1" />
+              )}
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const isActive =
+                    item.path === '/'
+                      ? location.pathname === '/'
+                      : location.pathname.startsWith(item.path);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      title={isCollapsed ? item.label : undefined}
+                      className={cn(
+                        'flex items-center rounded-lg text-xs font-medium transition-all duration-150 group active:scale-[0.98]',
+                        isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'gap-2.5 px-2.5 py-2',
+                        isActive
+                          ? 'bg-[var(--color-surface-hover)] text-[var(--color-text)] font-semibold shadow-xs'
+                          : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)]/70 hover:text-[var(--color-text)]'
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          'w-4 h-4 flex-shrink-0 transition-colors duration-150',
+                          isActive
+                            ? 'text-[var(--color-accent)]'
+                            : 'text-[var(--color-text-muted)] group-hover:text-[var(--color-text)]'
+                        )}
+                      />
+                      {!isCollapsed && (
+                        <div className="flex items-center justify-between flex-1 min-w-0">
+                          <span className="truncate">{item.label}</span>
+                          {item.beta && (
+                            <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                              Beta
+                            </span>
+                          )}
+                          {isActive && !item.beta && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] ml-auto" />
+                          )}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* Notification Bell */}
-        <div className={cn('px-3 mb-1', isCollapsed && 'flex justify-center')}>
-          <NotificationBell>
-            {!isCollapsed && (
-              <span className="animate-in fade-in slide-in-from-left-1 duration-300">
-                Notifications
-              </span>
-            )}
-          </NotificationBell>
-        </div>
-
-        {/* Brain Button */}
-        <div className={cn('px-3 mb-2', isCollapsed && 'flex justify-center')}>
+        {/* Bottom Utility & Profile Panel */}
+        <div className="p-2.5 space-y-1.5 border-t border-[var(--color-border)] bg-[var(--color-bg)]">
+          {/* Brain / Nexus AI Trigger */}
           <button
             onClick={() => setShowBrain(true)}
-            title={isCollapsed ? 'Nexus AI (Ctrl+B)' : undefined}
+            title={isCollapsed ? 'Brain AI (Ctrl+B)' : undefined}
             className={cn(
-              'flex items-center rounded-xl text-sm font-medium transition-all duration-200 group active:scale-[0.98]',
-              'bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5 border border-indigo-500/20 text-[var(--color-accent)] hover:border-indigo-500/40 hover:from-indigo-500/15 hover:to-purple-500/15',
-              isCollapsed ? 'justify-center w-10 h-10' : 'gap-3 px-3 py-2.5 w-full'
+              'flex items-center rounded-lg text-xs font-medium transition-all duration-150 group active:scale-[0.98]',
+              'bg-[var(--color-surface)] hover:bg-indigo-500/10 border border-[var(--color-border)] hover:border-indigo-500/30 text-[var(--color-text)]',
+              isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'gap-2.5 px-2.5 py-2 w-full'
             )}
           >
-            <Brain className="w-5 h-5 flex-shrink-0" />
+            <Brain className="w-4 h-4 text-indigo-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
             {!isCollapsed && (
-              <span className="animate-in fade-in slide-in-from-left-1 duration-300">Nexus</span>
-            )}
-            {!isCollapsed && (
-              <kbd className="ml-auto text-[10px] text-[var(--color-text-muted)] bg-[var(--color-surface)] px-1.5 py-0.5 rounded font-mono border border-[var(--color-border)]">
-                ⌘ B
-              </kbd>
+              <>
+                <span className="truncate">Brain AI</span>
+                <kbd className="kbd-badge ml-auto">⌘B</kbd>
+              </>
             )}
           </button>
-        </div>
 
-        {/* User Profile Footer */}
-        <div
-          className={cn('p-4', isCollapsed ? 'flex flex-col items-center gap-3' : 'space-y-3')}
-          style={{ borderTop: '1px solid var(--color-border)' }}
-        >
-          {isCollapsed ? (
-            <>
-              <div
-                title={user?.email || user?.username || 'User'}
-                className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0"
-              >
-                {user ? initials : <User className="w-4 h-4" />}
-              </div>
-              <button
-                onClick={handleSignOut}
-                disabled={signingOut}
-                title="Sign Out"
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-400/10 border border-transparent hover:border-red-400/20 transition-all"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center gap-3 rounded-xl">
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
-                  {user ? initials : <User className="w-4 h-4" />}
+          {/* Theme Switcher Button */}
+          <button
+            onClick={toggleTheme}
+            title={
+              isCollapsed
+                ? `Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`
+                : undefined
+            }
+            className={cn(
+              'flex items-center rounded-lg text-xs font-medium transition-all duration-150 group active:scale-[0.98]',
+              'hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
+              isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'gap-2.5 px-2.5 py-2 w-full'
+            )}
+          >
+            {resolvedTheme === 'dark' ? (
+              <Sun className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            ) : (
+              <Moon className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+            )}
+            {!isCollapsed && (
+              <span className="truncate">
+                {resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              </span>
+            )}
+          </button>
+
+          {/* User Profile & Sign Out */}
+          <div
+            className={cn(
+              'pt-1.5 border-t border-[var(--color-border)]/60',
+              isCollapsed ? 'flex flex-col items-center gap-1.5' : 'flex items-center justify-between gap-2'
+            )}
+          >
+            {isCollapsed ? (
+              <>
+                <div
+                  title={user?.email || user?.username || 'User Profile'}
+                  className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-xs flex-shrink-0"
+                >
+                  {user ? initials : <User className="w-3.5 h-3.5" />}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="text-sm font-semibold truncate"
-                    style={{ color: 'var(--color-text)' }}
-                  >
-                    {user?.username || 'Loading...'}
-                  </p>
-                  <p
-                    className="text-xs truncate whitespace-nowrap overflow-hidden text-ellipsis"
-                    style={{ color: 'var(--color-text-muted)' }}
-                    title={user?.email || ''}
-                  >
-                    {user?.email || 'Account'}
-                  </p>
+                <button
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  title="Sign Out"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-rose-400 hover:bg-rose-500/10 transition-all disabled:opacity-50"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-xs flex-shrink-0">
+                    {user ? initials : <User className="w-3.5 h-3.5" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold truncate text-[var(--color-text)]">
+                      {user?.username || 'Scholar'}
+                    </p>
+                    <p
+                      className="text-[10px] truncate text-[var(--color-text-muted)]"
+                      title={user?.email || ''}
+                    >
+                      {user?.email || 'Local Vault'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <button
-                onClick={handleSignOut}
-                disabled={signingOut}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-400/10 border border-transparent hover:border-red-400/20 transition-all disabled:opacity-50"
-              >
-                <LogOut className="w-4 h-4 flex-shrink-0" />
-                <span className="animate-in fade-in slide-in-from-left-1 duration-300">
-                  {signingOut ? 'Signing out...' : 'Sign Out'}
-                </span>
-              </button>
-            </>
-          )}
+                <button
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  title="Sign Out"
+                  className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-rose-400 hover:bg-rose-500/10 transition-all disabled:opacity-50"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </aside>
 
       {/* ──────────────────────────────────────────────
           MOBILE DRAWER OVERLAY  (shown on mobile only)
       ────────────────────────────────────────────── */}
-      {/* Backdrop */}
       {drawerOpen && (
         <div
-          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setDrawerOpen(false)}
         />
       )}
@@ -292,148 +380,208 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Slide-in Drawer */}
       <div
         className={cn(
-          'md:hidden fixed top-0 left-0 h-full w-72 z-50 flex flex-col transition-transform duration-300 ease-in-out',
+          'md:hidden fixed top-0 left-0 h-full w-72 z-50 flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-2xl',
           drawerOpen ? 'translate-x-0' : '-translate-x-full'
         )}
         style={{ background: 'var(--color-bg)', borderRight: '1px solid var(--color-border)' }}
       >
         {/* Drawer Header */}
         <div
-          className="flex items-center justify-between px-4 py-4"
+          className="flex items-center justify-between px-4 h-16"
           style={{ borderBottom: '1px solid var(--color-border)' }}
         >
-          <div className="flex items-center gap-2">
-            <img src="/logo-transparent.png" alt="logo" className="w-9 h-9" />
-            <h1 className="logo-title">Apex Scholar</h1>
+          <div className="flex items-center gap-2.5">
+            <img src="/logo-transparent.png" alt="logo" className="w-8 h-8" />
+            <span className="font-semibold text-sm tracking-tight text-[var(--color-text)]">
+              Apex Scholar
+            </span>
           </div>
           <button
             onClick={() => setDrawerOpen(false)}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] transition-all"
+            aria-label="Close menu"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Drawer Nav — all items */}
-        <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group',
-                  isActive ? 'bg-white/10' : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200'
-                )}
-              >
-                <Icon
-                  className={cn(
-                    'w-5 h-5 flex-shrink-0',
-                    isActive ? 'text-indigo-500' : 'text-zinc-500 group-hover:text-zinc-300'
-                  )}
-                />
-                <span>{item.label}</span>
-                {item.beta && (
-                  <span className="ml-auto px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-500 text-[10px] font-bold uppercase tracking-wider">
-                    Beta
-                  </span>
-                )}
-              </Link>
-            );
-          })}
+        {/* Drawer Nav Sections */}
+        <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto custom-scrollbar">
+          {navSections.map((section) => (
+            <div key={section.title}>
+              <div className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-faint)]">
+                {section.title}
+              </div>
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const isActive =
+                    item.path === '/'
+                      ? location.pathname === '/'
+                      : location.pathname.startsWith(item.path);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150',
+                        isActive
+                          ? 'bg-[var(--color-surface-hover)] text-[var(--color-text)] font-semibold'
+                          : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)]/70 hover:text-[var(--color-text)]'
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          'w-4 h-4 flex-shrink-0',
+                          isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'
+                        )}
+                      />
+                      <span className="flex-1">{item.label}</span>
+                      {item.beta && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                          Beta
+                        </span>
+                      )}
+                      {isActive && !item.beta && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* Brain Button (mobile drawer) */}
-        <div className="px-3 mb-2">
+        {/* Drawer Actions */}
+        <div className="p-3 space-y-1.5 border-t border-[var(--color-border)] bg-[var(--color-bg)]">
           <button
             onClick={() => {
               setShowBrain(true);
               setDrawerOpen(false);
             }}
-            className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium w-full bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 text-indigo-300 hover:from-indigo-500/20 hover:to-purple-500/20 hover:text-indigo-200 transition-all duration-200"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium w-full bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-indigo-500/30 text-[var(--color-text)] transition-all"
           >
-            <Brain className="w-5 h-5 flex-shrink-0" />
-            <span>Brain</span>
-            <kbd className="ml-auto text-[10px] text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded font-mono border border-white/5">
-              ⌘B
-            </kbd>
+            <Brain className="w-4 h-4 text-indigo-400" />
+            <span>Brain AI</span>
+            <kbd className="kbd-badge ml-auto">⌘B</kbd>
           </button>
-        </div>
 
-        {/* Notification Bell (mobile drawer) */}
-        <div className="px-3 mb-2">
-          <NotificationBell>
-            <span>Notifications</span>
-          </NotificationBell>
-        </div>
-
-        {/* Drawer Footer — user + sign out */}
-        <div className="p-4 space-y-3" style={{ borderTop: '1px solid var(--color-border)' }}>
-          <div className="flex items-center gap-3 rounded-xl">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
-              {user ? initials : <User className="w-4 h-4" />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text)' }}>
-                {user?.username || 'Loading...'}
-              </p>
-              <p className="text-xs truncate" style={{ color: 'var(--color-text-muted)' }} title={user?.email || ''}>
-                {user?.email || 'Account'}
-              </p>
-            </div>
-          </div>
           <button
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-400/10 border border-transparent hover:border-red-400/20 transition-all disabled:opacity-50"
+            onClick={toggleTheme}
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium w-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all"
           >
-            <LogOut className="w-4 h-4 flex-shrink-0" />
-            {signingOut ? 'Signing out...' : 'Sign Out'}
+            {resolvedTheme === 'dark' ? (
+              <Sun className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-indigo-400" />
+            )}
+            <span>{resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
           </button>
+
+          <div className="pt-2 border-t border-[var(--color-border)] flex items-center justify-between">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-xs">
+                {user ? initials : <User className="w-3.5 h-3.5" />}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold truncate text-[var(--color-text)]">
+                  {user?.username || 'Scholar'}
+                </p>
+                <p className="text-[10px] truncate text-[var(--color-text-muted)]">
+                  {user?.email || 'Local Vault'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-rose-400 hover:bg-rose-500/10 transition-all disabled:opacity-50"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ──────────────────────────────────────────────
-          MAIN CONTENT
+          MAIN CONTENT AREA & TOPBAR
       ────────────────────────────────────────────── */}
       <main
         ref={mainRef}
-        className="flex-1 overflow-auto relative custom-scrollbar flex flex-col subtle-mesh"
+        className="flex-1 overflow-auto relative custom-scrollbar flex flex-col"
         style={{ WebkitOverflowScrolling: 'touch', willChange: 'scroll-position' }}
       >
-        <div className="absolute inset-0 pointer-events-none" />
-
-        {/* Mobile top bar with hamburger */}
-        <div
-          className="md:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 backdrop-blur-md"
-          style={{
-            borderBottom: '1px solid var(--color-border)',
-            background: 'color-mix(in srgb, var(--color-bg) 90%, transparent)',
-          }}
-        >
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
-            aria-label="Open menu"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <div className="flex items-center gap-2">
-            <img src="/logo-transparent.png" alt="logo" className="w-7 h-7" />
-            <span className="logo-title text-base">Apex Scholar</span>
+        {/* Desktop & Mobile Header Bar */}
+        <header className="sticky top-0 z-20 min-h-[64px] border-b border-[var(--color-border)] px-4 sm:px-8 lg:px-10 flex items-center justify-between bg-[var(--color-bg)]/90 backdrop-blur-md transition-all duration-200">
+          {/* Left: Hamburger (mobile) + Breadcrumbs */}
+          <div className="flex items-center gap-3 sm:gap-5 min-w-0 py-2">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="md:hidden w-10 h-10 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)] transition-all flex-shrink-0"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <Breadcrumbs />
           </div>
+
+          {/* Right: Actions Cluster */}
+          <div className="flex items-center gap-2.5 sm:gap-3.5 py-2">
+            {activeProject && (
+              <Link
+                to="/projects"
+                className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all shadow-xs"
+                title="Active Project"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+                <span className="truncate max-w-[150px]">{activeProject.name}</span>
+              </Link>
+            )}
+
+            {/* Theme Toggle Quick Button */}
+            <button
+              onClick={toggleTheme}
+              title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)] bg-[var(--color-surface)] transition-all shadow-xs"
+            >
+              {resolvedTheme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-indigo-400" />
+              )}
+            </button>
+
+            {/* Notification Bell */}
+            <NotificationBell />
+
+            {/* Quick Brain AI trigger */}
+            <button
+              onClick={() => setShowBrain(true)}
+              title="Brain AI (Ctrl+B)"
+              className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 hover:text-indigo-300 transition-all active:scale-[0.98] shadow-xs"
+            >
+              <Brain className="w-4 h-4" />
+              <span>Brain</span>
+              <kbd className="text-[10px] font-mono opacity-60">⌘B</kbd>
+            </button>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <div className="relative p-4 sm:p-8 w-full max-w-7xl mx-auto min-h-full flex-1">
+          {children}
         </div>
 
-        {/* Page content with max-width container */}
-        <div className="relative p-4 sm:p-8 w-full max-w-7xl mx-auto min-h-full flex-1">{children}</div>
+        {/* Linear Right-Hand Context Inspector */}
+        <ContextInspector />
 
         {/* ──────────────────────────────────────────────
             MOBILE BOTTOM TAB BAR
         ────────────────────────────────────────────── */}
         <nav
-          className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around px-2 py-2 backdrop-blur-md safe-area-bottom"
+          className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around px-2 py-1.5 backdrop-blur-md safe-area-bottom"
           style={{
             borderTop: '1px solid var(--color-border)',
             background: 'color-mix(in srgb, var(--color-bg) 95%, transparent)',
@@ -449,21 +597,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.path}
                 to={item.path}
-                className="relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 group min-w-0"
+                className="relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-all duration-150 group min-w-0"
               >
                 {isActive && (
-                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-indigo-500" />
+                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-indigo-500" />
                 )}
                 <Icon
                   className={cn(
-                    'w-5 h-5 flex-shrink-0 transition-colors duration-200',
-                    isActive ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-300'
+                    'w-4 h-4 flex-shrink-0 transition-colors duration-150',
+                    isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'
                   )}
                 />
                 <span
                   className={cn(
-                    'text-[10px] font-medium truncate max-w-[56px] transition-colors duration-200',
-                    isActive ? 'text-indigo-400' : 'text-zinc-600 group-hover:text-zinc-400'
+                    'text-[10px] font-medium truncate max-w-[56px] transition-colors duration-150',
+                    isActive ? 'text-[var(--color-text)]' : 'text-[var(--color-text-faint)]'
                   )}
                 >
                   {item.label}
@@ -472,13 +620,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             );
           })}
 
-          {/* "More" button opens drawer for the remaining items */}
+          {/* "More" button opens drawer */}
           <button
             onClick={() => setDrawerOpen(true)}
-            className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 group"
+            className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-all duration-150 group"
           >
-            <Menu className="w-5 h-5 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
-            <span className="text-[10px] font-medium text-zinc-600 group-hover:text-zinc-400 transition-colors">
+            <Menu className="w-4 h-4 text-[var(--color-text-muted)] group-hover:text-[var(--color-text)] transition-colors" />
+            <span className="text-[10px] font-medium text-[var(--color-text-faint)] group-hover:text-[var(--color-text-muted)] transition-colors">
               More
             </span>
           </button>
@@ -492,7 +640,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
               <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6 text-center max-w-sm">
                 <p className="text-red-400 font-medium mb-2">Nexus encountered an error</p>
-                <button onClick={() => setShowBrain(false)} className="text-sm text-zinc-400 hover:text-white underline">Close</button>
+                <button
+                  onClick={() => setShowBrain(false)}
+                  className="text-sm text-zinc-400 hover:text-white underline"
+                >
+                  Close
+                </button>
               </div>
             </div>
           }

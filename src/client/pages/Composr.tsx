@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiFetch } from '../lib/apiFetch';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '../contexts/ProjectContext';
-import Breadcrumbs from '../components/Breadcrumbs';
 
 import {
   AlertCircle,
@@ -492,8 +491,6 @@ Your abstract here.
 
   return (
     <div className="flex flex-col h-[calc(100vh-50px)] overflow-hidden">
-      <Breadcrumbs />
-
       {/* Dynamic Header */}
       <header className="flex flex-col lg:flex-row items-center gap-4 mb-6 shrink-0">
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />

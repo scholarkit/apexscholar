@@ -41,7 +41,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   };
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)] selection:bg-indigo-500/30 p-4 relative overflow-hidden subtle-mesh">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)] selection:bg-indigo-500/30 p-4 relative overflow-hidden ">
       {/* Ambient background glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 -left-20 w-96 h-96 bg-indigo-500/10 blur-[130px] rounded-full" />
@@ -152,28 +152,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 </button>
               </div>
             </form>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[var(--color-border)]">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]">
-                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
-                  <Globe className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-[var(--color-text)]">Local-First</h4>
-                  <p className="text-[11px] text-[var(--color-text-muted)]">Encrypted browser data</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]">
-                <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
-                  <Shield className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-[var(--color-text)]">Private Vault</h4>
-                  <p className="text-[11px] text-[var(--color-text-muted)]">Zero telemetry tracking</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

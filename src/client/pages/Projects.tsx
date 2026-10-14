@@ -147,7 +147,7 @@ const ModuleCard = memo(function ModuleCard({
         </p>
       </div>
       <div className="mt-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between text-xs text-[var(--color-text-muted)] group-hover:text-[var(--color-text)] transition-colors relative z-10">
-        <span>Open module</span>
+        <span>Open</span>
         <span className="font-semibold text-[var(--color-accent)]">&rarr;</span>
       </div>
     </button>
@@ -489,7 +489,7 @@ export default function Projects() {
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0 p-2.5 rounded-xl border border-white/5 backdrop-blur-md">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0 p-2.5">
                 <div className="relative flex-1 sm:w-64">
                   <label className="absolute -top-2.5 left-3 px-1.5 bg-[var(--color-surface)] text-[10px] uppercase font-bold text-zinc-400 tracking-wider rounded">
                     Switch Project

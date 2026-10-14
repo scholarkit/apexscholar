@@ -17,6 +17,7 @@ import { TimerProvider } from './contexts/TimerContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { InspectorProvider } from './contexts/InspectorContext';
 import { Eye, EyeOff, Loader2, Lock } from 'lucide-react';
 
 // Lazy-loaded page components — each splits into its own chunk
@@ -230,7 +231,8 @@ export default function App() {
         <NotificationProvider>
           <ProjectProvider>
             <TimerProvider>
-              <Router>
+              <InspectorProvider>
+                <Router>
                 <Layout>
                   <ErrorBoundary>
                     <Suspense
@@ -265,7 +267,8 @@ export default function App() {
                   </ErrorBoundary>
                 </Layout>
               </Router>
-            </TimerProvider>
+            </InspectorProvider>
+          </TimerProvider>
           </ProjectProvider>
         </NotificationProvider>
       </ToastProvider>

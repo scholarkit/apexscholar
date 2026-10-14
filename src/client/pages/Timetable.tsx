@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar as CalendarIcon, Clock, Settings, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
-import Breadcrumbs from '../components/Breadcrumbs';
 import { timetableService, ScheduledBlock, AvailabilityProfile } from '../lib/kanban';
 
 export default function Timetable() {
@@ -93,7 +92,6 @@ export default function Timetable() {
 
   return (
     <div className="flex flex-col h-full pb-32 lg:pb-8">
-      <Breadcrumbs />
       <header className="mb-6 shrink-0 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />

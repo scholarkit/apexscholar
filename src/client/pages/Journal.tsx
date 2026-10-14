@@ -5,7 +5,6 @@ import Markdown from 'react-markdown';
 import { parseEntryDate } from '../utils/dateUtils';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
-import Breadcrumbs from '../components/Breadcrumbs';
 import { type JournalEntry, journalService } from '../lib/journal';
 import { journalEntrySchema } from '../lib/schemas';
 
@@ -299,7 +298,6 @@ export default function Journal() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-32 lg:pb-8">
-      <Breadcrumbs />
       <header className="flex flex-col sm:flex-row items-center justify-between">
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none will-change-transform" style={{ contain: 'strict' }} />
         <div>
@@ -402,7 +400,7 @@ export default function Journal() {
                       </button>
                       
                       {!isViewer && (
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-2 transition-opacity">
                           <button
                             onClick={() => openEditor(Entry)}
                             className="p-1.5 text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] hover:bg-white/10 rounded-lg transition-colors"

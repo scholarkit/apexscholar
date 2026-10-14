@@ -266,10 +266,10 @@ ${saveModalTrack.rawTxt}`;
           <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
             <Film className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Vimeo Subtitle Downloader</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Subtitle Downloader</h1>
         </div>
         <p className="text-zinc-400 text-sm">
-          Extract, preview, download, and journal subtitle tracks from public Vimeo videos instantly.
+          Extract, preview, download, and journal subtitle tracks from public videos instantly.
         </p>
       </div>
 

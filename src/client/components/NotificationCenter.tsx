@@ -212,8 +212,8 @@ export function NotificationPanel() {
           'fixed z-[100] bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl overflow-hidden animate-in fade-in duration-200',
           // Mobile: centered full-width sheet
           'inset-x-3 bottom-20 top-auto max-h-[70vh] rounded-2xl',
-          // Desktop: sidebar-anchored popover
-          'md:inset-x-auto md:left-[68px] md:bottom-16 md:w-96 md:max-h-[70vh] md:rounded-xl md:slide-in-from-bottom-2',
+          // Desktop: header-anchored popover
+          'md:inset-x-auto md:right-6 sm:md:right-8 lg:md:right-10 md:top-[94px] md:left-auto md:bottom-auto md:w-96 md:max-h-[70vh] md:rounded-xl md:slide-in-from-top-2',
         ].join(' ')}
       >
         {/* Header */}
@@ -295,16 +295,18 @@ export function NotificationBell({ children }: { children?: React.ReactNode }) {
         data-notification-trigger
         onClick={togglePanel}
         title="Notifications"
-        className={`relative flex items-center gap-3 w-full rounded-xl transition-all duration-200 ${
-          children ? 'px-3 py-2.5 text-sm font-medium' : 'p-2 justify-center'
+        className={`relative flex items-center transition-all duration-200 rounded-xl ${
+          children
+            ? 'gap-3 w-full px-3 py-2.5 text-sm font-medium'
+            : 'w-10 h-10 border border-[var(--color-border)] bg-[var(--color-surface)] justify-center shadow-xs'
         } ${
           isPanelOpen
-            ? 'bg-indigo-500/10 text-indigo-400'
-            : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+            ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30'
+            : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-hover)]'
         }`}
       >
-        <div className="relative flex-shrink-0">
-          <Bell className="w-5 h-5" />
+        <div className="relative flex-shrink-0 flex items-center justify-center">
+          <Bell className="w-4 h-4" />
           {unreadCount > 0 && (
             <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-500 px-1 text-[10px] font-bold text-white ring-2 ring-[var(--color-bg)]">
               {unreadCount > 99 ? '99+' : unreadCount}

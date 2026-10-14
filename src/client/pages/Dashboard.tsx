@@ -126,15 +126,6 @@ export default function Dashboard() {
             Track daily breakthroughs, synthesis momentum, and active milestones.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Link
-            to="/journal"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium transition-all shadow-md shadow-indigo-600/20 active:scale-[0.98]"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Log</span>
-          </Link>
-        </div>
       </header>
 
       {/* KPI Overview — Asymmetric, high-end cards */}

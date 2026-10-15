@@ -22,6 +22,7 @@ export const auth = {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem('apex_no_auto_project');
   },
 
   /**

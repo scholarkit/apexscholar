@@ -58,7 +58,6 @@ To run Apex Scholar locally on your machine, follow these steps:
 3. **Environment Setup:**
    Create a `.env` file in the root directory and add any required API keys (e.g., NCBI, SerpAPI, etc.):
    ```env
-   VITE_PROVIDER=supabase
    SUPABASE_URL=your_supabase_url
    SUPABASE_ANON_KEY=your_supabase_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_key

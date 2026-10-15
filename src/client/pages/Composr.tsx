@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiFetch } from '../lib/apiFetch';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '../contexts/ProjectContext';
+import ProjectRequiredGate from '../components/ProjectRequiredGate';
 
 import {
   AlertCircle,
@@ -462,22 +463,11 @@ Your abstract here.
 
   if (!activeProject && !loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center p-6 bg-[var(--color-surface)]/20 border border-dashed border-[var(--color-border)] rounded-xl">
-        <div className="w-20 h-20 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-8">
-          <FileText className="w-10 h-10 text-indigo-500" />
-        </div>
-        <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">Writing Environment</h2>
-        <p className="text-zinc-500 mb-8 max-w-sm">
-          You must select or create a project before accessing Composr.
-        </p>
-        <button
-          onClick={() => navigate('/projects')}
-          className="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-all"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Go to Projects
-        </button>
-      </div>
+      <ProjectRequiredGate
+        moduleName="LaTeX Composr"
+        moduleDescription="Draft manuscripts, theses, and papers with real-time compilation, autocomplete, and citation bibtex."
+        icon={<FileText className="w-8 h-8 text-purple-400" />}
+      />
     );
   }
 

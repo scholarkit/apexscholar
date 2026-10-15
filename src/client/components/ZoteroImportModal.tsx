@@ -58,6 +58,12 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
 
     setIsImporting(true);
     setError(null);
+
+    if (!activeProject) {
+      setError('An active project is required to import resources from Zotero. Please select a workspace first.');
+      return;
+    }
+
     setImportProgress('Starting import...');
 
     try {
@@ -119,7 +125,7 @@ export default function ZoteroImportModal({ onClose, onImport }: ZoteroImportMod
         const path = `${UPLOADS_DIR}/${filename}`;
 
         return {
-          project_id: activeProject.id,
+          project_id: activeProject?.id,
           name: resolveTitle(d),
           source: 'zotero',
           path,

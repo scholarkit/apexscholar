@@ -23,6 +23,22 @@ authRouter.post('/signup', async (req, res) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
 
+    // Automatically provision initial default project for new user
+    try {
+      if (adminData?.user?.id) {
+        await supabaseAdmin.from('projects').insert({
+          owner_id: adminData.user.id,
+          name: 'General Research',
+          description: 'Default research workspace for literature, notes, writing, and tasks.',
+          tags: ['general', 'research'],
+          status: 'active',
+          start_date: new Date().toISOString().split('T')[0],
+        });
+      }
+    } catch (projErr) {
+      console.error('Failed to create default starter project on signup:', projErr);
+    }
+
     res.json(data);
   } catch (err: any) {
     res.status(400).json({ error: err.message });

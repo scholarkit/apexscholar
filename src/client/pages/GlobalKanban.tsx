@@ -253,7 +253,7 @@ export default function GlobalKanban() {
                               e.stopPropagation();
                               handleToggleTimer(card.id);
                             }}
-                            className={`opacity-0 group-hover:opacity-100 p-1.5 rounded-lg border transition-all ${
+                            className={`p-1.5 rounded-lg border transition-all ${
                               activeTimerTaskId === card.id
                                 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20 animate-pulse'
                                 : 'text-zinc-400 hover:text-white hover:bg-white/5 border-zinc-700/50'
@@ -276,7 +276,7 @@ export default function GlobalKanban() {
                             }
                             navigate('/kanban');
                           }}
-                          className="opacity-0 group-hover:opacity-100 flex items-center gap-1 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all"
                         >
                           Start <ArrowRight className="w-3.5 h-3.5" />
                         </button>

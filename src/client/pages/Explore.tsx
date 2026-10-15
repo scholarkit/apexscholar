@@ -26,6 +26,7 @@ import {
 import ForceGraph2D from 'react-force-graph-2d';
 import { type CitationMetadata } from '../lib/citationPipeline';
 import QuickCiteModal from '../components/QuickCiteModal';
+import ProjectRequiredGate from '../components/ProjectRequiredGate';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '../contexts/ProjectContext';
@@ -382,8 +383,7 @@ export async function extractInsight(paper: Paper): Promise<PaperInsight> {
     model: 'arcee-ai/trinity-large-preview:free',
   });
 
-  // ai.chat() for Supabase returns the content string directly (see ai.ts line 23)
-  // For Puter, it returns an object with message.content
+  // ai.chat() for Supabase returns the content string directly
   const content = typeof res === 'string' ? res : (res?.message?.content ?? '{}');
   const parsed = safeParseJSON(content || '{}');
   return normalizeInsight(parsed, paper.id);
@@ -1398,22 +1398,11 @@ export default function Explore() {
 
   if (!activeProject) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="w-16 h-16 bg-red-500/10 rounded-xl flex items-center justify-center mb-6">
-          <AlertCircle className="w-8 h-8 text-red-500" />
-        </div>
-        <h2 className="text-2xl font-bold text-white mb-2">No Active Project</h2>
-        <p className="text-zinc-500 mb-8 max-w-sm">
-          You must select or create a project before accessing the Exploration module.
-        </p>
-        <button
-          onClick={() => navigate('/projects')}
-          className="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-all"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Go to Projects
-        </button>
-      </div>
+      <ProjectRequiredGate
+        moduleName="Explore Papers"
+        moduleDescription="Discover trending literature, synthesize deep insights, and build visual citation knowledge graphs."
+        icon={<Compass className="w-8 h-8 text-teal-400" />}
+      />
     );
   }
 

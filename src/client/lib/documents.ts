@@ -1,7 +1,4 @@
-import { kv } from './kv';
 import { apiFetch } from './apiFetch';
-
-const provider = (import.meta as any).env?.VITE_PROVIDER || 'puter';
 
 export interface DocumentData {
   id: string;

@@ -7,6 +7,7 @@ import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import { type JournalEntry, journalService } from '../lib/journal';
 import { journalEntrySchema } from '../lib/schemas';
+import ProjectRequiredGate from '../components/ProjectRequiredGate';
 
 import { kv } from '../lib/kv';
 
@@ -277,22 +278,11 @@ export default function Journal() {
 
   if (!activeProject) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="w-16 h-16 bg-red-500/10 rounded-xl flex items-center justify-center mb-6">
-          <AlertCircle className="w-8 h-8 text-red-500" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2">No Active Project</h2>
-        <p className="text-zinc-500 mb-8 max-w-sm">
-          You must select or create a project before accessing the Research Journal.
-        </p>
-        <button
-          onClick={() => navigate('/projects')}
-          className="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-all"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Go to Projects
-        </button>
-      </div>
+      <ProjectRequiredGate
+        moduleName="Research Journal"
+        moduleDescription="Log your research progress, meetings, and weekly diaries."
+        icon={<BookOpen className="w-8 h-8 text-indigo-400" />}
+      />
     );
   }
 

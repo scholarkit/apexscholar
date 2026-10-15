@@ -405,11 +405,11 @@ export async function migrateDataToE2EE(): Promise<{
 
   for (const key of KNOWN_KEYS) {
     try {
-      // Read raw value directly from Puter (bypassing decryption layer).
+      // Read raw value directly from kv (bypassing decryption layer).
       // Since kv.ts now auto-decrypts if E2EE is enabled,
-      // we must retrieve raw from the window.puter object directly to avoid double processing,
+      // we must retrieve raw from the object directly to avoid double processing,
       // OR we just use kvGet if it handles plain values gracefully. But to be safe:
-      const rawValue = await window.puter.kv.get(key);
+      const rawValue = await kv.get(key);
       if (rawValue === null) {
         skipped++;
         continue;
@@ -445,20 +445,4 @@ export async function migrateDataToE2EE(): Promise<{
   }
 
   return { success, failed, skipped };
-}
-
-/**
- * List all KV keys in storage (for debugging/migration)
- */
-export async function listAllKeys(): Promise<string[]> {
-  // Puter.js doesn't expose key listing directly in the SDK we have
-  // So we return known keys only for now
-  return [
-    'research_projects',
-    'research_entries',
-    'research_resources',
-    'research_insights',
-    'research_knowledgebase',
-    'research_kanban',
-  ];
 }

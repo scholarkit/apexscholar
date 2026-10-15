@@ -32,6 +32,7 @@ import { NotificationBell } from './NotificationCenter';
 import { auth, type User as AuthUser } from '../lib/auth';
 import { useTheme } from '../contexts/ThemeContext';
 import { useProject } from '../contexts/ProjectContext';
+import WorkspaceSwitcher from './WorkspaceSwitcher';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -173,7 +174,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <button
           onClick={toggleCollapse}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="absolute -right-3.5 top-5 w-7 h-7 rounded-full flex items-center justify-center z-40 transition-all duration-200 shadow-xs border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:scale-105 active:scale-95"
+          className="absolute -right-3.5 top-12 w-7 h-7 rounded-full flex items-center justify-center z-40 transition-all duration-200 shadow-xs border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:scale-105 active:scale-95"
         >
           {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
         </button>
@@ -405,6 +406,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
+        {/* Mobile Workspace Switcher */}
+        <div className="px-3 pt-3 pb-1 border-b border-[var(--color-border)]">
+          <WorkspaceSwitcher isMobileDrawer />
+        </div>
+
         {/* Drawer Nav Sections */}
         <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto custom-scrollbar">
           {navSections.map((section) => (
@@ -529,16 +535,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Right: Actions Cluster */}
           <div className="flex items-center gap-2.5 sm:gap-3.5 py-2">
-            {activeProject && (
-              <Link
-                to="/projects"
-                className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all shadow-xs"
-                title="Active Project"
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
-                <span className="truncate max-w-[150px]">{activeProject.name}</span>
-              </Link>
-            )}
+            {/* Workspace Switcher */}
+            <WorkspaceSwitcher />
 
             {/* Theme Toggle Quick Button */}
             <button
@@ -555,17 +553,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             {/* Notification Bell */}
             <NotificationBell />
-
-            {/* Quick Brain AI trigger */}
-            <button
-              onClick={() => setShowBrain(true)}
-              title="Brain AI (Ctrl+B)"
-              className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 hover:text-indigo-300 transition-all active:scale-[0.98] shadow-xs"
-            >
-              <Brain className="w-4 h-4" />
-              <span>Brain</span>
-              <kbd className="text-[10px] font-mono opacity-60">⌘B</kbd>
-            </button>
           </div>
         </header>
 

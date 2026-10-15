@@ -13,6 +13,7 @@ interface ProjectContextType {
   setActiveProject: (project: Project) => void;
   refreshProjects: () => Promise<void>;
   createProject: (input: CreateProjectInput) => Promise<Project>;
+  createStarterProject: () => Promise<Project>;
   updateProject: (id: string, patch: UpdateProjectPatch) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
 }
@@ -28,6 +29,26 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const projList = await projectService.getProjects();
+
+      // If a user has 0 projects and hasn't explicitly opted out by deleting all projects,
+      // auto-provision a starter "General Research" workspace so all modules function out of the box.
+      if (projList.length === 0 && !localStorage.getItem('apex_no_auto_project')) {
+        try {
+          const starter = await projectService.createProject({
+            name: 'General Research',
+            description: 'Default research workspace for literature, notes, writing, and tasks.',
+            tags: ['general', 'research'],
+            startDate: new Date().toISOString().split('T')[0],
+          });
+          setProjects([starter]);
+          setActiveProjectState(starter);
+          setLoading(false);
+          return;
+        } catch (starterErr) {
+          console.warn('Auto starter project creation failed, using empty project list:', starterErr);
+        }
+      }
+
       setProjects(projList);
 
       // Auto-select the last accessed project if none is selected
@@ -73,6 +94,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const createProject = useCallback(async (input: CreateProjectInput) => {
+    localStorage.removeItem('apex_no_auto_project');
     const proj = await projectService.createProject(input);
     await fetchProjects();
     await setActiveProject(proj);
@@ -91,6 +113,16 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
     return proj;
   }, [fetchProjects, setActiveProject]);
+
+  const createStarterProject = useCallback(async () => {
+    localStorage.removeItem('apex_no_auto_project');
+    return await createProject({
+      name: 'General Research',
+      description: 'Default research workspace for literature, notes, writing, and tasks.',
+      tags: ['general', 'research'],
+      startDate: new Date().toISOString().split('T')[0],
+    });
+  }, [createProject]);
 
   const updateProject = useCallback(async (id: string, patch: UpdateProjectPatch) => {
     const updated = await projectService.updateProject(id, patch);
@@ -118,6 +150,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       setActiveProjectState(null);
     }
 
+    // If user deleted their last project, respect their action and don't auto-create immediately
+    if (projects.length <= 1) {
+      localStorage.setItem('apex_no_auto_project', 'true');
+    }
+
     await fetchProjects();
 
     // Track project deletion in memory
@@ -126,7 +163,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       action: 'delete',
       projectId: id,
     });
-  }, [activeProject, fetchProjects]);
+  }, [activeProject, projects.length, fetchProjects]);
 
   const activeProjectRole: 'owner' | 'editor' | 'viewer' =
     activeProject?._role || 'owner';
@@ -141,11 +178,12 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     setActiveProject,
     refreshProjects: fetchProjects,
     createProject,
+    createStarterProject,
     updateProject,
     deleteProject,
   }), [
     activeProject, projects, activeProjectRole, isViewer, loading,
-    setActiveProject, fetchProjects, createProject, updateProject, deleteProject
+    setActiveProject, fetchProjects, createProject, createStarterProject, updateProject, deleteProject
   ]);
 
   return (

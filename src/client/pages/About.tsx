@@ -25,7 +25,7 @@ export default function About() {
           About Apex Scholar
         </h1>
         <p className="text-base sm:text-lg text-[var(--color-text-muted)] max-w-2xl mx-auto leading-relaxed">
-          An open, local-first research operating system built to accelerate scientific discovery and literature synthesis.
+          An open, research operating system built to accelerate scientific discovery and literature synthesis.
         </p>
       </header>
 

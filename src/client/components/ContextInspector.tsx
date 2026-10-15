@@ -165,7 +165,10 @@ Researcher Question:
 ${promptToUse}
 `;
 
-      const response = await ai.chat(fullPrompt);
+      const response = await ai.chat([
+        { role: 'system', content: 'You are the Apex Scholar Research Assistant. Provide concise, actionable academic insights with clear markdown formatting.' },
+        { role: 'user', content: fullPrompt },
+      ]);
       setAiResponse(response);
       if (!promptOverride) {
         setAiPrompt('');

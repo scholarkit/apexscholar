@@ -21,6 +21,7 @@ import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import type { Project } from '../lib/projects';
 import ShareProjectModal from '../components/ShareProjectModal';
+import ProjectRequiredGate from '../components/ProjectRequiredGate';
 
 function SectionCard({
   title,
@@ -110,20 +111,11 @@ export default function ProjectSettings() {
 
   if (!activeProject) {
     return (
-      <div className="h-[60vh] flex flex-col items-center justify-center text-center p-6">
-        <FolderGit className="w-12 h-12 text-zinc-700 mb-4" />
-        <h2 className="text-xl font-semibold text-white mb-2">No Project Selected</h2>
-        <p className="text-zinc-500 mb-6 text-sm">
-          Go back to Projects and select a workspace first.
-        </p>
-        <button
-          onClick={() => navigate('/projects')}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-sm font-medium transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Projects
-        </button>
-      </div>
+      <ProjectRequiredGate
+        moduleName="Project Settings"
+        moduleDescription="Configure workspace metadata, collaborator permissions, tags, and data backups."
+        icon={<Settings className="w-8 h-8 text-indigo-400" />}
+      />
     );
   }
 

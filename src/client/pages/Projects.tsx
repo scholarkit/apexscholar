@@ -12,6 +12,7 @@ import {
   PenTool,
   Plus,
   Settings,
+  Sparkles,
   SquareKanban,
   Users,
   X,
@@ -331,7 +332,7 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: CreateProjectModalPro
 }
 
 export default function Projects() {
-  const { projects, activeProject, setActiveProject, createProject, loading } = useProject();
+  const { projects, activeProject, setActiveProject, createProject, createStarterProject, loading } = useProject();
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
 
@@ -566,13 +567,22 @@ export default function Projects() {
             Create your first research project area to start documenting discoveries, managing
             resources, and generating AI-powered insights.
           </p>
-          <button
-            onClick={() => setIsCreating(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-[var(--color-border)] rounded-xl font-medium transition-colors"
-          >
-            <Plus className="w-6 h-6" />
-            Initialize Project
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <button
+              onClick={() => createStarterProject()}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold transition-all shadow-lg shadow-indigo-600/25 active:scale-95"
+            >
+              <Sparkles className="w-4 h-4" />
+              Quick Starter Workspace
+            </button>
+            <button
+              onClick={() => setIsCreating(true)}
+              className="inline-flex items-center gap-2 px-5 py-3 bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-xl text-sm font-medium transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Custom Project
+            </button>
+          </div>
         </div>
       )}
 

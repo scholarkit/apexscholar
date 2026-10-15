@@ -24,6 +24,7 @@ import { storage } from '../lib/storage';
 import CitationModal from '../components/CitationModal';
 import FileChatModal from '../components/FileChatModal';
 import { useProject } from '../contexts/ProjectContext';
+import ProjectRequiredGate from '../components/ProjectRequiredGate';
 import ZoteroImportModal from '../components/ZoteroImportModal';
 import { type Resource, resourcesService } from '../lib/resources';
 
@@ -89,7 +90,7 @@ export default function Resources() {
       const filename = `${Date.now()}-${file.name}`;
       const path = `${UPLOADS_DIR}/${filename}`;
 
-      // Upload to Storage (handles both Supabase and Puter)
+      // Upload to Storage
       await storage.write(path, file);
 
       // Save metadata
@@ -153,6 +154,16 @@ export default function Resources() {
           <p className="text-zinc-500 font-medium">Loading resources...</p>
         </div>
       </div>
+    );
+  }
+
+  if (!activeProject) {
+    return (
+      <ProjectRequiredGate
+        moduleName="Resource Library"
+        moduleDescription="Manage and cite your research PDFs, datasets, text notes, and external files."
+        icon={<FolderOpen className="w-8 h-8 text-emerald-400" />}
+      />
     );
   }
 

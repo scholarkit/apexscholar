@@ -4,6 +4,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useProject } from '../contexts/ProjectContext';
 import { useNavigate } from 'react-router-dom';
+import ProjectRequiredGate from '../components/ProjectRequiredGate';
 import { useMemory } from '../hooks/useMemory';
 // @ts-ignore - html2pdf doesn't have official types
 import html2pdf from 'html2pdf.js';
@@ -36,7 +37,7 @@ export default function Insights() {
           setSummary(null);
         }
       } catch (err) {
-        console.error('Failed to fetch latest insight from Puter:', err);
+        console.error('Failed to fetch latest insight:', err);
       }
     };
     fetchLatestInsight();
@@ -46,7 +47,7 @@ export default function Insights() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch entries from Puter KV for context, filtered by active project
+      // 1. Fetch entries for context, filtered by active project
       const allEntries: Entry[] = (await kv.get('research_entries')) || [];
       const entries = allEntries.filter((e) => e.project_id === activeProject?.id);
 
@@ -73,9 +74,9 @@ SUMMARY:`;
       const generatedSummary =
         typeof response === 'string'
           ? response // OpenRouter via ai.ts returns a string by default
-          : (response as any).message?.content || response.toString(); // Fallback for Puter
+          : (response as any).message?.content || response.toString(); // Fallback
 
-      // 3. Save to Puter KV
+      // 3. Save to KV
       const newInsight: Insight = {
         id: Math.random().toString(36).substring(2, 11),
         projectId: activeProject?.id,
@@ -96,8 +97,8 @@ SUMMARY:`;
 
       setSummary(generatedSummary);
     } catch (err) {
-      console.error('Puter.js Insight Error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred with Puter.js AI');
+      console.error('Insight Error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred with AI');
     } finally {
       setLoading(false);
     }
@@ -206,22 +207,11 @@ SUMMARY:`;
 
   if (!activeProject) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="w-16 h-16 bg-red-500/10 rounded-xl flex items-center justify-center mb-6">
-          <AlertCircle className="w-8 h-8 text-red-500" />
-        </div>
-        <h2 className="text-2xl font-bold text-white mb-2">No Active Project</h2>
-        <p className="text-zinc-500 mb-8 max-w-sm">
-          You must select or create a project before accessing AI Insights.
-        </p>
-        <button
-          onClick={() => navigate('/projects')}
-          className="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-all"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Go to Projects
-        </button>
-      </div>
+      <ProjectRequiredGate
+        moduleName="AI Insights Engine"
+        moduleDescription="Generate intelligent summaries, extract cross-entry research patterns, and discover new ideas from your project logs."
+        icon={<Lightbulb className="w-8 h-8 text-indigo-400" />}
+      />
     );
   }
 

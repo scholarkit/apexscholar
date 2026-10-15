@@ -85,7 +85,7 @@ storageRouter.get('/list', requireAuth, async (req, res) => {
 
     if (error) throw error;
 
-    // Map to puter.fs.list format
+    // Map to compatible list format
     const mappedConfig = data.map((item) => ({
       name: item.name,
       is_dir: !item.metadata, // folders typically don't have metadata size in Supabase list

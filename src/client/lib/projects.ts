@@ -1,7 +1,5 @@
 import { kv } from './kv';
 
-const provider = import.meta.env.VITE_PROVIDER;
-
 export interface Project {
   id: string;
   owner_id: string;
@@ -34,7 +32,6 @@ const baseUrl = '/api/projects';
 
 export const projectService = {
   async getCount(): Promise<number> {
-    if (provider === 'supabase') {
       const token = localStorage.getItem('supabase_token');
       const res = await fetch(`${baseUrl}/count`, {
         headers: {
@@ -44,13 +41,9 @@ export const projectService = {
       if (!res.ok) return 0;
       const data = await res.json();
       return data.count || 0;
-    }
-    const projects = await kv.get(PROJECTS_KEY);
-    return (projects || []).length;
-  },
+    },
 
   async getProjects(): Promise<Project[]> {
-    if (provider === 'supabase') {
       const token = localStorage.getItem('supabase_token');
       const res = await fetch(baseUrl, {
         headers: {
@@ -58,13 +51,9 @@ export const projectService = {
         },
       });
       return res.json() || [];
-    }
-    const projects = await kv.get(PROJECTS_KEY);
-    return projects || [];
-  },
+    },
 
   async getProject(id: string): Promise<Project | null> {
-    if (provider === 'supabase') {
       const token = localStorage.getItem('supabase_token');
       const res = await fetch(`${baseUrl}/${id}`, {
         headers: {
@@ -72,10 +61,7 @@ export const projectService = {
         },
       });
       return res.json() || null;
-    }
-    const projects = await this.getProjects();
-    return projects.find((p) => p.id === id) || null;
-  },
+    },
 
   async createProject(input: CreateProjectInput): Promise<Project> {
     const user = JSON.parse(localStorage.getItem('supabase_user') || '{}');
@@ -90,7 +76,6 @@ export const projectService = {
       end_date: null,
       created_at: new Date().toISOString(),
     };
-    if (provider === 'supabase') {
       const res = await fetch(baseUrl, {
         method: 'POST',
         headers: {
@@ -105,16 +90,7 @@ export const projectService = {
       }
       const result = await res.json();
       return result;
-    }
-    // Fallback for non-supabase provider
-    const projects = await this.getProjects();
-    const withId = {
-      ...newProject,
-      id: Math.random().toString(36).substring(2, 11),
-    };
-    await kv.set(PROJECTS_KEY, [withId, ...projects]);
-    return withId;
-  },
+    },
 
   async updateProjectAccess(id: string): Promise<void> {
     const projects = await this.getProjects();
@@ -127,7 +103,6 @@ export const projectService = {
   },
 
   async updateProject(id: string, patch: UpdateProjectPatch): Promise<Project> {
-    if (provider === 'supabase') {
       const token = localStorage.getItem('supabase_token');
       const res = await fetch(`${baseUrl}/${id}`, {
         method: 'PUT',
@@ -139,15 +114,9 @@ export const projectService = {
       });
       const result = await res.json();
       return result && Array.isArray(result) ? result[0] : result || patch;
-    }
-    const projects = await this.getProjects();
-    const updated = projects.map((p) => (p.id === id ? { ...p, ...patch } : p));
-    await kv.set(PROJECTS_KEY, updated);
-    return updated.find((p) => p.id === id)!;
-  },
+    },
 
   async deleteProject(id: string): Promise<void> {
-    if (provider === 'supabase') {
       const token = localStorage.getItem('supabase_token');
       const res = await fetch(`${baseUrl}/${id}`, {
         method: 'DELETE',
@@ -156,9 +125,5 @@ export const projectService = {
         },
       });
       return res.json() || null;
-    }
-    const projects = await this.getProjects();
-    const updated = projects.filter((p) => p.id !== id);
-    await kv.set(PROJECTS_KEY, updated);
-  },
+    },
 };
